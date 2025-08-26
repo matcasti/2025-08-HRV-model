@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.29">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Matías Castillo-Aguilar">
+
+<title>A Generative Model for Time and Frequency Domain Parameters</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="index_files/libs/clipboard/clipboard.min.js"></script>
+<script src="index_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="index_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="index_files/libs/quarto-html/popper.min.js"></script>
+<script src="index_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="index_files/libs/quarto-html/anchor.min.js"></script>
+<link href="index_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="index_files/libs/quarto-html/quarto-syntax-highlighting-0815c480559380816a4d1ea211a47e91.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="index_files/libs/bootstrap/bootstrap-81267100e462c21b3d6c0d5bf76a3417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">A Generative Model for Time and Frequency Domain Parameters</h1>
+            <p class="subtitle lead">Two Sides from the Same Coin?</p>
+          </div>
+
+
+    <div class="quarto-title-meta-container">
+      <div class="quarto-title-meta-column-start">
+
+        <div class="quarto-title-meta">
+
+                <div>
+            <div class="quarto-title-meta-heading">Author</div>
+            <div class="quarto-title-meta-contents">
+                        <p>Matías Castillo-Aguilar <a href="mailto:m99castillo@gmail.com" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> <a href="https://orcid.org/0000-0001-7291-247X" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+                      </div>
+          </div>
+
+
+                <div>
+            <div class="quarto-title-meta-heading">Modified</div>
+            <div class="quarto-title-meta-contents">
+              <p class="date-modified">August 25, 2025</p>
+            </div>
+          </div>
+
+              </div>
+      </div>
+      <div class="quarto-title-meta-column-end quarto-other-formats-target">
+      <div class="quarto-alternate-formats"><div class="quarto-title-meta-heading">Other Formats</div><div class="quarto-title-meta-contents"><p><a href="index.pdf"><i class="bi bi-file-pdf"></i>PDF</a></p></div></div></div>
+    </div>
+
+
+
+    <div class="quarto-other-links-text-target">
+    </div>  </div>
+</header><div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#model-formulation" id="toc-model-formulation" class="nav-link" data-scroll-target="#model-formulation">Model formulation</a>
+  <ul class="collapse">
+  <li><a href="#baseline-heart-period-mathrmrrt_i" id="toc-baseline-heart-period-mathrmrrt_i" class="nav-link" data-scroll-target="#baseline-heart-period-mathrmrrt_i">Baseline heart period: <span class="math inline">\(\mathrm{RR}(t_i)\)</span></a></li>
+  <li><a href="#structured-variability-amplitude-at_i" id="toc-structured-variability-amplitude-at_i" class="nav-link" data-scroll-target="#structured-variability-amplitude-at_i">Structured Variability Amplitude: <span class="math inline">\(A(t_i)\)</span></a></li>
+  <li><a href="#spectral-components" id="toc-spectral-components" class="nav-link" data-scroll-target="#spectral-components">Spectral components</a></li>
+  </ul></li>
+  <li><a href="#simulating-r-r-interval-data" id="toc-simulating-r-r-interval-data" class="nav-link" data-scroll-target="#simulating-r-r-interval-data">Simulating R-R interval data</a>
+  <ul class="collapse">
+  <li><a href="#frequency-band-contribution" id="toc-frequency-band-contribution" class="nav-link" data-scroll-target="#frequency-band-contribution">Frequency band contribution</a></li>
+  <li><a href="#components-for-sine-functions" id="toc-components-for-sine-functions" class="nav-link" data-scroll-target="#components-for-sine-functions">Components for sine functions</a></li>
+  <li><a href="#parameters-for-mathrmrrt-and-mathrmsdnnt" id="toc-parameters-for-mathrmrrt-and-mathrmsdnnt" class="nav-link" data-scroll-target="#parameters-for-mathrmrrt-and-mathrmsdnnt">Parameters for <span class="math inline">\(\mathrm{RR}(t)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t)\)</span></a></li>
+  <li><a href="#integration-of-frequency-domain-components" id="toc-integration-of-frequency-domain-components" class="nav-link" data-scroll-target="#integration-of-frequency-domain-components">Integration of frequency-domain components</a></li>
+  <li><a href="#accounting-for-residual-variability" id="toc-accounting-for-residual-variability" class="nav-link" data-scroll-target="#accounting-for-residual-variability">Accounting for residual variability</a></li>
+  </ul></li>
+  <li><a href="#making-frequency-bands-change" id="toc-making-frequency-bands-change" class="nav-link" data-scroll-target="#making-frequency-bands-change">Making frequency bands change</a></li>
+  <li><a href="#estimating-the-data-generation-process" id="toc-estimating-the-data-generation-process" class="nav-link" data-scroll-target="#estimating-the-data-generation-process">Estimating the data generation process</a>
+  <ul class="collapse">
+  <li><a href="#estimating-mathrmrrt" id="toc-estimating-mathrmrrt" class="nav-link" data-scroll-target="#estimating-mathrmrrt">Estimating <span class="math inline">\(\mathrm{RR}(t)\)</span></a></li>
+  <li><a href="#estimating-mathrmsdnnt" id="toc-estimating-mathrmsdnnt" class="nav-link" data-scroll-target="#estimating-mathrmsdnnt">Estimating <span class="math inline">\(\mathrm{SDNN}(t)\)</span></a></li>
+  <li><a href="#estimating-all-spectral-components-at-once" id="toc-estimating-all-spectral-components-at-once" class="nav-link" data-scroll-target="#estimating-all-spectral-components-at-once">Estimating all spectral components at once</a></li>
+  <li><a href="#the-same-but-without-phase" id="toc-the-same-but-without-phase" class="nav-link" data-scroll-target="#the-same-but-without-phase">The same but without phase</a></li>
+  </ul></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a>
+  <ul class="collapse">
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
+  <li><a href="#future-research" id="toc-future-research" class="nav-link" data-scroll-target="#future-research">Future Research</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content">
+
+
+
+
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>[…].</p>
+</section>
+<section id="model-formulation" class="level2">
+<h2 class="anchored" data-anchor-id="model-formulation">Model formulation</h2>
+<p>We consider a discrete set of time points <span class="math inline">\(\{t_i\}_{i=1}^N\)</span> at which the R–R interval (RRi) signal is observed. The objective is to represent the RRi series as a superposition of a smoothly varying baseline component, a time-dependent amplitude of structured variability, and a convex combination of spectral oscillators at physiologically defined frequency bands. This model is formally defined in <a href="#eq-big-model" class="quarto-xref">Equation&nbsp;1</a>.</p>
+<p><span id="eq-big-model"><span class="math display">\[
+\mathrm{RRi}(t_i)
+= \underbrace{\mathrm{RR}(t_i)}_{\substack{\text{baseline heart period}}}
++
+\underbrace{A(t_i)}_{\substack{\text{total modulation}\\\text{amplitude}}}
+\times
+\underbrace{\sum_{j=1}^{J} p_j(t_i) \cdot S_j(t_i)}_{\substack{\text{spectral oscillators}\\\text{weighted by proportions}}}
++ \varepsilon_i
+\tag{1}\]</span></span></p>
+<p>Here, <span class="math inline">\(\mathrm{RR}(t_i)\)</span> denotes the gross RRi trajectory. <span class="math inline">\(\mathrm{A}(t_i)\)</span> correspond to the total signal amplitude. Contained within the signal amplitude, the spectral components composed of <span class="math inline">\(j\)</span> bands are found. Thus, <span class="math inline">\(j=1,2,3\)</span> index the very-low-frequency (VLF), low-frequency (LF), and high-frequency (HF) bands, respectively, where the function <span class="math inline">\(S_j(t_i)\)</span> is the normalized, multi-sine-wave signal containing each frequency band. Finally, <span class="math inline">\(p_j(t_i)\)</span> is the time-dependent proportion for frequency band <span class="math inline">\(j\)</span> with respect to the total signal amplitude. Residual, unstructured variability is captured by <span class="math inline">\(\varepsilon_i \sim \mathcal{N}(0, \sigma^2)\)</span>. The explicit time dependency of the functions <span class="math inline">\(\mathrm{RR}(t_i)\)</span>, <span class="math inline">\(\mathrm{A}(t_i)\)</span>, <span class="math inline">\(S_j(t_i)\)</span>, and <span class="math inline">\(p_j(t_i)\)</span> obviates the need for opaque sliding-window decompositions, thus facilitating the simultaneous modeling of both time-domain and frequency-domain phenomena.</p>
+<section id="baseline-heart-period-mathrmrrt_i" class="level3">
+<h3 class="anchored" data-anchor-id="baseline-heart-period-mathrmrrt_i">Baseline heart period: <span class="math inline">\(\mathrm{RR}(t_i)\)</span></h3>
+<p>The <span class="math inline">\(\mathrm{RR}(t_i)\)</span> component quantifies the gross, underlying variations in the mean R–R interval. These fluctuations arise from short-term physiological regulatory processes, including changes in metabolic and cardiovascular demand, and shifts in tonic autonomic drive. This component can be parameterized effectively using smooth, low-dimensional functions that yield interpretable “onset” and “recovery” parameters. A double-logistic function, as presented in <a href="#eq-rri-vs-time-model" class="quarto-xref">Equation&nbsp;2</a>, is particularly well-suited for this purpose.</p>
+<p><span id="eq-rri-vs-time-model"><span class="math display">\[
+\mathrm{RR}(t_i) =
+\underbrace{\alpha_r}_{\substack{\text{Resting RRi}}}
+-
+\underbrace{\beta_r \cdot \mathcal{D}_{1}(t_i)}_{\substack{\text{Exercise-induced}\\\text{RRi drop}}}
++
+\underbrace{c_r \beta_r \cdot \mathcal{D}_{2}(t_i)}_{\substack{\text{Post-exercise}\\\text{RRi recovery}}}
+\tag{2}\]</span></span></p>
+<p>In this formulation, <span class="math inline">\(\alpha_r\)</span> represents the baseline heart period, which can be interpreted as the tonic vagal level. The parameter <span class="math inline">\(\beta_r\)</span> signifies the magnitude of the exercise-induced decline in RRi, meanwhile the fractional recovery amplitude is denoted by <span class="math inline">\(c_r\)</span>. A value of <span class="math inline">\(c_r = 1\)</span> indicates a full return to the baseline resting state <span class="math inline">\(\alpha_r\)</span>, while values greater or less than 1 can effectively model post-exercise physiological overshoot or undershoot, respectively. The functions <span class="math inline">\(\mathcal{D}_{1,2}(t_i)\)</span> correspond to the logistic components described in <a href="#eq-logistic-components" class="quarto-xref">Equation&nbsp;3</a></p>
+<p><span id="eq-logistic-components"><span class="math display">\[
+\begin{aligned}
+\mathcal{D}_{1}(t_i) &amp;= (1+ e^{-\lambda (t_i - \tau)})^{-1} \\
+\mathcal{D}_{2}(t_i) &amp;= (1+ e^{-\phi (t_i - \tau - \delta)})^{-1}
+\end{aligned}
+\tag{3}\]</span></span></p>
+<p>Where the rate constant <span class="math inline">\(\lambda\)</span> governs the initial decrease, with its inflection point occurring at time <span class="math inline">\(\tau\)</span>. The parameter <span class="math inline">\(\phi\)</span> represents the recovery rate. Finally, <span class="math inline">\(\delta\)</span> quantifies the temporal offset between the decline and recovery phases.</p>
+<p>This specific formulation, previously validated by Castillo-Aguilar et al.&nbsp;(2025), directly estimates physiologically salient time points and magnitudes. This facilitates enhanced mechanistic interpretation and improved comparability across different studies.</p>
+</section>
+<section id="structured-variability-amplitude-at_i" class="level3">
+<h3 class="anchored" data-anchor-id="structured-variability-amplitude-at_i">Structured Variability Amplitude: <span class="math inline">\(A(t_i)\)</span></h3>
+<p>In this generative framework, <span class="math inline">\(A(t_i)\)</span> represents a time-varying modulation amplitude that governs the instantaneous magnitude of rhythmic variability, thereby generalizing the conventional notion of SDNN (the standard deviation of normal-to-normal intervals) to a dynamic quantity. By explicitly modeling <span class="math inline">\(\mathrm{A}(t_i)\)</span> separately from the band-relative weights <span class="math inline">\(p_j(t_i)\)</span>, the model effectively isolates the overall autonomic “strength” or magnitude of variability from its specific spectral composition. This separation allows for a more nuanced understanding of how total variability and its distribution across frequency bands evolve over time.</p>
+<p>Both the mean R-R interval, <span class="math inline">\(\mathrm{RR}(t_i)\)</span>, and the total amplitude of the signal, <span class="math inline">\(\mathrm{A}(t_i)\)</span>, employ the same double-logistic functional form, as defined in <a href="#eq-logistic-components" class="quarto-xref">Equation&nbsp;3</a>. This consistent functional specification ensures that the interpretation of associated parameters remains coherent across both the mean heart rate and variability components. This parsimonious approach facilitates a more integrated and interpretable assessment of autonomic modulation.</p>
+<p>When simulating an RRi series such that its structured variability precisely follows a target SDNN trajectory, it is imperative to ensure that the internal model amplitude, <span class="math inline">\(A(t_i)\)</span>, aligns with the prescribed SDNN as a function of time, denoted <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span>. The structured variability component is given by the composite signal <span class="math inline">\(x(t_i) = A(t_i)\sum_{j=1}^J p_j(t_i) S_j(t_i)\)</span>.</p>
+<p>The instantaneous variance of this signal can be derived from its components. By definition, the spectral oscillators <span class="math inline">\(S_j(t_i)\)</span> are constructed to be uncorrelated (due to their independent random phases) and are each normalized to have a variance of one (i.e., <span class="math inline">\(\mathrm{Var}[S_j(t_i)] = 1\)</span>). Consequently, the variance of the composite signal is <span class="math inline">\(\mathrm{Var}[x(t_i)] = A(t_i)^2 \sum_{j=1}^J p_j(t_i)^2\)</span>.</p>
+<p>To ensure the standard deviation of the structured variability matches the target trajectory, we set <span class="math inline">\(\sqrt{\mathrm{Var}[x(t_i)]} = \mathrm{SDNN}(t_i)\)</span>. Solving for <span class="math inline">\(A(t_i)\)</span> yields the precise inversion expressed in <a href="#eq-sdnn-conversion" class="quarto-xref">Equation&nbsp;4</a>.</p>
+<p><span id="eq-sdnn-conversion"><span class="math display">\[
+A(t_i) = \frac{\mathrm{SDNN}(t_i)}{\sqrt{\sum_{j=1}^J p_j(t_i)^2}}
+\tag{4}\]</span></span></p>
+<p>Where <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span> is further modeled as defined in <a href="#eq-sdnn" class="quarto-xref">Equation&nbsp;5</a>.</p>
+<p><span id="eq-sdnn"><span class="math display">\[
+\mathrm{SDNN}(t_i) =
+\underbrace{\alpha_s}_{\substack{\text{Resting SDNN}}}
+-
+\underbrace{\beta_s \cdot \mathcal{D}_{1}(t_i)}_{\substack{\text{Exercise-induced}\\\text{SDNN drop}}}
++
+\underbrace{c_s \beta_s \cdot \mathcal{D}_{2}(t_i)}_{\substack{\text{Post-exercise}\\\text{SDNN recovery}}}
+\tag{5}\]</span></span></p>
+<p>Where the new parameters <span class="math inline">\(\alpha_s\)</span>, <span class="math inline">\(\beta_s\)</span> and <span class="math inline">\(c_s\)</span> correspond to the resting, exercise-induced drop and post-exercise transient states of SDNN, respectively.</p>
+<p>This inversion is crucial in the simulation context. It guarantees that when the RRi data is subsequently modeled, for example as <span class="math inline">\(\mathrm{RRi}(t_i) \sim \mathcal{N}(\mu(t_i), \sigma(t_i))\)</span>, the estimated residual standard deviation (<span class="math inline">\(\sigma(t_i)\)</span>) accurately recovers the intended SDNN trajectory. In other words, the oscillatory amplitude is dynamically scaled such that the total variability profile of the simulated R-R intervals faithfully matches the desired physiological observations. A further advantage of employing the same double-logistic template for both <span class="math inline">\(\mathrm{RR}(t_i)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span> through <span class="math inline">\(\mathcal{D}_{1,2}(t_i)\)</span> is the ability to share and biologically interpret parameters, such as rise rates and inflection times, across both mean heart rate and variability. This yields a parsimonious yet mechanistically rich model of autonomic modulation, enabling a consistent interpretation of dynamic changes in both central tendency and dispersion of R-R intervals.</p>
+</section>
+<section id="spectral-components" class="level3">
+<h3 class="anchored" data-anchor-id="spectral-components">Spectral components</h3>
+<section id="frequency-band-proportion" class="level4">
+<h4 class="anchored" data-anchor-id="frequency-band-proportion">Frequency band proportion</h4>
+<p>The instantaneous proportions of the total oscillatory amplitude attributed to each frequency band is denoted by <span class="math inline">\(p_j(t)\)</span>. The main constraints are <span class="math inline">\(0 \le p_j(t)\le1\)</span> and <span class="math inline">\(\sum_j p_j(t)=1\)</span>. This behavior is controlled by a single master function <span class="math inline">\(C(t_i)\)</span>, with an auxiliary parameter to introduce asymmetry in the response of the different bands. This master function is defined according to <a href="#eq-master-freq-prop" class="quarto-xref">Equation&nbsp;6</a>.</p>
+<p><span id="eq-master-freq-prop"><span class="math display">\[
+C(t_i) =
+\underbrace{\mathcal{D}_{1}(t_i)}_{\substack{\text{Perturbation}}}
+-
+\underbrace{c_c \cdot \mathcal{D}_{2}(t_i)}_{\substack{\text{Recovery}}}
+\tag{6}\]</span></span></p>
+<p>This single double logistic function, <span class="math inline">\(C(t_i)\)</span>, acts as the master controller, representing a transition from a baseline physiological state (<span class="math inline">\(C(t_i) = 0\)</span>) to a perturbed state (<span class="math inline">\(C(t_i) = 1\)</span>), whereas <span class="math inline">\(c_c\)</span> controls de recovery proportion, assuming a potentially incomplete recovery is plausible. We can take advantage of the formulation of our <span class="math inline">\(C(t_i)\)</span> function to model the transition between resting and perturbed states by parameterizing <span class="math inline">\(p_j(t_i)\)</span> according to <a href="#eq-pj-using-ct" class="quarto-xref">Equation&nbsp;7</a>.</p>
+<p><span id="eq-pj-using-ct"><span class="math display">\[
+p_j(t_i) = (1 - C(t_i)) \cdot \vec\pi_{base} + C(t_i) \cdot \vec\pi_{pert}
+\tag{7}\]</span></span></p>
+<p>Where <span class="math inline">\(C(t_)\)</span> is the master control function (double logistic) that goes from 0 to 1. <span class="math inline">\(\vec\pi_{base}\)</span> is the vector of proportions at rest (<span class="math inline">\(C(t_i) = 0\)</span>), and <span class="math inline">\(\vec\pi_{pert}\)</span> is the vector of proportions during the perturbation (<span class="math inline">\(C(t_i) = 1\)</span>). Each <span class="math inline">\(\vec\pi\)</span> vector, contain the state values of each frequency band <span class="math inline">\(j\)</span> and must satisfy the condition <span class="math inline">\(\sum_{j=1}^J \pi_j = 1\)</span>. For example, a “rest” baseline might be HF-dominant, while a “stress” perturbation might be LF-dominant.</p>
+</section>
+<section id="multi-sine-frequency-component" class="level4">
+<h4 class="anchored" data-anchor-id="multi-sine-frequency-component">Multi-sine frequency component</h4>
+<p>Each major frequency band <span class="math inline">\(j\)</span> is not a single sine wave but a superposition of <span class="math inline">\(N_j\)</span> minor sine waves, creating a realistic spectral texture, as denoted in <a href="#eq-multi-sine-fun" class="quarto-xref">Equation&nbsp;8</a>.</p>
+<p><span id="eq-multi-sine-fun"><span class="math display">\[
+S_j(t_i) = Q_j \sum_{k=1}^K a_{j,k} \sin(2 \pi f_{j,k} t_i + u_{j,k})
+\tag{8}\]</span></span></p>
+<p>Here, <span class="math inline">\(Q_j\)</span> is a normalization constant such that the variance of each signal <span class="math inline">\(S_j(t_i)\)</span> is 1. This ensures the proportions <span class="math inline">\(p_j(t_i)\)</span> correctly represent the power distribution. The frequencies of the minor waves <span class="math inline">\(f_{j,k}\)</span> are sampled from the standard ranges for each band. The random phase <span class="math inline">\(u_{j,k}\)</span> is sampled from the range <span class="math inline">\([0,2\pi]\)</span>, to ensure the resulting signal is not artificially periodic. The amplitudes of each minor sine wave <span class="math inline">\(a_{j,k}\)</span>, follows a power-law distribution. The amplitudes of the minor sine waves <span class="math inline">\(a_{j,k}\)</span>, whose distribution is expressed a function of its frequency <span class="math inline">\(f_{j,k}\)</span> and a spectral exponent parameter <span class="math inline">\(b/2\)</span>, denoted in <a href="#eq-a-k-freq" class="quarto-xref">Equation&nbsp;9</a>.</p>
+<p><span id="eq-a-k-freq"><span class="math display">\[
+a_{j,k} \propto f_{j,k}^{-b/2}
+\tag{9}\]</span></span></p>
+<p>Here, a parameter <span class="math inline">\(b = 0\)</span> would denote that all amplitudes <span class="math inline">\(a_{j,k}\)</span> within the band are equal, whereas <span class="math inline">\(b &gt; 0\)</span> would mean that lower frequencies within the band <span class="math inline">\(j\)</span> have higher amplitudes, a common feature in biological systems. The exponent is <span class="math inline">\(b/2\)</span> because signal power is proportional to amplitude squared (<span class="math inline">\(P(f) \propto a^2(f)\)</span>).</p>
+</section>
+</section>
+</section>
+<section id="simulating-r-r-interval-data" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="simulating-r-r-interval-data">Simulating R-R interval data</h2>
+<p>To demonstrate the practical application of the proposed generative framework, we will simulate an R-R interval time series under controlled, physiologically plausible conditions. This process begins by establishing constant baseline proportions for the three canonical frequency bands: high-frequency (HF), low-frequency (LF), and very-low-frequency (VLF). Subsequently, we introduce temporal dynamics into both the mean R-R interval and its variability envelope.</p>
+<section id="frequency-band-contribution" class="level3">
+<h3 class="anchored" data-anchor-id="frequency-band-contribution">Frequency band contribution</h3>
+<p>Initially, we establish equal contributions from each frequency band, setting each proportion to one-third. This represents a neutral starting point, ensuring no single band is presumed to dominate the overall spectral composition:</p>
+<p><span class="math display">\[
+\begin{aligned}
+p_\mathrm{HF} &amp;\leftarrow 0.\overline{333} \\
+p_\mathrm{LF} &amp;\leftarrow 0.\overline{333} \\
+p_\mathrm{VLF} &amp;\leftarrow 0.\overline{333}
+\end{aligned}
+\]</span></p>
+<p>These assignments for <span class="math inline">\(p_\mathrm{HF}\)</span>, <span class="math inline">\(p_\mathrm{LF}\)</span>, and <span class="math inline">\(p_\mathrm{VLF}\)</span> represent the constant fractional weights of the HF, LF, and VLF components, respectively. This uniform initialization provides a balanced baseline from which subsequent temporal modulations will evolve, facilitating clear attribution of dynamic changes to the logistic-driven processes described later.</p>
+</section>
+<section id="components-for-sine-functions" class="level3">
+<h3 class="anchored" data-anchor-id="components-for-sine-functions">Components for sine functions</h3>
+<p>Next, we assign central frequencies <span class="math inline">\(f_j\)</span> for each sinusoidal oscillator based on established HRV spectral ranges. Selecting values at the midpoint of each band ensures that our simulated oscillations reside within physiologically validated domains:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Band</th>
+<th style="text-align: center;">Frequency range (Hz)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">HF</td>
+<td style="text-align: center;">0.15–0.40</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">LF</td>
+<td style="text-align: center;">0.04–0.15</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">VLF</td>
+<td style="text-align: center;">0.003–0.04</td>
+</tr>
+</tbody>
+</table>
+<p>The approximated frequency for each band is set to the midpoint of its range: <span class="math inline">\(f_\mathrm{HF} \approx 0.25\)</span>, <span class="math inline">\(f_\mathrm{LF} \approx 0.10\)</span>, and <span class="math inline">\(f_\mathrm{VLF} \approx 0.02\)</span>. For the random phase parameter <span class="math inline">\(\phi_j\)</span>, we will draw them from <span class="math inline">\(\phi_j \sim \mathcal{U}(0, 2 \pi)\)</span>. This assumption of out-phase oscillations at simulation onset allows for more realism of the resultant beat-to-beat variability.</p>
+</section>
+<section id="parameters-for-mathrmrrt-and-mathrmsdnnt" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="parameters-for-mathrmrrt-and-mathrmsdnnt">Parameters for <span class="math inline">\(\mathrm{RR}(t)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t)\)</span></h3>
+<p>Subsequently, temporal modulation of both the mean R-R interval and its standard deviation (i.e., SDNN) is incorporated using coupled double-logistic functions, consistent with the parameterization described by Castillo-Aguilar et al.&nbsp;(2025). The parameters governing the mean R-R trajectory are defined as follows:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Parameter</th>
+<th style="text-align: center;">Value</th>
+<th style="text-align: center;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\alpha_\mathrm{RR}\)</span></td>
+<td style="text-align: center;">800</td>
+<td style="text-align: center;">Baseline RR</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\beta_\mathrm{RR}\)</span></td>
+<td style="text-align: center;">300</td>
+<td style="text-align: center;">RR drop</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(c_\mathrm{RR}\)</span></td>
+<td style="text-align: center;">0.80</td>
+<td style="text-align: center;">Recovery proportion</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\lambda_\mathrm{RR}\)</span></td>
+<td style="text-align: center;">3.0</td>
+<td style="text-align: center;">Drop rate</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\phi_\mathrm{RR}\)</span></td>
+<td style="text-align: center;">2.0</td>
+<td style="text-align: center;">Recovery rate</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\tau_\mathrm{RR}\)</span></td>
+<td style="text-align: center;">6.0</td>
+<td style="text-align: center;">Drop time</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\delta_\mathrm{RR}\)</span></td>
+<td style="text-align: center;">3.0</td>
+<td style="text-align: center;">Drop duration</td>
+</tr>
+</tbody>
+</table>
+<p>These parameters establish a baseline R-R interval of 800 ms, a transient decrease of 300 ms upon exercise onset, and an 80% recovery over a subsequent window, with precisely defined rates and timing.</p>
+<p>An analogous parameter set governs the time course of SDNN:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Parameter</th>
+<th style="text-align: center;">Value</th>
+<th style="text-align: center;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\alpha_\mathrm{SDNN}\)</span></td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">Baseline SDNN</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\beta_\mathrm{SDNN}\)</span></td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">SDNN drop</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(c_\mathrm{SDNN}\)</span></td>
+<td style="text-align: center;">1.20</td>
+<td style="text-align: center;">Recovery proportion</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\lambda_\mathrm{SDNN}\)</span></td>
+<td style="text-align: center;">2.0</td>
+<td style="text-align: center;">Drop rate</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\phi_\mathrm{SDNN}\)</span></td>
+<td style="text-align: center;">2.0</td>
+<td style="text-align: center;">Recovery rate</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\tau_\mathrm{SDNN}\)</span></td>
+<td style="text-align: center;">6.0</td>
+<td style="text-align: center;">Drop time</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\delta_\mathrm{SDNN}\)</span></td>
+<td style="text-align: center;">3.0</td>
+<td style="text-align: center;">Drop duration</td>
+</tr>
+</tbody>
+</table>
+<p>Here, resting variability commences at 30 ms, transiently decreases by 20 ms with exercise, and subsequently overshoots the baseline by 20% during the recovery phase, thereby reflecting dynamic autonomic modulation. This precise control over the SDNN trajectory, coupled with the time-varying spectral proportions discussed previously, is critical for accurately simulating realistic R-R interval dynamics.</p>
+<p>A high-resolution time vector is defined, spanning from 0.01 min to 15 min in 0.01 min increments, ensuring fine temporal granularity for the simulation. Using these specifications, the mean R-R interval at each time point is computed via the double-logistic form previously described. This generates a time series that smoothly transitions from baseline to nadir and back toward recovery, effectively capturing the characteristic heart period modulation induced by exercise. The same generative process is applied to SDNN fluctuations over time, utilizing an identical functional form as for the mean R-R interval. This dynamic relationship is depicted in <a href="#fig-logistic-rr-sdnn" class="quarto-xref">Figure&nbsp;1</a>.</p>
+<div class="cell page-columns page-full">
+<div class="cell-output-display page-columns page-full">
+<div id="fig-logistic-rr-sdnn" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-logistic-rr-sdnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="index_files/figure-html/fig-logistic-rr-sdnn-1.svg" class="img-fluid figure-img column-page-left" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-logistic-rr-sdnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Mean R-R (<span class="math inline">\(\mathrm{RR}(t)\)</span>) and SDNN (<span class="math inline">\(\mathrm{SDNN}(t)\)</span>) as a function of time, illustrating a resting state, exercise-induced drop, and post-exercise recovery kinetics. This behavior is controlled by the coupled logistic function described.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The <span class="math inline">\(\mathrm{SDNN}(t)\)</span> curve represents the width around the main R-R interval signal. This can be re-visualized as a band of varying width around the mean R-R interval signal, as depicted in <a href="#fig-meanrr-sdnn-time" class="quarto-xref">Figure&nbsp;2</a>.</p>
+<div class="cell page-columns page-full">
+<div class="cell-output-display page-columns page-full">
+<div id="fig-meanrr-sdnn-time" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-meanrr-sdnn-time-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="index_files/figure-html/fig-meanrr-sdnn-time-1.svg" class="img-fluid figure-img column-page-left" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-meanrr-sdnn-time-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Mean R-R and SDNN as a function of time, where SDNN is depicted as a varying amplitude band around mean R-R, representing fluctuations in HRV.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The amplitude of this band, determined by <span class="math inline">\(\mathrm{SDNN}(t)\)</span>, demonstrably changes over time. This variation is directly linked to autonomic modulation, underscoring its inherently dynamic nature. It is crucial to recognize that the width of this amplitude band serves as the container for fluctuations originating from the frequency domains.</p>
+</section>
+<section id="integration-of-frequency-domain-components" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="integration-of-frequency-domain-components">Integration of frequency-domain components</h3>
+<p>Frequency domains, which constitute the segment of the R-R interval signal composed of periodic waves at different frequencies, are the elemental constituents of the signal’s amplitude. Consequently, the overall amplitude is formed by the HF, LF, and VLF components, not necessarily in equal proportions. A fundamental assumption prevalent in most spectral decomposition analyses is that the proportional contribution of different frequency bands remains constant over time. This implies that the proportion of the amplitude band described by HF, LF, or VLF does not fluctuate temporally. However, this premise is fundamentally flawed because the autonomic nervous system is a known dynamic system, rendering assumptions of static states physiologically unsound.</p>
+<p>This dynamic process is further depicted by the <a href="#eq-sine-components" class="quarto-xref">Equation&nbsp;10</a>, with the fundamental condition <span class="math inline">\(\sum_{j=1}^J p_j(t_i) \sin\bigl(2\pi f_j t_i + \phi_j\bigr) = 1\)</span> to be constrained within the limits of <span class="math inline">\(\mathrm{SDNN}(t)\)</span>.</p>
+<p><span id="eq-sine-components"><span class="math display">\[
+\sum_{j=1}^{3}
+\underbrace{p_j(t_i)}_{\substack{\text{Time-evolving}\\\text{proportion}}}\,
+\underbrace{\sin\bigl(2\pi f_j t_i + \phi_j\bigr)}_{\substack{\text{Wave function}}}
+\tag{10}\]</span></span></p>
+<p>A reference figure illustrating isolated frequency components as a function of time portrayed in <a href="#fig-isolated-freq-comp" class="quarto-xref">Figure&nbsp;3</a>.</p>
+<div class="cell page-columns page-full">
+<div class="cell-output-display page-columns page-full">
+<div id="fig-isolated-freq-comp" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-isolated-freq-comp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="index_files/figure-html/fig-isolated-freq-comp-1.svg" class="img-fluid figure-img column-page-left" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-isolated-freq-comp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Isolated high, low, and very low frequency components as a function of time during the first 4 minutes. Each frequency band is normalized by its relative contribution factor <span class="math inline">\(p_j(t)\)</span> to the amplitude band <span class="math inline">\(\mathrm{SDNN}(t)\)</span>.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The previously simulated frequency bands can be combined with the overall mean R-R trend as a function of time, yielding a more realistic representation of an R-R interval signal that integrates the influence of spectral components, as illustrated in <a href="#fig-true-rr-interval" class="quarto-xref">Figure&nbsp;4</a>.</p>
+<div class="cell page-columns page-full">
+<div class="cell-output-display page-columns page-full">
+<div id="fig-true-rr-interval" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-true-rr-interval-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="index_files/figure-html/fig-true-rr-interval-1.svg" class="img-fluid figure-img column-page-left" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-true-rr-interval-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: True generated R-R interval signal with time and frequency components integrated under the same generative process. The top panel displays the true signal, and the bottom panel highlights the frequency bands as part of the overall generated signal. The dashed line represents the SDNN envelope around the R-R interval signal
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="accounting-for-residual-variability" class="level3">
+<h3 class="anchored" data-anchor-id="accounting-for-residual-variability">Accounting for residual variability</h3>
+<p>Real-world data invariably contain random noise that cannot be explained by further decomposing the signal into frequency bands without risking overfitting the inherent noise in R-R interval data. Nevertheless, the proposed model is capable of discerning the true signal from this noise, effectively isolating the underlying parameters that accurately reproduce both time and frequency components within a single generative framework.</p>
+</section>
+</section>
+<section id="making-frequency-bands-change" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="making-frequency-bands-change">Making frequency bands change</h2>
+<p>To enhance the realism of our simulated R-R interval data, we introduce temporal variations in the proportional contribution of each frequency band to the overall signal amplitude. This dynamic approach moves beyond static assumptions of spectral composition, reflecting the inherent non-stationarity of physiological systems. To achieve this, we again leverage the flexibility of the double-logistic function, applying it to model the time-varying proportions of VLF, LF, and HF components.</p>
+<p>We employ a stick-breaking scheme, a type of hierarchical decomposition, for the proportion components, denoted as <span class="math inline">\(p_j(t_i)\)</span>. This elegant approach simplifies the modeling process significantly. Instead of defining and constraining three independent proportion parameters (<span class="math inline">\(p_\mathrm{VLF}\)</span>, <span class="math inline">\(p_\mathrm{LF}\)</span>, and <span class="math inline">\(p_\mathrm{HF}\)</span>), the stick-breaking method requires us to define only two latent variables. The first latent variable is the proportion of VLF (<span class="math inline">\(p_\mathrm{VLF}\)</span>) relative to the overall signal amplitude. The second is the HF proportion of the non-VLF remainder, which inherently encompasses both the HF and LF frequency bands. This structure naturally enforces the constraint that all proportions sum to unity at any given time point.</p>
+<p>Initially, we model the proportion of VLF (<span class="math inline">\(p_\mathrm{VLF}\)</span>) using the same functional form as previously applied to <span class="math inline">\(\mathrm{RR}(t)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t)\)</span>, as defined in <strong>?@eq-vlf-model</strong> from the “Spectral Composition via Stick-Breaking” section. This consistency in functional form ensures parsimony and leverages the established interpretability of the double-logistic parameters. The remaining frequency parameters, specifically those for the HF and LF frequency bands, are then assumed to constitute the non-VLF portion of the signal. Conceptually, this can be expressed as <span class="math inline">\(1 - p_\mathrm{VLF} = p_\mathrm{HF} + p_\mathrm{LF}\)</span>. The following model parameter values were carefully selected to simulate realistic dynamics for <span class="math inline">\(p_\mathrm{VLF}(t)\)</span>:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Parameter</th>
+<th style="text-align: center;">Value</th>
+<th style="text-align: center;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\alpha_\mathrm{VLF}\)</span></td>
+<td style="text-align: center;">0.30</td>
+<td style="text-align: center;">Baseline proportion VLF</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\beta_\mathrm{VLF}\)</span></td>
+<td style="text-align: center;">0.30</td>
+<td style="text-align: center;">VLF proportion increase</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(c_\mathrm{VLF}\)</span></td>
+<td style="text-align: center;">1.00</td>
+<td style="text-align: center;">Recovery proportion</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\lambda_\mathrm{VLF}\)</span></td>
+<td style="text-align: center;">2.0</td>
+<td style="text-align: center;">Drop rate</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\phi_\mathrm{VLF}\)</span></td>
+<td style="text-align: center;">1.0</td>
+<td style="text-align: center;">Recovery rate</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\tau_\mathrm{VLF}\)</span></td>
+<td style="text-align: center;">6.0</td>
+<td style="text-align: center;">Drop time</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\delta_\mathrm{VLF}\)</span></td>
+<td style="text-align: center;">3.0</td>
+<td style="text-align: center;">Drop duration</td>
+</tr>
+</tbody>
+</table>
+<p>These parameters dictate that the VLF contribution begins at a baseline of 30%, transiently increases by another 30% (reaching 60% VLF), and fully recovers, with specified rates and timings. This reflects scenarios where VLF activity might be transiently accentuated or suppressed.</p>
+<p>Subsequently, we model the ratio of LF to HF within the non-VLF remainder, denoted as <span class="math inline">\(r_\mathrm{LF/HF}(t)\)</span>, utilizing the functional form described in <strong>?@eq-hf-lf-model</strong> from the “Spectral Composition via Stick-Breaking” section. The parameters for this component are provided below:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Parameter</th>
+<th style="text-align: center;">Value</th>
+<th style="text-align: center;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\alpha_r\)</span></td>
+<td style="text-align: center;">0.60</td>
+<td style="text-align: center;">Baseline LF proportion</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\beta_r\)</span></td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">LF proportion decrease</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(c_r\)</span></td>
+<td style="text-align: center;">0.5</td>
+<td style="text-align: center;">Recovery proportion</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\lambda_r\)</span></td>
+<td style="text-align: center;">2.0</td>
+<td style="text-align: center;">Drop rate</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\phi_r\)</span></td>
+<td style="text-align: center;">1.0</td>
+<td style="text-align: center;">Recovery rate</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><span class="math inline">\(\tau_r\)</span></td>
+<td style="text-align: center;">6.0</td>
+<td style="text-align: center;">Drop time</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><span class="math inline">\(\delta_r\)</span></td>
+<td style="text-align: center;">6.0</td>
+<td style="text-align: center;">Drop duration</td>
+</tr>
+</tbody>
+</table>
+<p>These parameters indicate a baseline LF proportion (within the non-VLF part) of 60%, followed by a transient increase of 20% and a partial recovery. The distinct recovery proportion (<span class="math inline">\(c_r = 0.5\)</span>) highlights that the LF/HF balance might not fully revert to its initial state, reflecting a sustained shift in autonomic balance. The choice of <span class="math inline">\(\delta_r = 6.0\)</span> also suggests a longer duration for the recovery of this ratio compared to the VLF proportion.</p>
+<p>By allowing the frequency bands to fluctuate dynamically within the constraints of this hierarchical decomposition, our model gains the capacity to represent a wider array of autonomic realities observable in experimental settings. Traditional spectral analyses often assume static band contributions, which can mask critical time-varying physiological responses. Our approach, by contrast, explicitly models these temporal shifts, offering a more nuanced and biologically faithful representation of heart rate variability. Furthermore, the ability to visualize the change in the proportional contribution of each frequency band over time, as illustrated in <a href="#fig-stick-breaking" class="quarto-xref">Figure&nbsp;5</a>, provides an intuitive understanding of these complex dynamics. This visualization allows researchers to directly observe how the relative importance of sympathetic, parasympathetic, and very-low-frequency modulations evolves during a given physiological challenge or recovery period.</p>
+<div class="cell page-columns page-full">
+<div class="cell-output-display page-columns page-full">
+<div id="fig-stick-breaking" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-stick-breaking-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="index_files/figure-html/fig-stick-breaking-1.svg" class="img-fluid figure-img column-page-left" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-stick-breaking-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Stick-breaking strategy for hierarchical decomposition of temporal-dependent latent variables contributing to the relative contribution of each frequency band, isolating the frequency band components using hierarchical decomposition. In the top-left panel, we first model the VLF and non-VLF parts. In the left panel, we then use the non-VLF part to describe the change in the LF part of the non-VLF part. In the right panel, we observed the final composition of each proportion as part of the whole frequency band.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>After having simulated time-varying frequency band contributions to the signal amplitude, the next step is to integrate these dynamic spectral components into the overall observed R-R interval signal. This integration represents the culmination of our generative framework, allowing us to synthesize a realistic R-R signal that incorporates both non-stationary time-domain trends and fluctuating frequency-domain compositions. The resulting signal, depicted in <a href="#fig-observed-varying-freq" class="quarto-xref">Figure&nbsp;6</a>, is a comprehensive representation of a continuous R-R signal recording, effectively capturing the interplay of signal and inherent noise. This figure serves as a powerful demonstration of the model’s ability to generate data that mirrors the complexity of real physiological measurements.</p>
+<div class="cell page-columns page-full">
+<div class="cell-output-display page-columns page-full">
+<div id="fig-observed-varying-freq" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-observed-varying-freq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<img src="index_files/figure-html/fig-observed-varying-freq-1.svg" class="img-fluid figure-img column-page-left" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-observed-varying-freq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Observed and true R-R interval signal with time-varying spectral composition and band amplitudes, with frequency bands highlighted in the bottom panel.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>It is important to acknowledge that the subtle changes in the R-R signal stemming from the variations in the frequency bands may not be immediately apparent to the unaided eye in the overall R-R time series. These are often subtle modulations, embedded within the larger amplitude fluctuations governed by <span class="math inline">\(\mathrm{RR}(t)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t)\)</span>. However, their underlying presence is precisely what our model aims to capture and elucidate. This model represents a significant advancement, being among the first of its kind to accurately capture the intricate data generation process behind heart rate variability. Beyond merely simulating data, this framework possesses the critical capability of estimating the temporal fluctuations of a real physiological signal by robustly mimicking its underlying spectral components. This dual capacity for both generation and estimation positions our model as a powerful tool for advancing the understanding of autonomic cardiovascular regulation in both health and disease.</p>
+</section>
+<section id="estimating-the-data-generation-process" class="level2">
+<h2 class="anchored" data-anchor-id="estimating-the-data-generation-process">Estimating the data generation process</h2>
+<p>After generating an R-R interval signal with time-varying frequency components with transient time-domain states, we will retrieve the data-generating parameters under a Bayesian framework. To do this, we will a three-step approach.</p>
+<p>First, we will recover the mean R-R interval signal, which corresponds to the gross temporal variations in the signal pattern. Then, we will remove the predicted mean R-R interval values from the signal. This will detrend the signal to then estimate temporal amplitude oscilations, capturing the overall SDNN trayectory. Finally, we will scale the detrended signal for the predicted SDNN, leaving a standardized detrended signal, only with residual frequency components. This remanent data will serve as the input data to estimate the temporal fluctuations in the relative contribution for each frequency band.</p>
+<section id="estimating-mathrmrrt" class="level3">
+<h3 class="anchored" data-anchor-id="estimating-mathrmrrt">Estimating <span class="math inline">\(\mathrm{RR}(t)\)</span></h3>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Divergences:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>0 of 20000 iterations ended with a divergence.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Tree depth:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>0 of 20000 iterations saturated the maximum tree depth of 10.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Energy:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>E-BFMI indicated no pathological behavior.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.4888833</code></pre>
+</div>
+</div>
+<p>Estimamos curva rri del modelo y la comparamos con la original</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]  400  500  600  700  800  900 1000</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-15-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>NULL</code></pre>
+</div>
+</div>
+<p>Computamos los residuos del modelo, que corresponden a SDNN y componentes de frecuencia</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -50   0  50</code></pre>
+</div>
+</div>
+</section>
+<section id="estimating-mathrmsdnnt" class="level3">
+<h3 class="anchored" data-anchor-id="estimating-mathrmsdnnt">Estimating <span class="math inline">\(\mathrm{SDNN}(t)\)</span></h3>
+<p>Especificamos el modelo</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Divergences:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>0 of 20000 iterations ended with a divergence.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Tree depth:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>0 of 20000 iterations saturated the maximum tree depth of 10.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Energy:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>E-BFMI indicated no pathological behavior.</code></pre>
+</div>
+</div>
+<p>Estimamos curva sdnn del modelo y la comparamos con la original</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]  0 10 20 30 40 50</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-18-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>NULL</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.002688</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-18-2.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -2 -1  0  1  2</code></pre>
+</div>
+</div>
+</section>
+<section id="estimating-all-spectral-components-at-once" class="level3">
+<h3 class="anchored" data-anchor-id="estimating-all-spectral-components-at-once">Estimating all spectral components at once</h3>
+<p>First using highly knowledgeable priors</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Divergences:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>0 of 20000 iterations ended with a divergence.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Tree depth:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>0 of 20000 iterations saturated the maximum tree depth of 10.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Energy:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>E-BFMI indicated no pathological behavior.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 20.28735</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>           t     p_vlf   r_lf_hf      p_lf      p_hf norm_factor   sine_vlf
+       &lt;num&gt;     &lt;num&gt;     &lt;num&gt;     &lt;num&gt;     &lt;num&gt;       &lt;num&gt;      &lt;num&gt;
+   1:  0.005 0.3015356 0.5998871 0.4189998 0.2794646    2.409166 -0.1993029
+   2:  0.010 0.3015355 0.5998871 0.4189999 0.2794647    2.409166 -0.2076521
+   3:  0.015 0.3015353 0.5998871 0.4190000 0.2794647    2.409166 -0.2157061
+   4:  0.020 0.3015351 0.5998871 0.4190001 0.2794648    2.409166 -0.2234537
+   5:  0.025 0.3015349 0.5998872 0.4190002 0.2794648    2.409166 -0.2308836
+  ---
+2996: 14.980 0.3022442 0.7048014 0.4917793 0.2059765    2.307480 -0.1539201
+2997: 14.985 0.3022404 0.7047784 0.4917658 0.2059937    2.307506 -0.1635797
+2998: 14.990 0.3022367 0.7047554 0.4917525 0.2060109    2.307531 -0.1730065
+2999: 14.995 0.3022329 0.7047325 0.4917391 0.2060279    2.307557 -0.1821873
+3000: 15.000 0.3022292 0.7047097 0.4917259 0.2060449    2.307582 -0.1911090
+           sine_lf     sine_hf
+             &lt;num&gt;       &lt;num&gt;
+   1: -0.344237470  0.26019143
+   2: -0.383592911  0.27972154
+   3: -0.409359400  0.23827600
+   4: -0.420624138  0.14488937
+   5: -0.416988059  0.01991871
+  ---
+2996: -0.007154825 -0.19057807
+2997: -0.099631345 -0.13321325
+2998: -0.188573439 -0.04679764
+2999: -0.270830599  0.04983446
+3000: -0.343489294  0.13561836</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-20-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="the-same-but-without-phase" class="level3">
+<h3 class="anchored" data-anchor-id="the-same-but-without-phase">The same but without phase</h3>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Divergences:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>0 of 20000 iterations ended with a divergence.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Tree depth:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>0 of 20000 iterations saturated the maximum tree depth of 10.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Energy:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>E-BFMI indicated no pathological behavior.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 6.522983</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>           t     p_vlf   r_lf_hf      p_lf      p_hf norm_factor      sine_vlf
+       &lt;num&gt;     &lt;num&gt;     &lt;num&gt;     &lt;num&gt;     &lt;num&gt;       &lt;num&gt;         &lt;num&gt;
+   1:  0.005 0.2655270 0.5277788 0.3876393 0.3468337    2.421576  1.000776e-02
+   2:  0.010 0.2655268 0.5277788 0.3876394 0.3468338    2.421576  2.000128e-02
+   3:  0.015 0.2655266 0.5277788 0.3876395 0.3468339    2.421575  2.996637e-02
+   4:  0.020 0.2655264 0.5277788 0.3876396 0.3468340    2.421575  3.988886e-02
+   5:  0.025 0.2655262 0.5277788 0.3876397 0.3468341    2.421575  4.975465e-02
+  ---
+2996: 14.980 0.2590681 0.6615174 0.4901393 0.2507926    2.324168 -3.891866e-02
+2997: 14.985 0.2590638 0.6614860 0.4901190 0.2508172    2.324199 -2.923700e-02
+2998: 14.990 0.2590595 0.6614549 0.4900987 0.2508418    2.324230 -1.951412e-02
+2999: 14.995 0.2590552 0.6614238 0.4900786 0.2508663    2.324260 -9.763837e-03
+3000: 15.000 0.2590509 0.6613929 0.4900585 0.2508906    2.324291  2.539250e-15
+            sine_lf       sine_hf
+              &lt;num&gt;         &lt;num&gt;
+   1:  7.263636e-02  1.574592e-01
+   2:  1.426996e-01  2.805944e-01
+   3:  2.077076e-01  3.425638e-01
+   4:  2.653576e-01  3.298587e-01
+   5:  3.136071e-01  2.452487e-01
+  ---
+2996: -3.355235e-01 -2.385179e-01
+2997: -2.626189e-01 -2.477293e-01
+2998: -1.804174e-01 -2.029353e-01
+2999: -9.183156e-02 -1.138909e-01
+3000: -3.838524e-15 -1.917441e-14</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-22-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="discussion" class="level2">
+<h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
+<p>The generative model presented for R-R interval dynamics represents a substantial conceptual and methodological advancement in heart rate variability (HRV) analysis, explicitly addressing long-standing limitations within the field. Traditional approaches have consistently encountered an inherent compromise between temporal precision and frequency resolution in spectral techniques, alongside the predominantly descriptive nature of derived metrics that frequently obscure direct insight into underlying physiological mechanisms. Our novel parametric framework aims to transcend these limitations by providing a unified, time-varying representation of baseline heart period, overall variability amplitude, and spectral composition, thereby offering enhanced resolution, transparency, and clinical applicability. This integration into a single, comprehensive generative framework suggests a notable step towards overcoming these pervasive challenges.</p>
+<p>A cornerstone of this model is its significant capacity to explicitly capture time-varying physiological processes. Unlike conventional fixed-window spectral analyses, which average activity over extended periods and thus inevitably blur transient autonomic events, our approach models each core component as a continuous function of time. The adoption of double-logistic functions for <span class="math inline">\(\mathrm{RR}(t)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t)\)</span> allows for the precise characterization of dynamic changes, such as the onset and recovery kinetics observed during physiological challenges like exercise. This mathematical formulation enables the direct estimation of physiologically relevant indices, including surge onset times, peak amplitudes, and half-recovery durations, which are critical for understanding dynamic autonomic responses but are often obscured by aggregated metrics. For instance, the rapid vagal withdrawal or sympathetic surges occurring during orthostatic challenge or acute stressors, phenomena of substantial clinical relevance, may now be quantified without the analytical dilemma imposed by windowing techniques.</p>
+<p>The model’s innovative use of a two-stage stick-breaking decomposition for spectral proportions (<span class="math inline">\(p_j(t)\)</span>) further distinguishes it from existing methodologies. This hierarchical approach intrinsically ensures that the proportional contributions of VLF, LF, and HF bands sum to unity at every time point, while simultaneously reducing the latent dimensionality of the system. By modeling the VLF proportion and then the HF-to-LF ratio within the remainder, the model accurately reflects an inherent biological hierarchy in autonomic control over heart rate variability. This contrasts with standard analytical practices that frequently reduce dynamic spectral information into aggregated, static indices like the LF/HF ratio, which can ambiguously represent genuine increases in one component, decreases in another, or simultaneous modulations of both. Our model, by contrast, provides instantaneous, interpretable estimates of each band’s dynamic contribution, offering a clearer perspective into the evolving balance of autonomic nervous system activity.</p>
+<p>The physiological interpretability of the model’s parameters is a considerable advantage. Each parameter within the double-logistic and stick-breaking formulations directly corresponds to a specific aspect of autonomic regulation, such as baseline levels, magnitudes of change, and rates of onset and recovery. This level of direct mechanistic significance, transitioning from descriptive to mechanistic insights, is often less explicit in other advanced HRV analysis techniques, such as nonlinear measures or data-driven decompositions. While methods like entropy or fractal dimension quantify signal complexity, they do not directly map to specific autonomic pathways. Similarly, many machine learning models, despite their predictive power, often operate as opaque “black boxes” devoid of readily apparent mechanistic interpretability. Our generative framework, by contrast, provides a transparent mapping from statistical parameters to physiological constructs, potentially facilitating clearer mechanistic inference and enhancing inter-study comparability.</p>
+<p>A crucial implication of this unified generative paradigm is its ability to circumvent the time-frequency trade-off, a persistent methodological challenge in HRV analysis. By explicitly representing each latent component as a continuous, time-varying function, the model estimates instantaneous band-specific power without recourse to arbitrary smoothing or the use of sliding windows, which can temporally blur or obscure rapid sympathetic or parasympathetic modulations. This capability is achieved through the continuous, parametric representation of each component, supporting a high-resolution characterization of autonomic events. This approach may be particularly valuable for detecting abrupt physiological shifts that are often critical for diagnosis and intervention. The model’s capacity to deliver precise, transparent, and mechanistically grounded insights into autonomic cardiovascular regulation represents a notable advancement in the field.</p>
+<p>Furthermore, the generative nature of our model offers distinct capabilities beyond mere analysis. It can simulate synthetic RRI trajectories under controlled autonomic scenarios, a feature valuable for rigorous power analyses, hypothesis testing, and educational demonstrations. This simulation capability also allows for a deeper understanding of how time-varying frequency band contributions manifest in the overall RRI signal. While these spectral variations might be subtle and not immediately apparent to the unaided eye in a raw RRI time series, their underlying presence is precisely what the model is designed to capture and elucidate. This model represents a promising advancement, aiming to accurately capture the intricate data generation process behind heart rate variability.</p>
+<p>Beyond simulation, the model possesses the capability of estimating the temporal fluctuations of a real physiological signal by robustly mimicking its underlying spectral components. This dual capacity for both generation and estimation positions our model as a potentially valuable tool for advancing the understanding of autonomic cardiovascular regulation in both health and disease. In basic research, it could facilitate mechanistic investigations into autonomic regulation, enabling quantitative assessment of coupling between respiratory patterns and heart rate, or precise delineation of recovery kinetics following physical exertion. Clinically, it may offer refined biomarkers for conditions such as dysautonomia, heart failure, and stress-related disorders, thereby potentially enhancing both diagnostic sensitivity and prognostic specificity. For wearable technology and biofeedback applications, the model could support real-time monitoring of autonomic state, which may guide adaptive interventions tailored to instantaneous physiological need. In essence, this formalized, physiologically coherent generative model of HRV aims to reconcile temporal and spectral analysis within a single, interpretable framework. By embedding parametric latent drives for baseline heart period, variability amplitude, and spectral composition, it is anticipated to contribute significantly to HRV research, fostering a transition from descriptive heuristics towards a quantitatively precise science of autonomic cardiovascular dynamics.</p>
+<section id="limitations" class="level3">
+<h3 class="anchored" data-anchor-id="limitations">Limitations</h3>
+<p>Despite its significant advancements, the current generative model possesses certain limitations that warrant consideration. The primary limitation stems from its parametric nature, which relies on a predefined functional form for describing the temporal dynamics of baseline heart period, variability amplitude, and spectral proportions. While the double-logistic function offers considerable flexibility and physiological interpretability, it may not universally capture all conceivable patterns of autonomic modulation, particularly those exhibiting highly irregular or non-monotonic behavior not well approximated by sigmoidal curves. The model also assumes a fixed number of frequency bands and their approximate central frequencies, which might not account for individual variability in spectral composition or shifts in resonant frequencies under extreme physiological states. Furthermore, the current implementation does not explicitly model or differentiate between the precise neural pathways contributing to each frequency band, relying instead on the established physiological interpretation of VLF, LF, and HF components. The generalizability of the proposed parameterization may also be influenced by the specific population and experimental conditions under which the model is applied and validated.</p>
+</section>
+<section id="future-research" class="level3">
+<h3 class="anchored" data-anchor-id="future-research">Future Research</h3>
+<p>Future research endeavors will focus on expanding the model’s capabilities to address its current limitations and unlock further insights into autonomic regulation. One key direction involves exploring more flexible, non-parametric or semi-parametric extensions to the functional forms, allowing for a broader range of temporal dynamics to be accurately captured without sacrificing interpretability where possible. This could include incorporating basis functions or Gaussian processes to model more complex RRI trajectories and spectral shifts. Investigations into data-driven approaches for identifying optimal frequency band definitions and their potential time-varying characteristics are also warranted, moving beyond fixed ranges to account for individual physiological differences. Integrating biophysically detailed models of neural autonomic control into the generative framework represents another promising avenue, which could allow for the explicit modeling of efferent and afferent sympathetic and parasympathetic pathways, thereby providing a more granular understanding of the physiological origins of HRV. Furthermore, rigorous validation across diverse clinical populations and a wider array of physiological challenges is crucial to establish the model’s robustness and clinical utility. Comparative studies against state-of-the-art non-linear and machine learning approaches will also be essential to quantitatively demonstrate the enhanced insights provided by our mechanistic, interpretable framework. Ultimately, the development of software tools facilitating the broad adoption and application of this generative model will be paramount for its integration into mainstream HRV research and clinical practice.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button,
+          { trigger: "manual",
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config);
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined;
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              }
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            }
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
