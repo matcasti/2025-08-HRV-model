@@ -43,6 +43,8 @@ theme_set(
 )
 ```
 
+# Methods
+
 ## Model formulation
 
 We consider a discrete set of time points $\{t_i\}_{i=1}^N$ at which the R–R interval (RRi) signal is observed. The objective is to represent the RRi series as a superposition of a smoothly varying baseline component, a time-dependent amplitude of structured variability, and a convex combination of spectral oscillators at physiologically defined frequency bands. This model is formally defined in @eq-big-model.

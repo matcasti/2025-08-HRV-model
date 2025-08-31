@@ -1,130 +1,131 @@
-// Stan Implementation of the Full Generative R-R Interval Model
+// Full Stan model: Generative RRi with double-logistic mean and SDNN,
+// multiplicative master controller, deterministic amplitude inversion,
+// multi-sine spectral texture (phases fixed), and combined structured + obs noise.
 
 functions {
-  /**
-   * Calculates a standard logistic growth curve (sigmoid).
-   * @param t time vector
-   * @param location inflection point of the curve (tau or tau + delta)
-   * @param rate rate parameter (lambda or phi)
-   * @return A vector of values between 0 and 1 representing the logistic curve.
-   */
+  // Vectorized logistic curve (sigmoid)
   vector logistic_curve(vector t, real location, real rate) {
-    return 1.0 ./ (1.0 + exp(-rate * (t - location)));
+    return inv_logit(rate * (t - location));
   }
 }
 
 data {
-  // --- Observed Data ---
-  int<lower=1> N;           // Number of data points
-  vector[N] t;              // Time vector (in seconds)
-  vector[N] RR;             // Observed R-R intervals (in ms)
+  int<lower=1> N;                 // number of observations
+  vector[N] t;                    // time in minutes
+  vector[N] RR;                   // observed R-R intervals (ms)
 
-  // --- Fixed Spectral Components (treated as data) ---
-  int<lower=1> N_sin;       // Number of sinusoids per band
-  array[3] vector[N_sin] freqs;  // Pre-calculated frequencies for VLF, LF, HF
-  array[3] vector[N_sin] phases; // Pre-calculated phases for VLF, LF, HF
+  int<lower=1> N_sin;             // number of minor sinusoids per band
+  array[3] vector[N_sin] freqs;   // frequencies, in Hz (cycles / sec)
+  array[3] vector[N_sin] phases;  // phases, radians (fixed, passed as data)
 }
 
 parameters {
-  // === Shared Timing & Rate Parameters for the Double Logistic functions ===
-  real tau;              // Inflection time of the initial drop (shared)
-  real<lower=0> delta;   // Temporal offset for recovery start (t_recovery = tau + delta)
-  real<lower=0> lambda;  // Rate constant for the initial drop (shared)
-  real<lower=0> phi;     // Rate constant for the recovery (shared)
+  // shared timing/rate for double-logistics
+  real<lower=0> tau;
+  real<lower=0> delta;
+  real<lower=0> lambda;
+  real<lower=0> phi;
 
-  // === Parameters for Baseline Heart Period: RR(t) ===
-  real<lower=0> alpha_r; // Resting RRi
-  real<lower=0> beta_r;  // Magnitude of exercise-induced RRi drop
-  real<lower=0, upper=2> c_r; // Fractional recovery of RRi (can overshoot)
+  // baseline RR(t) params
+  real<lower=0> alpha_r;
+  real<lower=0, upper=alpha_r> beta_r;
+  real<lower=0, upper=2> c_r;
 
-  // === Parameters for Structured Variability: SDNN(t) ===
-  real<lower=0> alpha_s; // Resting SDNN
-  real<lower=0> beta_s;  // Magnitude of exercise-induced SDNN drop
-  real<lower=0, upper=2> c_s; // Fractional recovery of SDNN
+  // SDNN(t) params (structured variability template)
+  real<lower=0> alpha_s;
+  real<lower=0, upper=alpha_s> beta_s;
+  real<lower=0, upper=2> c_s;
 
-  // === Parameters for Frequency Proportions: p(t) ===
-  simplex[3] pi_base;    // Proportions at baseline [VLF, LF, HF]
-  simplex[3] pi_pert;    // Proportions during perturbation
-  real<lower=0, upper=1> c_c; // Proportional recovery of the master controller C(t)
+  // Within band noise structure
+  real<lower=0> b;
 
-  // === Parameter for Spectral Content: S(t) ===
-  real<lower=0> b;       // Spectral exponent (beta in previous discussions)
+  // spectral proportions endpoints and controller
+  simplex[3] pi_base;
+  simplex[3] pi_pert;
+  real<lower=0, upper=1> c_c;
 
-  // === Error Term ===
-  real<lower=0> sigma;   // Residual, unstructured variability
+  // observation / unstructured noise
+  real<lower=0> sigma;
 }
 
 transformed parameters {
-  // This block deterministically builds the predicted signal 'mu' from the parameters.
+  // epsilon for numerical guards
+  real eps = 1e-6;
 
-  // --- 1. Define the shared logistic components D1 and D2 ---
+  // --- 1) logistic building blocks
   vector[N] D1 = logistic_curve(t, tau, lambda);
   vector[N] D2 = logistic_curve(t, tau + delta, phi);
 
-  // --- 2. Build the baseline heart period trajectory: RR(t) ---
-  vector[N] RR_baseline = alpha_r - beta_r * D1 + c_r * beta_r * D2;
+  // --- 2) baseline mean and SDNN trajectories (double-logistic)
+  vector[N] RR_baseline = alpha_r - beta_r .* D1 + (c_r * beta_r) .* D2;
+  vector[N] SDNN_t      = alpha_s - beta_s .* D1 + (c_s * beta_s) .* D2;
 
-  // --- 3. Build the target SDNN trajectory: SDNN(t) ---
-  // Clamp at a small positive number to ensure numerical stability.
-  vector[N] SDNN_t = fmax(1e-6, alpha_s - beta_s * D1 + c_s * beta_s * D2);
+  // --- 3) multiplicative master controller (guaranteed in [0,1])
+  vector[N] C_t = D1 .* (1.0 - c_c .* D2);
 
-  // --- 4. Build the master controller C(t) and proportions p(t) ---
-  vector[N] C_t_unclamped = D1 - c_c * D2;
-  // Clamp C(t) to the [0, 1] range to ensure valid proportions.
-  vector[N] C_t = fmax(0.0, fmin(1.0, C_t_unclamped));
-
+  // --- 4) proportions p_t as vectorized convex combination (rowwise simplex)
   matrix[N, 3] p_t = (1.0 - C_t) * pi_base' + C_t * pi_pert';
 
-  // --- 5. Build the spectral oscillators S_j(t) ---
+  // --- 5) spectral synthesis: one normalized narrow-band texture per band
   matrix[N, 3] S_t_matrix;
   for (j in 1:3) {
-    vector[N_sin] a_k = freqs[j] .^ (-b / 2.0);
-    // Transpose `t` to a row_vector to create a matrix `T_mat` that we can add `P_mat` to.
-    matrix[N, N_sin] T_mat = t * freqs[j]';
+    // amplitude law a_k = freqs^{-1/2} (vectorized, stable)
+    vector[N_sin] a_k = exp(-0.5 * b * log(freqs[j])); // elementwise
+
+    // build matrix of (t_seconds * freq_k) + phase
+    matrix[N, N_sin] T_mat = (t * 60) * freqs[j]';  // t in minutes -> seconds
     matrix[N, N_sin] P_mat = rep_matrix(phases[j]', N);
-    vector[N] S_j_unnormalized = (sin(2 * pi() * (T_mat + P_mat))) * a_k;
-    S_t_matrix[:, j] = (S_j_unnormalized - mean(S_j_unnormalized)) / sd(S_j_unnormalized);
+
+    // evaluate weighted sum of minor sinusoids -> vector[N]
+    vector[N] S_j_unnorm = sin(2 * pi() * (T_mat + P_mat)) * a_k;
+
+    // empirical standardization (zero-mean, unit-sd)
+    real m = mean(S_j_unnorm);
+    real s = sd(S_j_unnorm);
+    S_t_matrix[:, j] = (S_j_unnorm - m) / s;
   }
 
-  // --- 6. Derive the internal amplitude A(t) using the corrected inversion ---
-  // rows_dot_self(p_t) efficiently calculates sum(p_j^2) for each time point.
-  vector[N] sum_p_sq = rows_dot_self(p_t);
-  vector[N] A_t = SDNN_t ./ sqrt(sum_p_sq);
+  // --- 6) deterministic inversion for A_t with numeric guard
+  // denom = sqrt(sum_j p_j(t)^2), clipped to eps
+  vector[N] denom = fmax(sqrt(rows_dot_self(p_t)), eps);
+  vector[N] A_t = SDNN_t ./ denom;
 
-  // --- 7. Combine for the final predicted signal mu ---
-  vector[N] sum_weighted_S = rows_dot_product(S_t_matrix, p_t);
+  // --- 7) predicted mean and structured variance
+  vector[N] sum_weighted_S = rows_dot_product(S_t_matrix, p_t); // elementwise row dot
   vector[N] mu = RR_baseline + A_t .* sum_weighted_S;
+
+  // because A_t was deterministically computed from SDNN_t, structured var = SDNN_t^2
+  vector[N] var_struct = square(SDNN_t);
 }
 
 model {
-  // === Priors (Weakly informative priors for all parameters) ===
-  // Timing
-  tau ~ normal(6, 0.1) T[0, ];
-  delta ~ normal(3, 0.1) T[0, ]; // Recovery likely starts after a few mins
-  lambda ~ normal(3, 0.1) T[0, ];  // Rates are on a log scale
-  phi ~ normal(3, 0.1) T[0, ];
+  // --- Priors (weakly informative; tune for your domain)
+  tau ~ normal(6, 2) T[0, ];
+  delta ~ normal(3, 1) T[0, ];
+  lambda ~ normal(3, 1) T[0, ];
+  phi ~ normal(2, 1) T[0, ];
 
-  // RR(t) parameters
   alpha_r ~ normal(800, 50) T[0, ];
-  beta_r ~ normal(400, 50) T[0, ];
-  c_r ~ normal(0.8, 0.1) T[0, 2];
+  beta_r ~ normal(400, 50) T[0, alpha_r];
+  c_r ~ normal(0.8, 0.4) T[0, 2];
 
-  // SDNN(t) parameters
-  alpha_s ~ normal(50, 5) T[0, ];
-  beta_s ~ normal(20, 5) T[0, ];
-  c_s ~ normal(1.2, 0.1) T[0, 2];
+  alpha_s ~ normal(50, 10) T[0, ];
+  beta_s ~ normal(20, 10) T[0, alpha_s];
+  c_s ~ normal(1.2, 0.5) T[0, 2];
 
-  // Proportion parameters
-  pi_base ~ dirichlet([2,3,6]');
-  pi_pert ~ dirichlet([6,3,2]');
-  c_c ~ beta(4, 1); // Prior belief in fairly complete recovery
+  b ~ normal(1, 0.1)T[0, ];
 
-  // Spectral parameter
-  b ~ normal(0, 1) T[0, ]; // Prior centered around b=1 (pink noise)
+  // Dirichlet concentration vectors (concise literal)
+  vector[3] alpha_base = [2, 6, 12]';
+  vector[3] alpha_pert = [14, 4, 2]';
+  pi_base ~ dirichlet(alpha_base);
+  pi_pert ~ dirichlet(alpha_pert);
 
-  // Error term
-  sigma ~ normal(0, 5) T[0, ];
+  c_c ~ beta(12, 2);            // informative toward higher recovery proportion (optional)
+  sigma ~ normal(0, 1) T[0, ];
 
-  // === Likelihood ===
-  RR ~ normal(mu, sigma);
+  // --- Likelihood: observation SD = sqrt(sigma^2 + var_struct)
+  // Guard the stddev to avoid exact zeros (small numerical eps)
+  vector[N] sd_obs = fmax(sqrt(square(sigma) + var_struct), 1e-8);
+  RR ~ normal(mu, sd_obs);
 }

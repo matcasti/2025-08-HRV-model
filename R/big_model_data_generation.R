@@ -46,9 +46,9 @@ pi_pert <- c(VLF = 0.7, LF = 0.2, HF = 0.1)
 # --- Intra-Band Spectral Content (S_j(t)) ---
 # Frequency band definitions
 band_defs <- list(
-  VLF = list(min = 0.003, max = 0.04),
-  LF  = list(min = 0.04,  max = 0.15),
-  HF  = list(min = 0.15,  max = 0.4)
+  VLF = list(min = 0.003, max = 0.039),
+  LF  = list(min = 0.040,  max = 0.149),
+  HF  = list(min = 0.150,  max = 0.4)
 )
 N_sin <- 30 # Number of sine waves per band
 beta <- 1 # Spectral exponent (1.0 for pink noise)
@@ -69,7 +69,7 @@ SDNN_t <- alpha_s - beta_s * D_1(t) + c_s * beta_s * D_2(t)
 plot(t, SDNN_t, type = "l"); grid()
 
 ## Master spectral function: C(t)
-C_t <- D_1(t) - c_c * D_2(t)
+C_t <- D_1(t) * (1 - c_c * D_2(t))
 plot(t, C_t, type = "l"); grid()
 
 ## Proportion functions: p_j(t)
@@ -130,7 +130,7 @@ RRi_t <- RR_t + A_t * sum_weighted_S
 # === 3. Visualization ===
 graphics.off() # Close any open plot windows
 layout(matrix(1:4, ncol = 2), heights = c(0.5, 0.5), widths = c(0.5, 0.5))
-par(mar = c(4, 4, 2, 1), bg = "white")
+par(mar = c(4, 4, 2, 1))
 
 # Plot 1: Final R-R Interval Time Series
 plot(t, RRi_t, type = 'l', col = "navy",
@@ -158,17 +158,17 @@ matplot(t, p_j, type = 'l', lty = 1, lwd = 2,
 grid()
 legend(10, y = 0.8, legend = colnames(p_t), col = 1:3, lty = 1, lwd = 2)
 
+par(mfrow = c(1,1))
+
 sim_data <- data.frame(t, RRi_t)
 
 plot(sim_data, type = "l")
 
 library(rstan)
 
-
 model <- rstan::stan_model(file = "models/rri_model.stan")
 
-
-rr_t_fit <- sampling(
+rr_t_fit <- rstan::sampling(
   object = model,
   pars = c(
     "lambda","phi","tau","delta",
@@ -181,20 +181,48 @@ rr_t_fit <- sampling(
   data = list(N = length(sim_data$t),
               t = sim_data$t,
               RR = sim_data$RRi_t,
-              N_sin = 50,
+              N_sin = N_sin,
               freqs = list(
-                seq(0.003, 0.04, length.out = 50),
-                seq(0.04, 0.15, length.out = 50),
-                seq(0.15, 0.4, length.out = 50)
+                seq(0.003, 0.039, length.out = N_sin),
+                seq(0.040, 0.149, length.out = N_sin),
+                seq(0.150, 0.400, length.out = N_sin)
               ),
               phases = list(
-                runif(50, 0, 2 * pi),
-                runif(50, 0, 2 * pi),
-                runif(50, 0, 2 * pi)
+                runif(N_sin, 0, 2 * pi),
+                runif(N_sin, 0, 2 * pi),
+                runif(N_sin, 0, 2 * pi)
               )),
-  iter = 10000, warmup = 5000,
-  chains = 4, cores = 4,
+  iter = 10000, warmup = 8000,
+  chains = 5, cores = 5,
   seed = 1234
 )
 
 saveRDS(rr_t_fit, file = "models/rr_t_fit.rds")
+
+rstan::check_hmc_diagnostics(rr_t_fit)
+
+## Se demoró menos de una hora (0.955 horas)
+rstan::get_elapsed_time(rr_t_fit) |>
+  rowSums() |>
+  max() |>
+  (\(x) x/60/60)()
+
+posterior_rr <- extract(rr_t_fit) |>
+  data.table::as.data.table()
+
+
+posterior_epred <- posterior_rr[, lapply(.SD, median)]
+
+posterior_epred[, {
+  D_1 <- 1 / (1 + exp(-lambda * (t - tau)))
+  D_2 <- 1 / (1 + exp(-phi * (t - tau - delta)))
+  RR_t <- alpha_r - beta_r * D_1 + (c_r * beta_r) * D_2
+  SDNN_t <- alpha_s - beta_s * D_1 + (c_s * beta_s) * D_2
+  pi_pert <- c(pi_pert.V1, pi_pert.V2, pi_pert.V3)
+  pi_base <- c(pi_base.V1, pi_base.V2, pi_base.V3)
+  C_t <- D_1 - c_c * D_2
+  p_t <- C_t %*% t(pi_pert) + (1 - C_t) %*% t(pi_base)
+  list(p_t)
+}] |> matplot(x = t, type = "l", lty = 1)
+
+matplot(t, p_t, type = "l", lty = 1)
