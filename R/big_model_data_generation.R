@@ -31,7 +31,7 @@ c_r <- 0.8       # Proportion recovery
 
 ## SDNN(t)
 alpha_s <- 50    # Baseline R-R variability in ms
-beta_s <- 20     # Exercise-induced drop in ms
+beta_s <- 25     # Exercise-induced drop in ms
 c_s <- 1.2       # Proportion recovery
 
 ## C(t)
@@ -127,6 +127,18 @@ sum_weighted_S <- rowSums(weighted_S)
 RRi_t <- RR_t + A_t * sum_weighted_S
 
 
+# -------------------------------------------------------------------------
+
+rr_min <- min(RRi_t);
+rr_range <- max(RRi_t) - rr_min;
+t_min <- min(t);
+t_range <- max(t) - t_min;
+
+plot(t, (RRi_t - rr_min) / rr_range, type = "l")
+
+# -------------------------------------------------------------------------
+
+
 # === 3. Visualization ===
 graphics.off() # Close any open plot windows
 layout(matrix(1:4, ncol = 2), heights = c(0.5, 0.5), widths = c(0.5, 0.5))
@@ -162,6 +174,8 @@ par(mfrow = c(1,1))
 
 sim_data <- data.frame(t, RRi_t)
 
+max(RRi_t) - min(RRi_t)
+
 plot(sim_data, type = "l")
 
 library(rstan)
@@ -174,8 +188,9 @@ rr_t_fit <- rstan::sampling(
     "lambda","phi","tau","delta",
     "alpha_r","beta_r","c_r",
     "alpha_s","beta_s","c_s",
-    "c_c", "pi_pert", "pi_base",
-    "b", "sigma"
+    "c_c", "b",
+    # "sigma",
+    "pi_pert", "pi_base"
   ),
   include = TRUE,
   data = list(N = length(sim_data$t),
@@ -194,22 +209,33 @@ rr_t_fit <- rstan::sampling(
               )),
   iter = 10000, warmup = 8000,
   chains = 5, cores = 5,
-  seed = 1234
+  seed = 12345,
+  control = list(adapt_delta = 0.80,
+                 max_treedepth = 10)
 )
 
 saveRDS(rr_t_fit, file = "models/rr_t_fit.rds")
 
 rstan::check_hmc_diagnostics(rr_t_fit)
 
-## Se demoró menos de una hora (0.955 horas)
+## Se demoró menos de una hora (1.3 horas)
 rstan::get_elapsed_time(rr_t_fit) |>
   rowSums() |>
   max() |>
-  (\(x) x/60/60)()
+  (\(x) cat("=== Time elapsed ===\n",
+            " minutes: ", x/60,
+            "\n hours: ",x/3600,
+            "\n====================",
+            sep = ""))()
 
 posterior_rr <- extract(rr_t_fit) |>
   data.table::as.data.table()
 
+local({
+  png(file = "rplot.png",width=15,height=15,units="in",res=500);
+  plot(posterior_rr,pch=".");
+  dev.off()
+})
 
 posterior_epred <- posterior_rr[, lapply(.SD, median)]
 
@@ -220,9 +246,11 @@ posterior_epred[, {
   SDNN_t <- alpha_s - beta_s * D_1 + (c_s * beta_s) * D_2
   pi_pert <- c(pi_pert.V1, pi_pert.V2, pi_pert.V3)
   pi_base <- c(pi_base.V1, pi_base.V2, pi_base.V3)
-  C_t <- D_1 - c_c * D_2
+  C_t <- D_1 * (1 - c_c * D_2)
   p_t <- C_t %*% t(pi_pert) + (1 - C_t) %*% t(pi_base)
   list(p_t)
-}] |> matplot(x = t, type = "l", lty = 1)
+}] |> matplot(x = t, type = "l", lty = 1, ylim = 0:1)
 
-matplot(t, p_t, type = "l", lty = 1)
+matplot(t, p_t, type = "l", lty = 1, ylim = 0:1)
+
+# shinystan::launch_shinystan(rr_t_fit)
