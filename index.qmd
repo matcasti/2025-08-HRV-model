@@ -98,7 +98,7 @@ $$
 \end{aligned}
 $${#eq-logistic-components}
 
-The shared timing parameters govern these transitions: $\tau$ is the inflection point (midpoint) of the initial decline, whose rate is controlled by $\lambda$. The second transition is offset from the first by a delay $\delta$, and its rate is governed by $\phi$. This specific formulation directly estimates physiologically salient time points and magnitudes, facilitating enhanced mechanistic interpretation and improved comparability across different experimental conditions.
+The shared timing parameters govern these transitions: $\tau$ is the inflection point (midpoint) of the initial decline, whose rate is controlled by $\lambda$. The second transition is offset from the first by a delay $\delta$. This delay is dynamically constrained to ensure the recovery point $\tau+\delta$ occurs within the observation window. The recovery rate is governed by $\phi$. This specific formulation directly estimates physiologically salient time points and magnitudes, facilitating enhanced mechanistic interpretation and improved comparability across different experimental conditions.
 
 ### Generative Model for Signal Variability
 
@@ -106,7 +106,7 @@ A key innovation of this framework is its generative approach to signal variabil
 
 #### Total Instantaneous Variability: $\mathrm{SDNN}(t_i)$
 
-We generalize the conventional, static notion of SDNN (the standard deviation of normal-to-normal intervals) to a dynamic quantity, $\mathrm{SDNN}(t_i)$. In this revised framework, $\mathrm{SDNN}(t_i)$ represents the total instantaneous standard deviation of the RRi signal. It is the parameter that governs the dispersion of the Normal likelihood at each time point. By modeling this trajectory directly, we can capture how the overall "strength" of autonomic modulation and other sources of variability evolves over time. To maintain parsimony and enforce a strong theoretical link between changes in mean and variability, the $\mathrm{SDNN}(t_i)$ trajectory is modeled using the same double-logistic functional form as the baseline RRi, as defined in @eq-sdnn-model.
+We generalize the conventional, static notion of SDNN (the standard deviation of normal-to-normal intervals) to a dynamic quantity, $\mathrm{SDNN}(t_i)$. In this framework, $\mathrm{SDNN}(t_i)$ represents the total instantaneous standard deviation of the RRi signal. It is the parameter that governs the dispersion of the Normal likelihood at each time point. By modeling this trajectory directly, we can capture how the overall "strength" of autonomic modulation and other sources of variability evolves over time. To maintain parsimony and enforce a strong theoretical link between changes in mean and variability, the $\mathrm{SDNN}(t_i)$ trajectory is modeled using the same double-logistic functional form as the baseline RRi, as defined in @eq-sdnn-model.
 
 $$
 \mathrm{SDNN}(t_i) =
@@ -123,15 +123,19 @@ Here, $\alpha_s$, $\beta_s$, and $c_s$ are analogous to their counterparts in th
 
 The model must synthesize a structured noise signal, let's call it $X(t_i) = A(t_i) \sum_{j=1}^J p_j(t_i) S_j(t_i)$, which contributes to the mean trajectory $\mu(t_i)$. A critical design choice is to separate the modeling of this signal's spectral shape from the modeling of its overall magnitude. The magnitude is governed entirely by the `SDNN(t)` trajectory. Therefore, we require the synthesized signal $X(t_i)$ to be normalized such that its variance is precisely equal to one at every time point. This requires a deterministic calculation for the internal scaling amplitude, $A(t_i)$.
 
-By construction, the spectral oscillator signals $S_j(t_i)$ are standardized to have zero mean and unit variance ($\mathrm{Var}[S_j(t_i)] = 1$). Assuming they are approximately uncorrelated (a reasonable assumption given their differing frequency content and random phases), the variance of their weighted sum is:
+By construction, the spectral oscillator signals $S_j(t_i)$ are standardized to have zero mean and unit variance ($\mathrm{Var}[S_j(t_i)] = 1$). Assuming they are approximately uncorrelated, the variance of their weighted sum is:
 
-$$\mathrm{Var}\left[\sum_{j=1}^J p_j(t_i) S_j(t_i)\right] \approx \sum_{j=1}^J p_j(t_i)^2 \mathrm{Var}[S_j(t_i)] = \sum_{j=1}^J p_j(t_i)^2$$
+$$
+\mathrm{Var}\left[\sum_{j=1}^J p_j(t_i) S_j(t_i)\right] \approx \sum_{j=1}^J p_j(t_i)^2 \mathrm{Var}[S_j(t_i)] = \sum_{j=1}^J p_j(t_i)^2
+$$
 
 The variance of the complete structured noise signal is then $\mathrm{Var}[X(t_i)] = A(t_i)^2 \sum_{j=1}^J p_j(t_i)^2$. To achieve our goal of unit variance, we set $\mathrm{Var}[X(t_i)] = 1$ and solve for $A(t_i)$, which yields the critical normalization formula in @eq-amplitude-inversion.
 
-$$A(t_i) = \frac{1}{\sqrt{\sum_{j=1}^J p_j(t_i)^2}}$${#eq-amplitude-inversion}
+$$
+A(t_i) = \frac{1}{\sqrt{\sum_{j=1}^J p_j(t_i)^2}}
+$${#eq-amplitude-inversion}
 
-This normalization is essential. It ensures that the component representing structured noise in @eq-mean-model is a pure, unit-variance process whose spectral character is determined by $p_j(t_i)$ but whose amplitude is fixed. The full, time-varying magnitude of variability is then introduced independently via the $\mathrm{SDNN}(t_i)$ term in the final likelihood (@eq-full-likelihood). This elegant separation allows the model to learn, for example, how the spectral composition of HRV changes, independent of simultaneous changes in its total power.
+This normalization is essential. It ensures that the component representing structured noise in @eq-mean-model is a pure, unit-variance process whose spectral character is determined by $p_j(t_i)$ but whose amplitude is fixed. The full, time-varying magnitude of variability is then introduced independently via the $\mathrm{SDNN}(t_i)$ term in the final likelihood (@eq-full-likelihood). This elegant separation allows the model to learn how the spectral composition of HRV changes, independent of simultaneous changes in its total power.
 
 ### Spectral Components
 
@@ -139,37 +143,86 @@ The spectral character of the structured noise is determined by the properties o
 
 #### Dynamic Frequency Band Proportions
 
-The proportions $p_j(t_i)$ dictate how the unit variance of the structured noise is allocated across the different frequency bands at each moment. These proportions must satisfy $p_j(t_i) \ge 0$. While they are not required to sum to one, the structure of the amplitude normalization $A(t_i)$ means they are interpreted as relative contributions to the spectral shape. The model captures the evolution of these proportions as a smooth transition between two distinct spectral states: a baseline state ($\vec\pi_{\text{base}}$) and a perturbed state ($\vec\pi_{\text{pert}}$). The transition is orchestrated by a single master controller function, $C(t_i)$, as shown in the convex combination of @eq-pj-using-ct.
+The proportions $p_j(t_i)$ dictate how the unit variance of the structured noise is allocated across the different frequency bands at each moment. The model captures the evolution of these proportions as a smooth transition between two distinct spectral states: a baseline state ($\vec\pi_{\text{base}}$) and a perturbed state ($\vec\pi_{\text{pert}}$). The transition is orchestrated by a single master controller function, $C(t_i)$, as shown in the convex combination of @eq-pj-using-ct.
 
 $$
 \vec{p}(t_i) = (1 - C(t_i)) \cdot \vec\pi_{\text{base}} + C(t_i) \cdot \vec\pi_{\text{pert}}
 $${#eq-pj-using-ct}
 
-Here, $\vec\pi_{\text{base}}$ and $\vec\pi_{\text{pert}}$ are simplex vectors (their elements are non-negative and sum to one) that represent the characteristic spectral distributions at rest and during peak perturbation, respectively. The master controller, $C(t_i)$, is itself built from the same logistic building blocks, ensuring the spectral transition is synchronized with the primary physiological response, as defined in @eq-master-controller.
+Here, $\vec\pi_{\text{base}}$ and $\vec\pi_{\text{pert}}$ are simplex vectors (their elements are non-negative and sum to one) that represent the characteristic spectral distributions at rest and during peak perturbation, respectively. To ensure efficient sampling, these vectors are not estimated directly but are constructed by transforming unconstrained real-valued parameters using the additive log-ratio (ALR) transformation, which is detailed in the parameterization section below. The master controller, $C(t_i)$, is itself built from the same logistic building blocks, as defined in @eq-master-controller.
 
 $$
 C(t_i) = \mathcal{D}_{1}(t_i) \cdot \left(1 - c_c \cdot \mathcal{D}_{2}(t_i)\right)
 $${#eq-master-controller}
 
-This function naturally transitions from 0 (at baseline) towards 1 (during perturbation). The parameter $c_c$ allows for an incomplete spectral recovery, mirroring the flexibility of the mean and SDNN trajectories. This elegant formulation models complex spectral dynamics using only a few interpretable parameters.
+This function naturally transitions from 0 (at baseline) towards 1 (during perturbation). The parameter $c_c$ allows for an incomplete spectral recovery, mirroring the flexibility of the mean and SDNN trajectories.
 
 #### Multi-Sine Spectral Oscillators
 
-To create a realistic spectral texture rather than a simple periodic signal, each oscillator $S_j(t_i)$ is constructed as a superposition of $K_j$ distinct sinusoids within its designated frequency band. The un-normalized signal for band $j$, denoted $S'_j(t_i)$, is given by @eq-multi-sine-fun.
+To create a realistic spectral texture, each oscillator $S_j(t_i)$ is constructed as a superposition of $K_j$ distinct sinusoids within its designated frequency band. The un-normalized signal for band $j$, denoted $S'_j(t_i)$, is given by @eq-multi-sine-fun.
 
 $$
 S'_j(t_i) = \sum_{k=1}^{K_j} a_{j,k} \sin(2 \pi f_{j,k} t_i + \phi_{j,k})
 $${#eq-multi-sine-fun}
 
-The frequencies $f_{j,k}$ are pre-specified within the standard VLF, LF, and HF ranges, and the phases $\phi_{j,k}$ are treated as fixed data to ensure model identifiability. A critical feature is the structure of the amplitudes, $a_{j,k}$, which are not uniform but follow a power-law relationship with frequency, as shown in @eq-power-law-amp.
+The frequencies $f_{j,k}$ (in Hz) and phases $\phi_{j,k}$ are pre-specified. The amplitudes, $a_{j,k}$, follow a power-law relationship with frequency, $a_{j,k} \propto f_{j,k}^{-b/2}$, where $b$ is a shared spectral exponent. Finally, each composite signal $S'_j(t_i)$ undergoes empirical standardization to produce the final normalized oscillator signal, $S_j(t_i)$, with mean zero and unit variance.
+
+### Model Parameterization and Priors
+
+To ensure numerical stability and efficient sampling, all model parameters are estimated on an unconstrained real-valued scale ($\mathbb{R}$). Priors are placed on these unconstrained parameters, which are then transformed back to their constrained, physically meaningful scales within the model. This section details these transformations.
+
+#### Timing, Rate, and Recovery Parameters
+
+Parameters constrained to a specific interval, such as probabilities or proportions of a range, are parameterized on the logit scale, while parameters constrained to be positive are parameterized on the log scale. For the timing parameters, the onset time $\tau$ is mapped to the observed time interval $[t_{\text{min}}, t_{\text{max}}]$, and the subsequent delay $\delta$ is mapped to the remaining time $[0, t_{\text{max}} - \tau]$.
 
 $$
-a_{j,k} \propto f_{j,k}^{-b/2}
-$${#eq-power-law-amp}
+\tau = \text{inv\_logit}(\tau_{\text{logit}}) \cdot (t_{\text{max}} - t_{\text{min}}) + t_{\text{min}} \\
+\delta = \text{inv\_logit}(\delta_{\text{logit}}) \cdot (t_{\text{max}} - \tau)
+$$
 
-The single shared parameter $b$ is the spectral exponent. A value of $b=0$ corresponds to white noise (equal power at all frequencies within a band), while $b>0$ corresponds to pink or brown noise, where lower frequencies possess greater amplitude. This is a common characteristic of biological signals. The exponent is specified as $b/2$ because signal power is proportional to amplitude squared.
+Similarly, the positive rate parameters $\lambda$ and $\phi$ are log-transformed to allow them to be estimated on an unconstrained scale.
 
-Finally, to fulfill the requirement that $\mathrm{Var}[S_j(t_i)] = 1$, the composite signal $S'_j(t_i)$ undergoes empirical standardization: its sample mean is subtracted, and the result is divided by its sample standard deviation to produce the final normalized oscillator signal, $S_j(t_i)$.
+$$
+\lambda = \exp(\lambda_{\text{log}}) \quad ; \quad \phi = \exp(\phi_{\text{log}})
+$$
+
+Finally, the recovery coefficients for RR, SDNN, and the master controller ($c_r, c_s, c_c$) are mapped via a scaled logit transformation to the intervals $[0, 2]$ and $[0, 1]$, respectively.
+
+$$
+c_r = \text{inv\_logit}(c_{r, \text{logit}}) \cdot 2 \quad ; \quad c_s = \text{inv\_logit}(c_{s, \text{logit}}) \cdot 2 \quad ; \quad c_c = \text{inv\_logit}(c_{c, \text{logit}})
+$$
+
+#### Magnitude Parameters ($\alpha, \beta$)
+
+The baseline and drop magnitudes are scaled relative to data-derived quantities to create dimensionless parameters whose priors are easier to specify and interpret. The RR magnitudes, $\alpha_r$ and $\beta_r$, are parameterized relative to the observed range of the data and the estimated baseline, respectively.
+
+$$
+\alpha_r = \text{inv\_logit}(\alpha_{r, \text{logit}}) \cdot 2 \cdot \text{rr\_range} + \text{rr\_min} \\
+\beta_r = \text{inv\_logit}(\beta_{r, \text{logit}}) \cdot \alpha_r
+$$
+
+In the same manner, the SDNN magnitudes, $\alpha_s$ and $\beta_s$, are parameterized relative to the overall standard deviation of the data and the estimated baseline variability.
+
+$$
+\alpha_s = \text{inv\_logit}(\alpha_{s, \text{logit}}) \cdot \text{rr\_sd} \\ 
+\beta_s = \text{inv\_logit}(\beta_{s, \text{logit}}) \cdot \alpha_s
+$$
+
+#### Spectral Proportion Parameters (ALR Transformation)
+
+Directly placing a prior on a simplex (a vector of positive numbers that sum to one) can be inefficient for sampling. We use the additive log-ratio (ALR) transformation to map the 3-dimensional simplex vectors $\vec\pi$ to 2-dimensional unconstrained real vectors $\vec{y} = [y_1, y_2]$. Choosing the third component as the reference, the transformation is:
+
+$$
+y_1 = \log\left(\frac{\pi_1}{\pi_3}\right) \quad ; \quad y_2 = \log\left(\frac{\pi_2}{\pi_3}\right)
+$$
+
+The model estimates the unconstrained vectors $\vec{y}_{\text{base, log}}$ and $\vec{y}_{\text{pert, log}}$. These are mapped back to the simplex scale using the inverse transformation:
+
+$$
+\pi_1 = \frac{e^{y_1}}{1 + e^{y_1} + e^{y_2}} \quad ; \quad \pi_2 = \frac{e^{y_2}}{1 + e^{y_1} + e^{y_2}} \quad ; \quad \pi_3 = \frac{1}{1 + e^{y_1} + e^{y_2}}
+$$
+
+Weakly informative Normal priors are placed on the unconstrained logit, log, and ALR-transformed parameters, chosen to reflect plausible physiological assumptions (e.g., centering the spectral exponent $b$ around 1 for pink noise).
 
 # Results
 

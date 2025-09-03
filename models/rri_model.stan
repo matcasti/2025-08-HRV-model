@@ -26,14 +26,16 @@ data {
 }
 
 transformed data {
-  // Data derived parameters
+  // === Data derived parameters ===
+
+  // --- RR and time-specific magnitudes
   real rr_min = min(RR);
   real rr_range = max(RR) - rr_min;
   real rr_sd = sd(RR);
   real t_min = min(t);
   real t_range = max(t) - t_min;
 
-  // Precompute sin templates (depends only on data: t, freqs, phases)
+  // --- Precompute sin templates (depends only on data: t, freqs, phases) ---
   array[3] matrix[N, N_sin] sin_mat;
   for (j in 1:3) {
     matrix[N, N_sin] T_mat = (t * 60) * freqs[j]'; // t in minutes -> seconds
@@ -41,7 +43,7 @@ transformed data {
     sin_mat[j] = sin(2 * pi() * (T_mat + P_mat));
   }
 
-  // Precompute log_freqs to avoid recomputing the log at each iteration
+  // --- Precompute log_freqs to avoid recomputing the log at each iteration ---
   array[3] vector[N_sin] log_freqs;
   for (j in 1:3) log_freqs[j] = log(freqs[j]);
 }
@@ -49,27 +51,27 @@ transformed data {
 parameters {
   // === Unconstrained parameters in the logit/log scale === //
 
-  // Shared timing/rate for double-logistics
+  // --- Shared timing/rate for double-logistics ---
   real tau_logit;
   real delta_logit;
   real lambda_log;
   real phi_log;
 
-  // Baseline RR(t) params
+  // --- Baseline RR(t) params ---
   real alpha_r_logit;
   real beta_r_logit;
   real c_r_logit;
-  // SDNN(t) params
+  // --- SDNN(t) params ---
   real alpha_s_logit;
   real beta_s_logit;
   real c_s_logit;
 
-  // === Parameters for Frequency Proportions: p(t) ===
-  simplex[3] pi_base;    // Proportions at baseline [VLF, LF, HF]
-  simplex[3] pi_pert;    // Proportions during perturbation
+  // --- Parameters for Frequency Proportions: p(t) ---
+  vector[2] y_base_log;      // unconstrained log-ratio for baseline
+  vector[2] y_pert_log;      // unconstrained log-ratio for perturbation
   real c_c_logit;        // Proportional recovery of the master controller C(t)
 
-  // Within band noise structure
+  // --- Within band noise structure ---
   real b_log;
 }
 
@@ -77,7 +79,7 @@ transformed parameters {
   // --- 0. Computing constrained from the unconstrained parameters ---
   // Shared timing/rate for double-logistics
   real tau = inv_logit(tau_logit) * t_range + t_min; // [t_min, t_min + t_range]
-  real delta = inv_logit(delta_logit) * t_range;     // [0, t_range]
+  real delta = inv_logit(delta_logit) * (t_range - tau);     // [0, t_range - tau]
   real lambda = exp(lambda_log);                     // [0, Inf]
   real phi = exp(phi_log);                           // [0, Inf]
 
@@ -108,9 +110,25 @@ transformed parameters {
   // --- 4. Build the master controller C(t) and proportions p(t) ---
   vector[N] C_t = D1 .* (1 - c_c .* D2);
 
+  // --- 5. Build the spectral oscillators S_j(t) ---
+  // Map from ALR coordinates (y) to simplex (pi)
+  vector[3] pi_base;
+  vector[3] pi_pert;
+
+  // For base-state vector
+  real denom_base = 1 + exp(y_base_log[1]) + exp(y_base_log[2]);
+  pi_base[1] = exp(y_base_log[1]) / denom_base;
+  pi_base[2] = exp(y_base_log[2]) / denom_base;
+  pi_base[3] = 1 / denom_base;
+
+  // For perturbation-state vector
+  real denom_pert = 1 + exp(y_pert_log[1]) + exp(y_pert_log[2]);
+  pi_pert[1] = exp(y_pert_log[1]) / denom_pert;
+  pi_pert[2] = exp(y_pert_log[2]) / denom_pert;
+  pi_pert[3] = 1 / denom_pert;
+
   matrix[N, 3] p_t = (1.0 - C_t) * pi_base' + C_t * pi_pert';
 
-  // --- 5. Build the spectral oscillators S_j(t) ---
   // Spectral synthesis using precomputed sin templates
   matrix[N, 3] S_t_matrix;
   for (j in 1:3) {
@@ -137,27 +155,38 @@ transformed parameters {
 }
 
 model {
-  // --- Priors ---
-  tau_logit ~ normal(-0.4, 0.1);
-  delta_logit ~ normal(-1.4, 0.1);
-  lambda_log ~ normal(1.1, 0.1);
-  phi_log ~ normal(0.7, 0.1);
+  // === Priors ===
 
-  alpha_r_logit ~ normal(-0.4, 0.1);
-  beta_r_logit  ~ normal(0, 0.1);
-  c_r_logit     ~ normal(-0.4, 0.1);
+  // --- Logistic components ---
+  // It appears that the parameters from the logistic components
+  // need tight priors to ensure identifiability, otherwise the model
+  // experience multimodal posterior geometry and divergent transitions
+  tau_logit ~ normal(logit(0.4), 0.1);
+  delta_logit ~ normal(logit(0.3), 0.1);
+  lambda_log ~ normal(log(3), 0.1);
+  phi_log ~ normal(log(2), 0.1);
 
-  alpha_s_logit ~ normal(-0.5, 0.1);
-  beta_s_logit  ~ normal(0, 0.1);
-  c_s_logit     ~ normal(0.4, 0.1);
+  // --- RR(t) parameters ---
+  alpha_r_logit ~ normal(0, 1); // 50% of RR range
+  beta_r_logit  ~ normal(0, 1); // 50% of resting RR
+  c_r_logit     ~ normal(0, 1); // 50% of [0,2] = 1 -> complete RR recovery
 
-  // Spectral parameter
-  b_log ~ normal(0, 0.1); // Prior centered around b=1 (pink noise)
+  // --- SDNN(t) parameters ---
+  alpha_s_logit ~ normal(0, 1); // 50% of total RR SD
+  beta_s_logit  ~ normal(0, 1); // 50% of resting SDNN
+  c_s_logit     ~ normal(0, 1); // 50% of [0,2] = 1 -> complete SDNN recovery
 
-  // Proportion parameters
-  pi_base ~ dirichlet([10,30,60]');
-  pi_pert ~ dirichlet([70,20,10]');
-  c_c_logit ~ normal(1.4, 0.1);
+  // --- p_j(t) parameters ---
+  // base: VLF = 0.10, LF = 0.30, HF = 0.60
+  // pert: VLF = 0.70, LF = 0.20, HF = 0.10
+  // Map to ALR: mu = [log(VLF/HF), log(LF/HF)]'
+  y_base_log ~ normal([-1, -1]', 1); // More HF dominant state
+  y_pert_log ~ normal([ 1,  1]', 1); // More VLF-LF dominant state
+
+  c_c_logit ~ normal(1, 1); // Prior belief of partial recovery (above 50%)
+
+  // --- Spectral parameter ---
+  b_log ~ normal(0, 0.2); // Prior centered around b=1 (pink noise)
 
   // === Likelihood ===
   RR ~ normal(mu, SDNN_t);

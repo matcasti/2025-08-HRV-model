@@ -51,7 +51,7 @@ band_defs <- list(
   HF  = list(min = 0.150,  max = 0.4)
 )
 N_sin <- 30 # Number of sine waves per band
-beta <- 1 # Spectral exponent (1.0 for pink noise)
+b <- 1 # Spectral exponent (1.0 for pink noise)
 
 
 # === 2. Simulation Core ===
@@ -102,7 +102,7 @@ for (j in 1:3) {
   phi_k <- runif(N_sin, 0, 2 * pi)
 
   # 2. Calculate amplitudes based on power law
-  a_k <- f_k^(-beta / 2)
+  a_k <- f_k^(-b / 2)
 
   # 3. Create signal by summing sine waves
   # outer(t, f_k) creates a matrix where element (i, j) is t_i * f_k
@@ -190,7 +190,7 @@ rr_t_fit <- rstan::sampling(
     "alpha_s","beta_s","c_s",
     "c_c", "b",
     # "sigma",
-    "pi_pert", "pi_base"
+    "y_base_log", "y_pert_log"
   ),
   include = TRUE,
   data = list(N = length(sim_data$t),
@@ -210,7 +210,7 @@ rr_t_fit <- rstan::sampling(
   iter = 10000, warmup = 8000,
   chains = 5, cores = 5,
   seed = 12345,
-  control = list(adapt_delta = 0.80,
+  control = list(adapt_delta = 0.99,
                  max_treedepth = 10)
 )
 
@@ -218,7 +218,7 @@ saveRDS(rr_t_fit, file = "models/rr_t_fit.rds")
 
 rstan::check_hmc_diagnostics(rr_t_fit)
 
-## Se demoró menos de una hora (1.3 horas)
+## Tiempo que se demora el muestreo
 rstan::get_elapsed_time(rr_t_fit) |>
   rowSums() |>
   max() |>
