@@ -16,7 +16,7 @@ functions {
 data {
   // --- Observed Data ---
   int<lower=1> N;           // Number of data points
-  vector[N] t;              // Time vector (in seconds)
+  vector[N] t;              // Time vector (in minutes)
   vector[N] RR;             // Observed R-R intervals (in ms)
 
   // --- Fixed Spectral Components (treated as data) ---
@@ -71,13 +71,10 @@ parameters {
 
   // Within band noise structure
   real b_log;
-
-  // === Error Term ===
-  // real<lower=0> sigma;   // Residual, unstructured variability
 }
 
 transformed parameters {
-  // === Computing constrained from the unconstrained parameters === //
+  // --- 0. Computing constrained from the unconstrained parameters ---
   // Shared timing/rate for double-logistics
   real tau = inv_logit(tau_logit) * t_range + t_min; // [t_min, t_min + t_range]
   real delta = inv_logit(delta_logit) * t_range;     // [0, t_range]
@@ -106,7 +103,6 @@ transformed parameters {
   vector[N] RR_baseline = alpha_r - beta_r * D1 + c_r * beta_r * D2;
 
   // --- 3. Build the target SDNN trajectory: SDNN(t) ---
-  // Clamp at a small positive number to ensure numerical stability.
   vector[N] SDNN_t = alpha_s - beta_s * D1 + c_s * beta_s * D2;
 
   // --- 4. Build the master controller C(t) and proportions p(t) ---
@@ -115,7 +111,7 @@ transformed parameters {
   matrix[N, 3] p_t = (1.0 - C_t) * pi_base' + C_t * pi_pert';
 
   // --- 5. Build the spectral oscillators S_j(t) ---
-  // --- spectral synthesis using precomputed sin templates
+  // Spectral synthesis using precomputed sin templates
   matrix[N, 3] S_t_matrix;
   for (j in 1:3) {
     // amplitude law a_k = freqs^{-b/2}
@@ -141,7 +137,7 @@ transformed parameters {
 }
 
 model {
-  // --- Priors
+  // --- Priors ---
   tau_logit ~ normal(-0.4, 0.1);
   delta_logit ~ normal(-1.4, 0.1);
   lambda_log ~ normal(1.1, 0.1);
@@ -162,9 +158,6 @@ model {
   pi_base ~ dirichlet([10,30,60]');
   pi_pert ~ dirichlet([70,20,10]');
   c_c_logit ~ normal(1.4, 0.1);
-
-  // Error term
-  // sigma ~ normal(0, 1) T[0, ];
 
   // === Likelihood ===
   RR ~ normal(mu, SDNN_t);
