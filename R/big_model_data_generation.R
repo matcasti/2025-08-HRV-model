@@ -239,8 +239,7 @@ rr_t_fit <- rstan::sampling(
     t = t,
     RR = RRi_t,
     N_sin = N_sin,
-    freqs = freqs_stan,
-    phases = phases_stan # Random phases for VLF, LF and HF
+    freqs = freqs_stan
   ),
   iter = 10000, warmup = 8000,
   chains = 5, cores = 5,

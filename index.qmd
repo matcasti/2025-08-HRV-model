@@ -176,8 +176,8 @@ To ensure numerical stability and efficient sampling, all model parameters are e
 Parameters constrained to a specific interval, such as probabilities or proportions of a range, are parameterized on the logit scale, while parameters constrained to be positive are parameterized on the log scale. For the timing parameters, the onset time $\tau$ is mapped to the observed time interval $[t_{\text{min}}, t_{\text{max}}]$, and the subsequent delay $\delta$ is mapped to the remaining time $[0, t_{\text{max}} - \tau]$.
 
 $$
-\tau = \text{inv\_logit}(\tau_{\text{logit}}) \cdot (t_{\text{max}} - t_{\text{min}}) + t_{\text{min}} \\
-\delta = \text{inv\_logit}(\delta_{\text{logit}}) \cdot (t_{\text{max}} - \tau)
+\tau = \text{logit}^{-1}(\tau_{\text{logit}}) \cdot (t_{\text{max}} - t_{\text{min}}) + t_{\text{min}} \\
+\delta = \text{logit}^{-1}(\delta_{\text{logit}}) \cdot (t_{\text{max}} - \tau)
 $$
 
 Similarly, the positive rate parameters $\lambda$ and $\phi$ are log-transformed to allow them to be estimated on an unconstrained scale.
@@ -189,7 +189,7 @@ $$
 Finally, the recovery coefficients for RR, SDNN, and the master controller ($c_r, c_s, c_c$) are mapped via a scaled logit transformation to the intervals $[0, 2]$ and $[0, 1]$, respectively.
 
 $$
-c_r = \text{inv\_logit}(c_{r, \text{logit}}) \cdot 2 \quad ; \quad c_s = \text{inv\_logit}(c_{s, \text{logit}}) \cdot 2 \quad ; \quad c_c = \text{inv\_logit}(c_{c, \text{logit}})
+c_r = \text{logit}^{-1}(c_{r, \text{logit}}) \cdot 2 \quad ; \quad c_s = \text{logit}^{-1}(c_{s, \text{logit}}) \cdot 2 \quad ; \quad c_c = \text{logit}^{-1}(c_{c, \text{logit}})
 $$
 
 #### Magnitude Parameters ($\alpha, \beta$)
@@ -197,15 +197,15 @@ $$
 The baseline and drop magnitudes are scaled relative to data-derived quantities to create dimensionless parameters whose priors are easier to specify and interpret. The RR magnitudes, $\alpha_r$ and $\beta_r$, are parameterized relative to the observed range of the data and the estimated baseline, respectively.
 
 $$
-\alpha_r = \text{inv\_logit}(\alpha_{r, \text{logit}}) \cdot 2 \cdot \text{rr\_range} + \text{rr\_min} \\
-\beta_r = \text{inv\_logit}(\beta_{r, \text{logit}}) \cdot \alpha_r
+\alpha_r = \text{logit}^{-1}(\alpha_{r, \text{logit}}) \cdot 2 \cdot \text{rr\_range} + \text{rr\_min} \\
+\beta_r = \text{logit}^{-1}(\beta_{r, \text{logit}}) \cdot \alpha_r
 $$
 
 In the same manner, the SDNN magnitudes, $\alpha_s$ and $\beta_s$, are parameterized relative to the overall standard deviation of the data and the estimated baseline variability.
 
 $$
-\alpha_s = \text{inv\_logit}(\alpha_{s, \text{logit}}) \cdot \text{rr\_sd} \\ 
-\beta_s = \text{inv\_logit}(\beta_{s, \text{logit}}) \cdot \alpha_s
+\alpha_s = \text{logit}^{-1}(\alpha_{s, \text{logit}}) \cdot \text{rr\_sd} \\ 
+\beta_s = \text{logit}^{-1}(\beta_{s, \text{logit}}) \cdot \alpha_s
 $$
 
 #### Spectral Proportion Parameters (ALR Transformation)
