@@ -40,7 +40,7 @@ transformed data {
   for (j in 1:3) {
     matrix[N, N_sin] T_mat = (t * 60) * freqs[j]'; // t in minutes -> seconds
     matrix[N, N_sin] P_mat = rep_matrix(phases[j]', N);
-    sin_mat[j] = sin(2 * pi() * (T_mat + P_mat));
+    sin_mat[j] = sin(2 * pi() * T_mat + P_mat);
   }
 
   // --- Precompute log_freqs to avoid recomputing the log at each iteration ---
@@ -118,6 +118,8 @@ transformed parameters {
 
   // --- 5. Build the spectral oscillators S_j(t) ---
   // Map from ALR coordinates (y) to simplex (pi)
+  // This is the inverse of the Additive Log-Ratio (ALR) transform,
+  // which maps a 3-part composition to 2 unconstrained real numbers.
   vector[3] pi_base;
   vector[3] pi_pert;
 
@@ -150,12 +152,7 @@ transformed parameters {
   }
 
   // Compute 3x3 covariance Sigma_S (use N-1 denom)
-  matrix[3,3] Sigma_S;
-  for (i in 1:3) {
-    for (j in 1:3) {
-      Sigma_S[i,j] = dot_product(col(S_t_matrix, i), col(S_t_matrix, j)) / (N - 1);
-    }
-  }
+  matrix[3,3] Sigma_S = crossprod(S_t_matrix) / (N - 1);
 
   // --- 6. Derive the internal amplitude A(t) using inversion ---
   // Compute denom_sq vectorized: denom_sq[i] = p_i' * Sigma_S * p_i
