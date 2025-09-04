@@ -5,8 +5,8 @@
 # === 1. Model Parameters ===
 # All parameters are centralized here for easy tweaking.
 
-t_start <- 0 # Start time in seconds
-t_end <- 15 # End time in seconds
+t_start <- 0 # Start time in minutes
+t_end <- 15 # End time in minutes
 
 # --- Overall Dynamics ---
 ## D_{1,2}(t)
@@ -37,6 +37,9 @@ c_s <- 1.2       # Proportion recovery
 ## C(t)
 c_c <- 0.8      # Proportion recovery
 
+## Fractional SDNN
+w <- 0.8
+
 # --- Proportional Band Dynamics (p_j(t)) ---
 # Baseline state (e.g., rest, high HF)
 pi_base <- c(VLF = 0.1, LF = 0.3, HF = 0.6)
@@ -50,13 +53,13 @@ band_defs <- list(
   LF  = list(min = 0.040,  max = 0.149),
   HF  = list(min = 0.150,  max = 0.4)
 )
-N_sin <- 30 # Number of sine waves per band
+N_sin <- 25 # Number of sine waves per band
 b <- 1 # Spectral exponent (1.0 for pink noise)
 
 
 # === 2. Simulation Core ===
 # --- Time Vector ---
-t <- seq(t_start, t_end, length.out = 2000)
+t <- seq(t_start, t_end, length.out = 1200)
 n_points <- length(t)
 
 # --- Generate Time-Varying components ---
@@ -72,19 +75,17 @@ plot(t, SDNN_t, type = "l"); grid()
 C_t <- D_1(t) * (1 - c_c * D_2(t))
 plot(t, C_t, type = "l"); grid()
 
-## Proportion functions: p_j(t)
+# Calculate the time-varying proportion matrix p_j
 p_j <- (1 - C_t) %*% t(pi_base) + C_t %*% t(pi_pert)
-matplot(p_j, lty = 1, type = "l"); grid()
+matplot(t, p_j, lty = 1, type = "l"); grid()
+colnames(p_j) <- c("VLF", "LF", "HF")
 
 # Total Amplitude: A(t)
-A_t <- SDNN_t / sqrt(rowSums(p_j^2))
+ var_structured <- SDNN_t^2 * w
+ var_noise <- SDNN_t^2 * (1 - w)
+
+A_t <- sqrt(var_structured) / sqrt(rowSums(p_j^2))
 plot(t, A_t, type = "l"); grid()
-
-# Calculate the time-varying proportion matrix p_t
-p_t <- (1 - C_t) %*% t(pi_base) +
-  C_t %*% t(pi_pert)
-colnames(p_t) <- c("VLF", "LF", "HF")
-
 
 # --- Generate Spectral Band Signals S_j(t) ---
 S_t_matrix <- matrix(0, nrow = n_points, ncol = 3)
@@ -124,8 +125,10 @@ weighted_S <- S_t_matrix * p_j
 sum_weighted_S <- rowSums(weighted_S)
 
 # Final R-R signal generation
-RRi_t <- RR_t + A_t * sum_weighted_S
+mu <- RR_t + A_t * sum_weighted_S
+RRi_t <- rnorm(length(t), mu, sqrt(var_noise))
 
+plot(t, RRi_t, type = "l")
 
 # -------------------------------------------------------------------------
 
@@ -133,8 +136,6 @@ rr_min <- min(RRi_t);
 rr_range <- max(RRi_t) - rr_min;
 t_min <- min(t);
 t_range <- max(t) - t_min;
-
-plot(t, (RRi_t - rr_min) / rr_range, type = "l")
 
 # -------------------------------------------------------------------------
 
@@ -155,7 +156,7 @@ matplot(t, weighted_S, type = 'l',
      main = "Weighted Sine Sum",
      xlab = "Time (s)", ylab = "ms")
 grid()
-legend(10, y = 1.5, legend = colnames(p_t), col = 1:3, lty = 1:3, lwd = 2)
+legend(9, y = 1.5, legend = colnames(p_j), col = 1:3, lty = 1:3, lwd = 2)
 
 # Plot 3: SDNN SDNN(t)
 plot(t, SDNN_t, type = 'l', col = "darkred", lwd = 2,
@@ -168,13 +169,11 @@ matplot(t, p_j, type = 'l', lty = 1, lwd = 2,
         main = "Time-Varying Proportions p(t)",
         xlab = "Time (s)", ylab = "Proportion", ylim = c(0,0.8))
 grid()
-legend(10, y = 0.8, legend = colnames(p_t), col = 1:3, lty = 1, lwd = 2)
+legend(9, y = 0.8, legend = colnames(p_j), col = 1:3, lty = 1, lwd = 2)
 
 par(mfrow = c(1,1))
 
 sim_data <- data.frame(t, RRi_t)
-
-max(RRi_t) - min(RRi_t)
 
 plot(sim_data, type = "l")
 
@@ -185,12 +184,16 @@ model <- rstan::stan_model(file = "models/rri_model.stan")
 rr_t_fit <- rstan::sampling(
   object = model,
   pars = c(
+    "lambda_log","phi_log","tau_logit","delta_logit",
+    "alpha_r_logit","beta_r_logit","c_r_logit",
+    "alpha_s_logit","beta_s_logit","c_s_logit",
+    "c_c_logit", "b_log", "w_logit",
+    "y_base_log", "y_pert_log",
     "lambda","phi","tau","delta",
     "alpha_r","beta_r","c_r",
     "alpha_s","beta_s","c_s",
-    "c_c", "b",
-    # "sigma",
-    "y_base_log", "y_pert_log"
+    "c_c", "b", "w",
+    "pi_base", "pi_pert"
   ),
   include = TRUE,
   data = list(N = length(sim_data$t),
@@ -232,25 +235,11 @@ posterior_rr <- extract(rr_t_fit) |>
   data.table::as.data.table()
 
 local({
-  png(file = "rplot.png",width=15,height=15,units="in",res=500);
+  png(file = "rplot.png",width=25,height=25,units="in",res=600);
   plot(posterior_rr,pch=".");
   dev.off()
 })
 
 posterior_epred <- posterior_rr[, lapply(.SD, median)]
-
-posterior_epred[, {
-  D_1 <- 1 / (1 + exp(-lambda * (t - tau)))
-  D_2 <- 1 / (1 + exp(-phi * (t - tau - delta)))
-  RR_t <- alpha_r - beta_r * D_1 + (c_r * beta_r) * D_2
-  SDNN_t <- alpha_s - beta_s * D_1 + (c_s * beta_s) * D_2
-  pi_pert <- c(pi_pert.V1, pi_pert.V2, pi_pert.V3)
-  pi_base <- c(pi_base.V1, pi_base.V2, pi_base.V3)
-  C_t <- D_1 * (1 - c_c * D_2)
-  p_t <- C_t %*% t(pi_pert) + (1 - C_t) %*% t(pi_base)
-  list(p_t)
-}] |> matplot(x = t, type = "l", lty = 1, ylim = 0:1)
-
-matplot(t, p_t, type = "l", lty = 1, ylim = 0:1)
 
 # shinystan::launch_shinystan(rr_t_fit)

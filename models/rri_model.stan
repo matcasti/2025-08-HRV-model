@@ -73,6 +73,9 @@ parameters {
 
   // --- Within band noise structure ---
   real b_log;
+
+  // Fractional split of SDNN
+  real w_logit;
 }
 
 transformed parameters {
@@ -96,6 +99,9 @@ transformed parameters {
 
   // Within band noise structure
   real b = exp(b_log); // [0, Inf]
+
+  // Fractional split of SDNN
+  real w = inv_logit(w_logit); // [0,1]
 
   // --- 1. Define the shared logistic components D1 and D2 ---
   vector[N] D1 = logistic_curve(t, tau, lambda);
@@ -138,16 +144,34 @@ transformed parameters {
     // build unnormalized band signal via sin_mat (data) * a_k
     vector[N] S_j_unnorm = sin_mat[j] * a_k;
 
-    // empirical standardization with guard
-    real s = sd(S_j_unnorm);
+    // empirical mean centering
     real m = mean(S_j_unnorm);
-    S_t_matrix[:, j] = (S_j_unnorm - m) ./ fmax(s, 1e-8);
+    S_t_matrix[:, j] = (S_j_unnorm - m);
+  }
+
+  // Compute 3x3 covariance Sigma_S (use N-1 denom)
+  matrix[3,3] Sigma_S;
+  for (i in 1:3) {
+    for (j in 1:3) {
+      Sigma_S[i,j] = dot_product(col(S_t_matrix, i), col(S_t_matrix, j)) / (N - 1);
+    }
   }
 
   // --- 6. Derive the internal amplitude A(t) using inversion ---
-  // rows_dot_self(p_t) efficiently calculates sum(p_j^2) for each time point.
-  vector[N] sum_p_sq = rows_dot_self(p_t);
-  vector[N] A_t = 1 ./ sqrt(sum_p_sq);
+  // Compute denom_sq vectorized: denom_sq[i] = p_i' * Sigma_S * p_i
+  // First compute M = p_t * Sigma_S  -> matrix[N,3]
+  matrix[N,3] M = p_t * Sigma_S; // matrix-matrix multiply
+
+  vector[N] denom_sq = rows_dot_product(M, p_t); // vectorized p_i' * (Sigma p_i)
+  vector[N] denom = sqrt(denom_sq);
+
+  // Fraction of SDNN correspond to the structured noise
+  vector[N] var_struct = square(SDNN_t) * w;
+
+  // Fraction of SDNN correspond to the residual noise
+  vector[N] var_resid = square(SDNN_t) * (1 - w);
+
+  vector[N] A_t = sqrt(var_struct) ./ denom;
 
   // --- 7. Combine for the final predicted signal mu ---
   vector[N] sum_weighted_S = rows_dot_product(S_t_matrix, p_t);
@@ -188,6 +212,9 @@ model {
   // --- Spectral parameter ---
   b_log ~ normal(0, 0.2); // Prior centered around b=1 (pink noise)
 
+  // --- Fractional split of SDNN ---
+  w_logit ~ normal(1, 1); // Prior belief of more structured noise
+
   // === Likelihood ===
-  RR ~ normal(mu, SDNN_t);
+  RR ~ normal(mu, sqrt(var_resid));
 }
