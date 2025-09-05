@@ -67,7 +67,7 @@ parameters {
   real b_log; // Exponent for 1/f noise structure
 
   // Per-band scale parameters to improve posterior geometry
-  vector<lower=0>[3] sigma_beta;
+  vector<lower=0>[3] sigma_u;
 
   // Standard normal deviates for sine and cosine coefficients (non-centered)
   array[3] vector[N_sin] z_sin;
@@ -123,21 +123,21 @@ transformed parameters {
   matrix[N, 3] S_t_matrix;
 
   // block for spectral synthesis
-  array[3] vector[N_sin] beta_sin;
-  array[3] vector[N_sin] beta_cos;
+  array[3] vector[N_sin] u_sin;
+  array[3] vector[N_sin] u_cos;
 
   for (j in 1:3) {
     // The amplitude law a_k acts as a frequency-dependent prior scale
     vector[N_sin] a_k = exp(-b/2 .* log_freqs[j]);
-    // Per-band scale sigma_beta[j] allows each band's total power
+    // Per-band scale sigma_u[j] allows each band's total power
     // to be adjusted, improving sampling efficiency.
-    beta_sin[j] = z_sin[j] .* sigma_beta[j] .* a_k;
-    beta_cos[j] = z_cos[j] .* sigma_beta[j] .* a_k;
+    u_sin[j] = z_sin[j] .* sigma_u[j] .* a_k;
+    u_cos[j] = z_cos[j] .* sigma_u[j] .* a_k;
   }
 
   for (j in 1:3) {
     // This is the primary computational bottleneck: N x P matrix-vector products
-    vector[N] S_j_unnorm = sin_mat[j] * beta_sin[j] + cos_mat[j] * beta_cos[j];
+    vector[N] S_j_unnorm = sin_mat[j] * u_sin[j] + cos_mat[j] * u_cos[j];
     S_t_matrix[:, j] = S_j_unnorm - mean(S_j_unnorm);
   }
 
@@ -187,7 +187,7 @@ model {
 
   // Prior on the per-band scale parameters. A half-normal provides
   // gentle regularization towards zero, allowing bands to have low power.
-  sigma_beta ~ normal(0, 0.5);
+  sigma_u ~ normal(0, 0.5);
 
   // Priors on the unscaled standard normal coefficients
   for (j in 1:3) {
