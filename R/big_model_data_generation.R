@@ -225,7 +225,7 @@ rr_t_fit <- rstan::sampling(
     "lambda_log","phi_log","tau_logit","delta_logit",
     "alpha_r_logit","beta_r_logit","c_r_logit",
     "alpha_s_logit","beta_s_logit","c_s_logit",
-    "c_c_logit", "b_log", "w_logit",
+    "c_c_logit", "b_log", "w_logit", "sigma_beta",
     "y_base_log", "y_pert_log",
     "lambda","phi","tau","delta",
     "alpha_r","beta_r","c_r",
