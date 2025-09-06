@@ -152,7 +152,7 @@ freq_bands <- list(
 # --- Define Parameters for the Three Scenarios ---
 
 # Scenario 1: Classic Sympatho-Vagal Response
-# A sharp drop in RR/SDNN with a full recovery, accompanied by a shift
+# A sharp drop in RR/SDNN with a partial recovery, accompanied by a shift
 # from high-frequency (HF) to low-frequency (LF) power and back.
 params1 <- list(
   # Double-logistic timing
@@ -164,7 +164,7 @@ params1 <- list(
   # p(t) params
   pi_base = c(0.1, 0.2, 0.7), # VLF, LF, HF - Rest (HF dominant)
   pi_pert = c(0.5, 0.3, 0.2), # VLF, LF, HF - Stress (LF dominant)
-  c_c = 1.0,
+  c_c = 0.8,
   # Spectral & Noise params
   b = 1.0, sigma_u = c(1, 1, 1) * 0.1, w = 0.90 # 90% structured variance
 )
@@ -215,7 +215,7 @@ if (interactive()) {
   set.seed(123)
 
   # --- Generate data for Scenario 1 ---
-  sim_data <- generate_rri_simulation(params3, time_vector, freq_bands, N_SINUSOIDS)
+  sim_data <- generate_rri_simulation(params1, time_vector, freq_bands, N_SINUSOIDS)
 
   # --- Create Plots to Visualize the Ground Truth and Simulated Data ---
 
@@ -244,8 +244,8 @@ if (interactive()) {
   p3 <- sim_data %>%
     select(time, starts_with("p_")) %>%
     pivot_longer(cols = -time, names_to = "Band", values_to = "proportion") %>%
-    mutate(band = factor(toupper(gsub("p_", "", band)), levels = c("VLF", "LF", "HF"))) %>%
-    ggplot(aes(x = time, y = proportion, fill = band)) +
+    mutate(Band = factor(toupper(gsub("p_", "", Band)), levels = c("VLF", "LF", "HF"))) %>%
+    ggplot(aes(x = time, y = proportion, fill = Band)) +
     geom_area(alpha = 0.8) +
     scale_fill_manual(values = c("VLF" = "#882255", "LF" = "#44AA99", "HF" = "#DDCC77")) +
     labs(title = "C) Ground-Truth Spectral Proportions p(t)",
