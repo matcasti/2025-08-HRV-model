@@ -25,7 +25,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-## Introduction
+# Introduction
 
 The rhythm of the human heart, far from being a simple, constant beat, is a complex and dynamic signal reflecting the continuous interplay between an organism and its internal and external environments. The precise timing between successive heartbeats, measured as the R-R interval (RRi), is a primary non-invasive proxy for autonomic nervous system (ANS) activity. The analysis of variations in this interval, a discipline known as heart rate variability (HRV), has become a cornerstone for assessing cardiovascular health, stress responses, and overall physiological state. This variability arises from the coordinated actions of multiple regulatory systems, including the sympathetic and parasympathetic branches of the ANS, baroreflexes, and thermoregulatory mechanisms.
 
