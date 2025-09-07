@@ -27,249 +27,133 @@
 # 1. --- Load Necessary Libraries and Source Generator Script ---
 if (!require("pacman")) install.packages("pacman")
 # `signal` is needed for STFT (specgram)
-pacman::p_load(dplyr, tibble, ggplot2, tidyr, cowplot, signal)
+pacman::p_load(dplyr, tibble, data.table, ggplot2, tidyr, cowplot, signal)
 
-# Source the data generation script to make its functions and parameters available.
-# This assumes "generate_simulation_data.R" is in the same directory.
+# Source the data generation script to make its functions and parameters
 source("R/1-generate_data.R")
-
-
-# 2. --- Analysis Functions for Conventional Methods ---
-
-#' Perform sliding-window analysis for time-domain metrics.
-#'
-#' @param data A tibble containing `time` and `RR_observed`.
-#' @param window_sec The length of the sliding window in seconds.
-#' @param overlap_perc The percentage of overlap between consecutive windows (0 to 1).
-#' @param sampling_rate The sampling rate of the data in Hz.
-#' @return A tibble with the window center time, and the calculated mean RR and SDNN.
-perform_sliding_window_analysis <- function(data, window_sec, overlap_perc, sampling_rate) {
-  window_samples <- window_sec * sampling_rate
-  step_samples <- floor(window_samples * (1 - overlap_perc))
-
-  # Calculate start indices for each window
-  start_indices <- seq(1, nrow(data) - window_samples + 1, by = step_samples)
-
-  results <- purrr::map_dfr(start_indices, ~{
-    window_data <- data$RR_observed[.x:(.x + window_samples - 1)]
-    window_time <- data$time[.x + floor(window_samples / 2)] # Time at window center
-
-    tibble(
-      time = window_time,
-      RR_windowed = mean(window_data, na.rm = TRUE),
-      SDNN_windowed = sd(window_data, na.rm = TRUE)
-    )
-  })
-
-  return(results)
-}
-
-
-#' Perform STFT for spectral analysis.
-#'
-#' @param data A tibble containing `RR_observed`.
-#' @param window_sec The length of the STFT window in seconds.
-#' @param overlap_perc The percentage of overlap between consecutive windows (0 to 1).
-#' @param sampling_rate The sampling rate of the data in Hz.
-#' @param freq_bands A list defining the frequency ranges for VLF, LF, and HF.
-#' @return A tibble with window center time and the proportional power for each band.
-perform_stft_analysis <- function(data, window_sec, overlap_perc, sampling_rate, freq_bands) {
-  window_samples <- window_sec * sampling_rate
-
-  # Ensure the input signal is a plain numeric vector to avoid potential
-  # issues with tibble column types inside external library functions.
-  x_input <- as.numeric(data$RR_observed)
-
-  # Use the specgram function from the 'signal' package
-  stft_result <- specgram(
-    x = x_input,
-    n = window_samples,
-    Fs = sampling_rate,
-    overlap = floor(window_samples * overlap_perc),
-  )
-
-  # Defensive check based on the complex spectrum 'S', which is the primary output.
-  # If 'S' is NULL or has no columns, the analysis failed to produce any time windows.
-  if (is.null(stft_result$S) || ncol(stft_result$S) == 0) {
-    # Return an empty tibble with the correct structure
-    return(tibble(
-      time = numeric(0),
-      p_vlf_stft = numeric(0),
-      p_lf_stft = numeric(0),
-      p_hf_stft = numeric(0)
-    ))
-  }
-
-  # Extract frequencies, times, and calculate power from the complex spectrum.
-  # Power is the squared magnitude of the complex values in S.
-  freqs <- stft_result$f
-  times <- stft_result$t / 60 # Convert STFT time back to minutes
-  power <- Mod(stft_result$S)^2
-
-  # Function to calculate and normalize power in bands for each time slice
-  purrr::map_dfr(1:ncol(power), ~{
-    power_slice <- power[, .x]
-
-    # Integrate power within each band
-    vlf_power <- sum(power_slice[freqs >= freq_bands$vlf[1] & freqs < freq_bands$lf[1]])
-    lf_power  <- sum(power_slice[freqs >= freq_bands$lf[1] & freqs < freq_bands$hf[1]])
-    hf_power  <- sum(power_slice[freqs >= freq_bands$hf[1] & freqs <= tail(freq_bands$hf, 1)])
-
-    total_power <- vlf_power + lf_power + hf_power
-
-    tibble(
-      time = times[.x],
-      p_vlf_stft = if(total_power > 0) vlf_power / total_power else 0,
-      p_lf_stft  = if(total_power > 0) lf_power / total_power else 0,
-      p_hf_stft  = if(total_power > 0) hf_power / total_power else 0
-    )
-  })
-}
-
-
-# 3. --- Evaluation Metric Functions ---
-
-#' Calculate RMSE and R-squared.
-#'
-#' @param true_vals A numeric vector of ground-truth values.
-#' @param estimated_vals A numeric vector of estimated values.
-#' @return A tibble with RMSE and R2 values.
-calculate_metrics <- function(true_vals, estimated_vals) {
-  # Ensure no NA values interfere with calculations
-  valid_indices <- !is.na(true_vals) & !is.na(estimated_vals)
-  true <- true_vals[valid_indices]
-  est  <- estimated_vals[valid_indices]
-
-  if (length(true) == 0) return(tibble(RMSE = NA_real_, R2 = NA_real_))
-
-  rmse <- sqrt(mean((true - est)^2))
-  r2   <- 1 - (sum((true - est)^2) / sum((true - mean(true))^2))
-
-  tibble(Metric = c("RMSE", "R2"), Value = c(rmse, r2))
-}
+source("R/_functions.R")
 
 
 # 4. --- Main Analysis and Visualization Pipeline ---
+metrics <- vector("list", 3)
+plots <- vector("list", 3)
 
-if (interactive()) {
+# Define parameters for the conventional analysis
+WINDOW_SECONDS <- 120 # 3-minute window is common
+OVERLAP_PERC <- 0.99  # 99% overlap for smoother estimates
+
+for (i in 1:3) {
 
   # --- A. Setup and Data Generation ---
-  set.seed(456) # Use a different seed from the generator for robustness
-
-  # Choose which scenario to analyze
-  SCENARIO_PARAMS <- params1 # Options: params1, params2, params3
-  SCENARIO_PARAMS <- params2 # Options: params1, params2, params3
-  SCENARIO_PARAMS <- params3 # Options: params1, params2, params3
-  SCENARIO_NAME <- "Scenario 1: Classic Sympatho-Vagal Response"
-  SCENARIO_NAME <- "Scenario 2: Incomplete Recovery with Spectral Persistence"
-  SCENARIO_NAME <- "Scenario 3: High Noise with a Stable Spectrum"
+  set.seed(1234)
 
   # Generate the ground-truth data
-  sim_data <- generate_rri_simulation(SCENARIO_PARAMS, time_vector, freq_bands, N_SINUSOIDS)
-
-  # Define parameters for the conventional analysis
-  WINDOW_SECONDS <- 120 # 2-minute window is common
-  OVERLAP_PERC <- 0.75  # 75% overlap for smoother estimates
-
+  sim_data <- generate_rri_simulation(params[[i]], time_vector, freq_bands, N_SINUSOIDS)
 
   # --- B. Run Conventional Analyses ---
 
   # Time-domain analysis
   time_domain_results <- perform_sliding_window_analysis(
-    sim_data, WINDOW_SECONDS, OVERLAP_PERC, SAMPLING_RATE_HZ
+    data = sim_data,
+    window_sec = WINDOW_SECONDS,
+    overlap_perc = OVERLAP_PERC,
+    sampling_rate = SAMPLING_RATE_HZ
   )
 
   # Spectral analysis
-  spectral_results <- perform_stft_analysis(
-    sim_data, WINDOW_SECONDS, OVERLAP_PERC, SAMPLING_RATE_HZ, freq_bands
+  spectral_results <- get_moving_hrv_proportions(
+    rr_ms = sim_data$RR_observed,
+    rr_times_s = sim_data$time * 60,
+    window_size_s = WINDOW_SECONDS,
+    step_size_s = 1
   )
-
-  # --- C. Align Results and Evaluate ---
-
-  # Helper function for safe interpolation. Returns NAs if there are not enough
-  # points (fewer than 2) to perform linear interpolation.
-  safe_approx <- function(x, y, xout) {
-    valid_points <- !is.na(x) & !is.na(y)
-    if (sum(valid_points) < 2) {
-      return(rep(NA_real_, length(xout)))
-    } else {
-      # rule = 2 uses the nearest value for points outside the interpolation range
-      return(approx(x[valid_points], y[valid_points], xout = xout, rule = 2)$y)
-    }
-  }
 
   # Interpolate the sparse windowed results to the original high-resolution time vector
   # This allows for a direct, point-by-point comparison with the ground truth
-  aligned_results <- tibble(
+  aligned_results <- data.table(
     time = sim_data$time,
-    RR_windowed_interp = safe_approx(time_domain_results$time, time_domain_results$RR_windowed, xout = sim_data$time),
-    SDNN_windowed_interp = safe_approx(time_domain_results$time, time_domain_results$SDNN_windowed, xout = sim_data$time),
-    p_vlf_stft_interp = safe_approx(spectral_results$time, spectral_results$p_vlf_stft, xout = sim_data$time),
-    p_lf_stft_interp = safe_approx(spectral_results$time, spectral_results$p_lf_stft, xout = sim_data$time),
-    p_hf_stft_interp = safe_approx(spectral_results$time, spectral_results$p_hf_stft, xout = sim_data$time)
+    RR_windowed_interp = approx(time_domain_results$time, time_domain_results$RR_windowed, xout = sim_data$time, rule = 2)$y,
+    SDNN_windowed_interp = approx(time_domain_results$time, time_domain_results$SDNN_windowed, xout = sim_data$time, rule = 2)$y,
+    p_vlf_stft_interp = approx(spectral_results$time/60, spectral_results$vlf, xout = sim_data$time, rule = 2)$y,
+    p_lf_stft_interp = approx(spectral_results$time/60, spectral_results$lf, xout = sim_data$time, rule = 2)$y,
+    p_hf_stft_interp = approx(spectral_results$time/60, spectral_results$hf, xout = sim_data$time, rule = 2)$y
   )
 
   # Join ground truth with aligned estimates
-  full_comparison_data <- sim_data %>%
-    left_join(aligned_results, by = "time")
+  metrics[[i]]$estimates <- full_comparison_data <- sim_data[aligned_results, on = "time"]
 
   # Calculate metrics
-  rr_metrics <- calculate_metrics(full_comparison_data$RR_baseline_true, full_comparison_data$RR_windowed_interp)
-  sdnn_metrics <- calculate_metrics(full_comparison_data$SDNN_t_true, full_comparison_data$SDNN_windowed_interp)
-  vlf_metrics <- calculate_metrics(full_comparison_data$p_vlf, full_comparison_data$p_vlf_stft_interp)
-  lf_metrics <- calculate_metrics(full_comparison_data$p_lf, full_comparison_data$p_lf_stft_interp)
-  hf_metrics <- calculate_metrics(full_comparison_data$p_hf, full_comparison_data$p_hf_stft_interp)
-
+  metrics[[i]]$statistics <- list(
+    rr_metrics = calculate_metrics(full_comparison_data$RR_baseline_true, full_comparison_data$RR_windowed_interp),
+    sdnn_metrics = calculate_metrics(full_comparison_data$SDNN_t_true, full_comparison_data$SDNN_windowed_interp),
+    vlf_metrics = calculate_metrics(full_comparison_data$p_vlf, full_comparison_data$p_vlf_stft_interp),
+    lf_metrics = calculate_metrics(full_comparison_data$p_lf, full_comparison_data$p_lf_stft_interp),
+    hf_metrics = calculate_metrics(full_comparison_data$p_hf, full_comparison_data$p_hf_stft_interp)
+  )
 
   # --- D. Visualize Comparison ---
+  legend <- FALSE
+  if (i == 3) {
+    legend <- NA
+  }
 
   # Plot 1: RR Baseline Reconstruction
   p_rr <- ggplot(full_comparison_data, aes(x = time)) +
-    geom_line(aes(y = RR_baseline_true), color = "black", linetype = 2) +
-    geom_line(aes(y = RR_windowed_interp), color = "dodgerblue") +
-    labs(title = "A) RR Trajectory Reconstruction",
-         subtitle = paste0("RMSE: ", round(rr_metrics$Value[1], 2), ",  R²: ", round(rr_metrics$Value[2], 2)),
-         x = "Time (minutes)", y = "RR Interval (ms)") +
-    annotate("text", x = Inf, y = Inf, label = "Ground Truth", hjust = 1.1, vjust = 1.5, color = "black", size = 3) +
-    annotate("text", x = Inf, y = Inf, label = "Windowed Estimate", hjust = 1.1, vjust = 3.5, color = "dodgerblue", size = 3) +
-    theme_cowplot(font_size = 12)
+    geom_line(aes(y = RR_baseline_true, color = "Ground truth"), linetype = 5, show.legend = legend) +
+    geom_line(aes(y = RR_windowed_interp, color = "Windowed estimate"), show.legend = legend) +
+    scale_color_manual(values = c("Ground truth" = "black",
+                                  "Windowed estimate" = "dodgerblue")) +
+    labs(subtitle = ifelse(i == 1, "Signal trajectory", ""), color = "Line",
+         x = "Time (minutes)", y = "ms") +
+    theme_classic(base_size = 12)
 
   # Plot 2: SDNN Reconstruction
   p_sdnn <- ggplot(full_comparison_data, aes(x = time)) +
-    geom_line(aes(y = SDNN_t_true), color = "black") +
-    geom_line(aes(y = SDNN_windowed_interp), color = "darkorange") +
-    labs(title = "B) SDNN(t) Trajectory Reconstruction",
-         subtitle = paste0("RMSE: ", round(sdnn_metrics$Value[1], 2), ",  R²: ", round(sdnn_metrics$Value[2], 2)),
-         x = "Time (minutes)", y = "SDNN (ms)") +
-    theme_cowplot(font_size = 12)
+    geom_line(aes(y = SDNN_t_true, color = "Ground truth"), linetype = 5, show.legend = legend) +
+    geom_line(aes(y = SDNN_windowed_interp, color = "Windowed estimate"), show.legend = legend) +
+    scale_color_manual(values = c("Ground truth" = "black",
+                                  "Windowed estimate" = "darkorange")) +
+    labs(subtitle = ifelse(i == 1, "Signal SDNN", ""), color = "Line",
+         x = "Time (minutes)", y = "ms") +
+    theme_classic(base_size = 12)
 
   # Plot 3: Spectral Proportion Reconstruction
-  p_spectral <- full_comparison_data %>%
-    select(time, p_vlf, p_lf, p_hf, ends_with("_interp")) %>%
-    pivot_longer(cols = -time, names_to = "key", values_to = "proportion") %>%
-    mutate(
-      method = ifelse(grepl("_interp", key), "STFT Estimate", "Ground Truth"),
-      band = toupper(stringr::str_extract(key, "(vlf|lf|hf)"))
-    ) |>
-    na.omit() |>
-    ggplot(aes(x = time, y = proportion, fill = band)) +
-    facet_wrap(~method, ncol = 2) +
-    geom_area(position = position_stack()) +
-    scale_color_manual(values = c("VLF" = "#882255", "LF" = "#44AA99", "HF" = "#DDCC77"),
+  p_spectral <-
+    full_comparison_data[, list(time, p_vlf, p_lf, p_hf,
+                                p_vlf_stft_interp, p_lf_stft_interp,
+                                p_hf_stft_interp)] |>
+    melt(id.vars = "time") |>
+    (\(x){
+      x[, Line := fifelse(grepl("interp", variable), "Windowed estimate", "Ground truth")]
+      x[, Band := fcase(
+        grepl("^p_vlf", variable), "VLF",
+        grepl("^p_lf", variable), "LF",
+        grepl("^p_hf", variable), "HF"
+      )][]
+    })() |>
+    ggplot(aes(x = time, y = value, linetype = Line, color = Band)) +
+    facet_grid(rows = vars(Band)) +
+    geom_line(show.legend = legend) +
+    scale_color_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
                        aesthetics = c("color", "fill")) +
+    scale_linetype_manual(values = 2:1) +
     scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(expand = c(0,0)) +
-    labs(title = "C) Spectral Proportion Reconstruction",
-         subtitle = "Comparing STFT estimates to ground-truth proportions.",
-         x = "Time (minutes)", y = "Proportion of Power", color = "Band", linetype = "Method") +
-    theme_cowplot(font_size = 12) +
-    theme(legend.position = "bottom")
+    scale_y_continuous(limits = 0:1) +
+    labs(subtitle = ifelse(i == 1, "Spectral signature", ""),
+         x = "Time (minutes)", y = "Proportion of Power", color = "Color", linetype = "Line") +
+    theme_classic(base_size = 12)
 
   # Combine all plots into a final figure
-  final_plot <- plot_grid(p_rr, p_sdnn, p_spectral, ncol = 1, align = "v", rel_heights = c(0.6,0.6,1))
-
-  # Add a title for the entire figure
-  title <- ggdraw() + draw_label(SCENARIO_NAME, fontface='bold', x=0, hjust=0) + theme(plot.margin = margin(0, 0, 0, 7))
-  plot_grid(title, final_plot, ncol=1, rel_heights=c(0.05, 1))
+  plots[[i]] <- plot_grid(p_rr, p_sdnn, p_spectral, ncol = 1, rel_heights = c(0.6,0.6,1), align = "hv", axis = "l")
 }
 
+fig <- ggpubr::ggarrange(plotlist = plots,
+                         ncol = 3,
+                         align = "hv",
+                         widths = c(2,2,2.9),
+                         labels = c("(A)", "(B)", "(C)"))
+
+ggsave(filename = "figures/fig-windowed-method.svg", fig,
+       device = "svg", width = 12, height = 8)
+ggsave(filename = "figures/fig-windowed-method.pdf", fig,
+       device = "pdf", width = 12, height = 8)

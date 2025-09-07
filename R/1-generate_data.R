@@ -24,9 +24,8 @@
 # ---
 
 # 1. --- Load necessary libraries ---
-# Using pacman to install/load libraries for cleaner setup
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(dplyr, tibble, data.table, ggplot2, tidyr, cowplot)
+library(data.table)
+library(ggplot2)
 
 # 2. --- Helper Functions ---
 
@@ -231,7 +230,7 @@ if (interactive()) {
       geom_line(aes(y = RR_observed, color = "Observed"), alpha = 0.8, show.legend = legend) +
       geom_line(aes(y = mu_true, color = "True µ(t)"), show.legend = legend) +
       scale_color_manual(values = c("Observed" = "grey70", "True µ(t)" = "firebrick")) +
-      labs(subtitle = "(a)",
+      labs(subtitle = ifelse(i==1,"Observed RRi Signal",""),
            x = "Time (minutes)", y = "RR Interval (ms)",
            color = "Signal") +
       scale_x_continuous(expand = c(0,0), name = NULL, breaks = NULL) +
@@ -246,7 +245,7 @@ if (interactive()) {
       geom_line(aes(y = RR_baseline_true, color = "Mean R-R"), linewidth = 1, show.legend = legend) +
       scale_color_manual(values = c("Mean R-R" = "darkred")) +
       scale_fill_manual(values = c("SDNN" = "pink")) +
-      labs(subtitle = "(b)",
+      labs(subtitle = ifelse(i==1,"Time-domain dynamics",""),
            x = "Time (minutes)", y = "Value (ms)",
            color = "Line", fill = "Shaded area") +
       scale_x_continuous(expand = c(0,0), name = NULL, breaks = NULL) +
@@ -264,7 +263,7 @@ if (interactive()) {
       geom_area(alpha = 0.8, show.legend = legend) +
       scale_fill_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
                         aesthetics = c("fill", "color")) +
-      labs(subtitle = "(c)",
+      labs(subtitle = ifelse(i==1,"Spectral signatures",""),
            x = "Time (minutes)", y = "Proportion of Power", fill = "Band", color = "Band") +
       scale_x_continuous(expand = c(0,0)) +
       scale_y_continuous(expand = c(0,0)) +
@@ -279,8 +278,10 @@ if (interactive()) {
                            ncol = 3,
                            widths = c(2,2,2.9),
                            align = "h",
-                           labels = c("1)","2)","3)"))
+                           labels = c("(A)","(B)","(C)"))
 
   ggsave(filename = "figures/fig-generated-data.svg", fig,
          device = "svg", width = 12, height = 8)
+  ggsave(filename = "figures/fig-generated-data.pdf", fig,
+         device = "pdf", width = 12, height = 8)
 }
