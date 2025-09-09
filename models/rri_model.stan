@@ -256,10 +256,10 @@ model {
   // Priors are placed on the unconstrained parameters.
 
   // --- Priors for logistic components (timing and rates) ---
-  tau_logit ~ normal(logit(0.4), 0.1); // Expects transition around 40% of the way through.
+  tau_logit ~ normal(logit(0.4), 0.1);   // Expects transition around 40% of the way through.
   delta_logit ~ normal(logit(0.3), 0.1); // Expects recovery to start after 30% of remaining time.
-  lambda_log ~ normal(log(3), 0.1);    // Expects a moderately fast initial transition.
-  phi_log ~ normal(log(2), 0.1);       // Expects a slightly slower recovery transition.
+  lambda_log ~ normal(log(2), 0.5);      // Expects a moderate initial transition.
+  phi_log ~ normal(log(2), 0.5);         // Expects a moderate recovery transition.
 
   // --- Priors for RR(t) and SDNN(t) parameters ---
   alpha_r_logit ~ normal(0, 1);
@@ -281,7 +281,7 @@ model {
   b_log ~ normal(0, 0.2); // Weakly regularizes the 1/f exponent around 1 (since b=exp(0)).
 
   // A half-normal prior on the global amplitude scale.
-  sigma_u ~ normal(0, 1) T[0, ];
+  sigma_u ~ normal(0, 0.5) T[0, ];
 
   // --- Priors for the non-centered standard normal deviates ---
   // This is a required part of the NCP pattern.

@@ -23,114 +23,12 @@
 # Author: Matías Castillo-Aguilar
 # ---
 
-# 1. --- Load necessary libraries ---
+# 1. --- Load necessary libraries and scripts ---
 library(data.table)
 library(ggplot2)
+source("R/_functions.R")
 
-# 2. --- Helper Functions ---
-
-#' Calculate a standard logistic growth curve (sigmoid).
-#'
-#' @param t A numeric vector of time points.
-#' @param location The midpoint (center) of the sigmoid.
-#' @param rate The growth rate or steepness of the curve.
-#' @return A numeric vector of values between 0 and 1.
-logistic_curve <- function(t, location, rate) {
-  1 / (1 + exp(-rate * (t - location)))
-}
-
-#' Generate synthetic R-R interval data for one scenario.
-#'
-#' This function encapsulates the entire generative process of the model.
-#' @param params A list containing all necessary ground-truth parameters.
-#' @param t_vec A numeric vector of time points for the simulation (in minutes).
-#' @param freqs A list of numeric vectors for VLF, LF, and HF band frequencies (in Hz).
-#' @param N_sin The number of sinusoids per frequency band.
-#' @return A tibble containing the full simulation output, including the final
-#'   RRi series and all intermediate ground-truth trajectories.
-generate_rri_simulation <- function(params, t_vec, freqs, N_sin) {
-
-  N <- length(t_vec)
-  t_sec <- t_vec * 60 # Convert time to seconds for Hz frequencies
-
-  # --- 1. Define the shared logistic components (D1, D2) ---
-  D1 <- logistic_curve(t_vec, params$tau, params$lambda)
-  D2 <- logistic_curve(t_vec, params$tau + params$delta, params$phi)
-
-  # --- 2. Build the ground-truth baseline and SDNN trajectories ---
-  RR_baseline_true <- params$alpha_r - params$beta_r * D1 + params$c_r * params$beta_r * D2
-  SDNN_t_true <- params$alpha_s - params$beta_s * D1 + params$c_s * params$beta_s * D2
-
-  # --- 3. Build the master controller C(t) and spectral proportions p(t) ---
-  C_t <- D1 * (1 - params$c_c * D2)
-  # Mix baseline proportions (pi_base) and perturbation proportions (pi_pert)
-  # The result is an N x 3 matrix of proportions over time
-  p_t_true <- (1 - C_t) %*% t(params$pi_base) + C_t %*% t(params$pi_pert)
-  colnames(p_t_true) <- c("p_vlf", "p_lf", "p_hf")
-
-  # --- 4. Synthesize the spectral oscillators S_j(t) ---
-  S_t_matrix <- matrix(0, nrow = N, ncol = 3)
-  colnames(S_t_matrix) <- c("S_vlf", "S_lf", "S_hf")
-
-  for (j in 1:3) {
-    # Amplitude law (1/f^b noise structure)
-    a_k <- exp(-params$b / 2 * log(freqs[[j]]))
-
-    # Generate random coefficients for sine and cosine components
-    # This replaces the non-centered parameterization from the Stan model for generation
-    u_sin <- rnorm(N_sin, 0, sd = params$sigma_u[j] * a_k)
-    u_cos <- rnorm(N_sin, 0, sd = params$sigma_u[j] * a_k)
-
-    # Precompute sin/cos templates (computationally intensive part)
-    T_mat <- outer(t_sec, freqs[[j]], "*")
-    sin_mat <- sin(2 * pi * T_mat)
-    cos_mat <- cos(2 * pi * T_mat)
-
-    # Synthesize the j-th oscillator and de-mean it
-    S_j_unnorm <- sin_mat %*% u_sin + cos_mat %*% u_cos
-    S_t_matrix[, j] <- S_j_unnorm - mean(S_j_unnorm)
-  }
-
-  # --- 5. Derive the internal amplitude A(t) using inversion ---
-  # This is the key step that links SDNN(t) to the spectral components
-  var_struct_true <- SDNN_t_true^2 * params$w
-  var_resid_true <- SDNN_t_true^2 * (1 - params$w)
-
-  # Covariance of the basis signals S
-  Sigma_S <- cov(S_t_matrix)
-
-  # Calculate the denominator for the A(t) inversion
-  # This is equivalent to sqrt(rows_dot_product(p_t * Sigma_S, p_t))
-  denom_sq <- rowSums((p_t_true %*% Sigma_S) * p_t_true)
-  denom <- sqrt(denom_sq)
-
-  # Calculate the time-varying amplitude A(t)
-  A_t_true <- sqrt(var_struct_true) / denom
-  # Handle potential division by zero if a band has no power
-  A_t_true[!is.finite(A_t_true)] <- 0
-
-  # --- 6. Combine for the final signal mu and add residual noise ---
-  # Calculate the structured part of the signal
-  sum_weighted_S <- rowSums(S_t_matrix * p_t_true)
-  mu_true <- RR_baseline_true + A_t_true * sum_weighted_S
-
-  # Add the residual (unstructured) noise to get the final RRi series
-  RR_observed <- rnorm(N, mean = mu_true, sd = sqrt(var_resid_true))
-
-  # --- 7. Assemble and return results ---
-  data.table(
-    time = t_vec,
-    RR_observed = RR_observed,
-    RR_baseline_true = RR_baseline_true,
-    SDNN_t_true = SDNN_t_true,
-    A_t_true = A_t_true,
-    mu_true = mu_true,
-    var_struct_true = var_struct_true,
-    var_resid_true = var_resid_true
-  ) |> cbind(as.data.table(p_t_true))
-}
-
-# 3. --- Simulation Setup ---
+# 2. --- Simulation Setup ---
 
 # Define shared simulation parameters
 SIM_DURATION_MIN <- 15 # Total duration in minutes
@@ -146,10 +44,9 @@ freq_bands <- list(
   hf  = seq(0.150, 0.400, length.out = N_SINUSOIDS)
 )
 
-# --- Define Parameters for the Three Scenarios ---
-
 params <- vector("list", length = 3)
 
+# --- Define Parameters for the Three Scenarios ---
 # Scenario 1: Classic Sympatho-Vagal Response
 # A sharp drop in RR/SDNN with a partial recovery, accompanied by a shift
 # from high-frequency (HF) to low-frequency (LF) power and back.
@@ -165,7 +62,7 @@ params[[1]] <- list(
   pi_pert = c(0.5, 0.3, 0.2), # VLF, LF, HF - Stress (LF dominant)
   c_c = 0.8,
   # Spectral & Noise params
-  b = 1.0, sigma_u = c(1, 1, 1) * 0.1, w = 0.90 # 90% structured variance
+  b = 1.0, w = 0.90 # 90% structured variance
 )
 
 # Scenario 2: Incomplete Recovery with Spectral Persistence
@@ -183,7 +80,7 @@ params[[2]] <- list(
   pi_pert = c(0.7, 0.2, 0.1), # VLF, LF, HF - Stress
   c_c = 0.4,
   # Spectral & Noise params
-  b = 1.0, sigma_u = c(1, 1, 1) * 0.1, w = 0.90
+  b = 1.0, w = 0.90
 )
 
 # Scenario 3: High Noise with a Stable Spectrum
@@ -192,7 +89,7 @@ params[[2]] <- list(
 # variance from random noise.
 params[[3]] <- list(
   # Double-logistic timing (less dramatic transition)
-  tau = 8, delta = 4, lambda = 1.5, phi = 1.5,
+  tau = 6, delta = 3, lambda = 1.5, phi = 1.5,
   # RR(t) params
   alpha_r = 900, beta_r = 300, c_r = 1.0,
   # SDNN(t) params - High baseline variability
@@ -202,11 +99,26 @@ params[[3]] <- list(
   pi_pert = c(0.2, 0.5, 0.3), # VLF, LF, HF - Stress
   c_c = 1.0,
   # Spectral & Noise params - w is lower, so more residual noise
-  b = 1.0, sigma_u = c(1, 1, 1) * 0.1, w = 0.60 # 60% structured variance
+  b = 1.0, w = 0.60 # 60% structured variance
 )
 
+## Pull everything together in a nice table for the paper
+params_table <- lapply(`names<-`(params, paste("Scenario", 1:3)), function(i) {
+  char_params <- lapply(i, function(j) {
+    if (length(j) > 1) {
+      paste0("[",paste0(j, collapse = ", "),"]")
+    } else {
+      format(j, digits = 1, nsmall = 2)
+    }
+  })
+  as.data.table(char_params)
+}) |> rbindlist(idcol = "Scenario") |>
+  transpose(keep.names = "Parameter", make.names = "Scenario") |>
+  knitr::kable()
 
-# 4. --- Generate and Visualize Data ---
+simulated_data <- vector("list", length = 3)
+
+# 3. --- Generate and Visualize Data ---
 # This block demonstrates how to use the function and visualize the output.
 if (interactive()) {
 
@@ -216,8 +128,16 @@ if (interactive()) {
   plots <- vector("list", length = 3)
 
   for(i in 1:3) {
-    # --- Generate data for Scenario 1 ---
-    sim_data <- generate_rri_simulation(params[[i]], time_vector, freq_bands, N_SINUSOIDS)
+    # --- Generate data for Scenario i ---
+    simulated_data[[i]] <-
+      sim_data <-
+      generate_rri_simulation(
+        N = N_points,
+        t_max = SIM_DURATION_MIN,
+        params = params[[i]],
+        N_sin = N_SINUSOIDS,
+        seed = 12345
+      )
 
     legend <- FALSE
     if (i == 3) {
@@ -226,27 +146,27 @@ if (interactive()) {
     # --- Create Plots to Visualize the Ground Truth and Simulated Data ---
 
     # Plot 1: Observed RRi and underlying true mean (mu)
-    p1 <- ggplot(sim_data, aes(x = time)) +
-      geom_line(aes(y = RR_observed, color = "Observed"), alpha = 0.8, show.legend = legend) +
-      geom_line(aes(y = mu_true, color = "True µ(t)"), show.legend = legend) +
+    p1 <- ggplot(sim_data, aes(x = t)) +
+      geom_line(aes(y = RR, color = "Observed"), alpha = 0.8, show.legend = legend) +
+      geom_line(aes(y = mu, color = "True µ(t)"), show.legend = legend) +
       scale_color_manual(values = c("Observed" = "grey70", "True µ(t)" = "firebrick")) +
       labs(subtitle = ifelse(i==1,"Observed RRi Signal",""),
-           x = "Time (minutes)", y = "RR Interval (ms)",
+           x = "Time (minutes)", y = "ms",
            color = "Signal") +
       scale_x_continuous(expand = c(0,0), name = NULL, breaks = NULL) +
       theme_classic(base_size = 12)
 
     # Plot 2: Ground-truth time-domain dynamics
-    p2 <- sim_data[, c("time","RR_baseline_true", "SDNN_t_true")] |>
-      ggplot(aes(x = time)) +
-      geom_ribbon(aes(ymin = RR_baseline_true - SDNN_t_true,
-                      ymax = RR_baseline_true + SDNN_t_true,
+    p2 <- sim_data[, c("t","RR_baseline", "SDNN_t")] |>
+      ggplot(aes(x = t)) +
+      geom_ribbon(aes(ymin = RR_baseline - SDNN_t,
+                      ymax = RR_baseline + SDNN_t,
                       fill = "SDNN"), show.legend = legend) +
-      geom_line(aes(y = RR_baseline_true, color = "Mean R-R"), linewidth = 1, show.legend = legend) +
+      geom_line(aes(y = RR_baseline, color = "Mean R-R"), linewidth = 1, show.legend = legend) +
       scale_color_manual(values = c("Mean R-R" = "darkred")) +
       scale_fill_manual(values = c("SDNN" = "pink")) +
       labs(subtitle = ifelse(i==1,"Time-domain dynamics",""),
-           x = "Time (minutes)", y = "Value (ms)",
+           x = "Time (minutes)", y = "ms",
            color = "Line", fill = "Shaded area") +
       scale_x_continuous(expand = c(0,0), name = NULL, breaks = NULL) +
       theme_classic(base_size = 12) +
@@ -254,12 +174,12 @@ if (interactive()) {
 
     # Plot 3: Ground-truth spectral proportion dynamics
     p3 <- melt(sim_data,
-               id = "time",
+               id = "t",
                measure.vars = c("p_vlf","p_lf","p_hf")
     )[, variable := factor(variable,
                            levels = c("p_vlf","p_lf","p_hf"),
                            labels = c("VLF","LF","HF"))][] |>
-      ggplot(aes(x = time, y = value, fill = variable, color = variable)) +
+      ggplot(aes(x = t, y = value, fill = variable, color = variable)) +
       geom_area(alpha = 0.8, show.legend = legend) +
       scale_fill_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
                         aesthetics = c("fill", "color")) +
@@ -276,12 +196,16 @@ if (interactive()) {
 
   fig <- ggpubr::ggarrange(plotlist = plots,
                            ncol = 3,
-                           widths = c(2,2,2.9),
-                           align = "h",
+                           widths = c(2,2,3),
+                           align = "hv",
                            labels = c("(A)","(B)","(C)"))
 
   ggsave(filename = "figures/fig-generated-data.svg", fig,
-         device = "svg", width = 12, height = 8)
+         device = "svg", width = 9, height = 9)
   ggsave(filename = "figures/fig-generated-data.pdf", fig,
-         device = "pdf", width = 12, height = 8)
+         device = "pdf", width = 9, height = 9)
+
+  saveRDS(simulated_data, file = "data/simulated_data.RDS")
+  saveRDS(params, file = "data/simulation_parameters.RDS")
+  saveRDS(freq_bands, file = "data/freq_bands.RDS")
 }

@@ -1,3 +1,112 @@
+#' Generate a synthetic R-R interval time series from constrained parameters
+#'
+#' This function encapsulates the full data generating process from the Stan model.
+#' All model parameters are provided on their constrained, physiologically meaningful
+#' scale.
+#'
+#' @param N Number of data points.
+#' @param t_max Maximum time in minutes.
+#' @param N_sin Number of sinusoids per frequency band.
+#' @param params Named list with model parameters.
+#' @param seed An integer for reproducibility.
+#'
+#' @return A data frame containing the time vector 't', the final generated
+#'   'RR' series, the underlying mean 'mu', and other key components.
+#'
+generate_rri_simulation <- function(
+    # --- Simulation Settings ---
+  N = 00,
+  t_max = 15,
+  N_sin = 25,
+  # --- True Parameter Values ---
+  params,
+  # --- Reproducibility ---
+  seed = 12345
+) {
+
+  # --- 0. Setup & Validation ---
+  set.seed(seed)
+  softmax <- function(x) exp(x) / sum(exp(x))
+  inv_logit <- function(x) plogis(x)
+  logistic_curve <- function(t, location, rate) inv_logit(rate * (t - location))
+
+  if (abs(sum(params$pi_base) - 1.0) > 1e-9 || abs(sum(params$pi_pert) - 1.0) > 1e-9) {
+    stop("Spectral proportions in pi_base and pi_pert must sum to 1.")
+  }
+
+  # --- 1. Define Time and Frequencies ---
+  t <- seq(from = 0, to = t_max, length.out = N)
+  freq_bands <- list(VLF = c(0.003, 0.039), LF = c(0.04, 0.149), HF = c(0.15, 0.40))
+  freqs <- lapply(freq_bands, function(band) runif(N_sin, min = band[1], max = band[2]))
+
+  # --- 2. Pre-computation ---
+  t_sec <- t * 60
+  sin_mat <- lapply(1:3, function(j) sin(2 * pi * outer(t_sec, freqs[[j]], "*")))
+  cos_mat <- lapply(1:3, function(j) cos(2 * pi * outer(t_sec, freqs[[j]], "*")))
+  log_freqs <- lapply(freqs, log)
+
+  normalization <- 1.0 / (N - 1)
+  G_sin <- lapply(sin_mat, function(m) (t(m) %*% m) * normalization)
+  G_cos <- lapply(cos_mat, function(m) (t(m) %*% m) * normalization)
+  G_sin_cos <- lapply(1:3, function(j) (t(sin_mat[[j]]) %*% cos_mat[[j]]) * normalization)
+
+  # --- 3. Generate Oscillator Coefficients ---
+  z_sin <- lapply(1:3, function(x) rnorm(N_sin, 0, 1))
+  z_cos <- lapply(1:3, function(x) rnorm(N_sin, 0, 1))
+
+  # --- 4. Generative Process (build components from constrained parameters) ---
+  D1 <- logistic_curve(t, params$tau, params$lambda)
+  D2 <- logistic_curve(t, params$tau + params$delta, params$phi)
+
+  RR_baseline <- params$alpha_r - params$beta_r * D1 + (params$c_r * params$beta_r) * D2
+  SDNN_t <- params$alpha_s - params$beta_s * D1 + (params$c_s * params$beta_s) * D2
+  SDNN_t[SDNN_t < 0] <- 1e-6
+
+  C_t <- D1 * (1.0 - params$c_c * D2)
+  p_t <- outer(1.0 - C_t, params$pi_base) + outer(C_t, params$pi_pert)
+
+  u_sin <- lapply(1:3, function(j) z_sin[[j]] * exp(-0.5 * params$b * log_freqs[[j]]))
+  u_cos <- lapply(1:3, function(j) z_cos[[j]] * exp(-0.5 * params$b * log_freqs[[j]]))
+
+  S_t_matrix <- vapply(1:3, function(j) {
+    S_j <- sin_mat[[j]] %*% u_sin[[j]] + cos_mat[[j]] %*% u_cos[[j]]
+    S_j - mean(S_j)
+  }, numeric(N))
+
+  Sigma_S_diag <- vapply(1:3, function(j) {
+    (t(u_sin[[j]]) %*% G_sin[[j]] %*% u_sin[[j]]) +
+      (t(u_cos[[j]]) %*% G_cos[[j]] %*% u_cos[[j]]) +
+      (2 * t(u_sin[[j]]) %*% G_sin_cos[[j]] %*% u_cos[[j]])
+  }, numeric(1))
+  Sigma_S <- diag(Sigma_S_diag)
+
+  var_struct <- SDNN_t^2 * params$w
+  denom <- sqrt(rowSums((p_t %*% Sigma_S) * p_t))
+  # Avoid division by zero if oscillators have no power
+  denom[denom < 1e-9] <- 1e-9
+  A_t <- sqrt(var_struct) / denom
+
+  sum_weighted_S <- rowSums(S_t_matrix * p_t)
+  mu <- RR_baseline + A_t * sum_weighted_S
+
+  var_resid <- SDNN_t^2 * (1.0 - params$w)
+  final_RR <- rnorm(N, mean = mu, sd = sqrt(var_resid))
+
+  # --- 5. Return Results ---
+  out <- data.table::data.table(
+    t = t,
+    RR = final_RR,
+    mu = mu,
+    RR_baseline = RR_baseline,
+    SDNN_t = SDNN_t,
+    p_vlf = p_t[, 1],
+    p_lf = p_t[, 2],
+    p_hf = p_t[, 3]
+  )
+  return(out)
+}
+
+
 #' Minimalistic function to get HRV frequency band power.
 #'
 #' Assumes best practices: spline interpolation, Hann window, and linear detrending.
@@ -9,8 +118,8 @@
 
 get_hrv_band_power <- function(rr_ms,
                                bands = list(
-                                 vlf = c(0.003, 0.04),
-                                 lf  = c(0.04, 0.15),
+                                 vlf = c(0.003, 0.039),
+                                 lf  = c(0.04, 0.149),
                                  hf  = c(0.15, 0.4)
                                ),
                                fs = 4) {
@@ -131,8 +240,8 @@ perform_sliding_window_analysis <- function(data, window_sec, overlap_perc, samp
   start_indices <- seq(1, nrow(data) - window_samples + 1, by = step_samples)
 
   results <- purrr::map_dfr(start_indices, ~{
-    window_data <- data$RR_observed[.x:(.x + window_samples - 1)]
-    window_time <- data$time[.x + floor(window_samples / 2)] # Time at window center
+    window_data <- data$RR[.x:(.x + window_samples - 1)]
+    window_time <- data$t[.x + floor(window_samples / 2)] # Time at window center
 
     data.table(
       time = window_time,
@@ -155,10 +264,6 @@ perform_sliding_window_analysis <- function(data, window_sec, overlap_perc, samp
 #' @return A tibble with RMSE, R2, MAE, Bias, and MAPE.
 #'   MAPE will be NA if any true values are zero.
 calculate_metrics <- function(true_vals, estimated_vals) {
-  # Ensure tibble is available for the output format
-  if (!requireNamespace("tibble", quietly = TRUE)) {
-    stop("Package 'tibble' is needed for this function. Please install it.", call. = FALSE)
-  }
 
   # Ensure no NA values interfere with calculations
   valid_indices <- !is.na(true_vals) & !is.na(estimated_vals)
@@ -193,7 +298,7 @@ calculate_metrics <- function(true_vals, estimated_vals) {
   }
 
   # --- Format Output ---
-  tibble::tibble(
+  data.table::data.table(
     Metric = c("RMSE", "R2", "MAE", "Bias", "MAPE"),
     Value = c(rmse, r2, mae, bias, mape)
   )

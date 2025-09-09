@@ -52,7 +52,7 @@ b     <- 1    # Spectral exponent (1 → pink noise)
 
 # === 2. Time Vector ===
 # --------------------------------------------------------------------------
-t <- seq(t_start, t_end, length.out = 2400)  # Simulation grid
+t <- seq(t_start, t_end, length.out = 1200)  # Simulation grid
 n_points <- length(t)
 
 
@@ -212,18 +212,18 @@ par(mfrow = c(1,1)) # Reset plotting layout
 library(rstan)
 model <- rstan::stan_model(file = "models/rri_model.stan")
 
-## Obtain point estimates
-point_est <- rstan::optimizing(object = model,
-                  iter = 50000,
-                  data = list(
-                    N = length(t),
-                    t = t,
-                    RR = RRi_t,
-                    N_sin = N_sin,
-                    freqs = freqs_stan
-                  ), hessian = TRUE)$par
-
-point_est[grep("^D|sin|cos|^RR_|^SDNN_|^C_t|^p_t|^S_|^var_|^A_|^M|^denom|^sum|mu|Sigma", names(point_est), value = TRUE, invert = TRUE)]
+# ## Obtain point estimates
+# point_est <- rstan::optimizing(object = model,
+#                   iter = 50000,
+#                   data = list(
+#                     N = length(t),
+#                     t = t,
+#                     RR = RRi_t,
+#                     N_sin = N_sin,
+#                     freqs = freqs_stan
+#                   ), hessian = TRUE)$par
+#
+# point_est[grep("^D|sin|cos|^RR_|^SDNN_|^C_t|^p_t|^S_|^var_|^A_|^M|^denom|^sum|mu|Sigma", names(point_est), value = TRUE, invert = TRUE)]
 
 # Run HMC sampling
 # Note:

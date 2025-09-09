@@ -115,7 +115,7 @@ window.Quarto = {
                 <div>
             <div class="quarto-title-meta-heading">Modified</div>
             <div class="quarto-title-meta-contents">
-              <p class="date-modified">September 7, 2025</p>
+              <p class="date-modified">September 9, 2025</p>
             </div>
           </div>
                 
@@ -150,7 +150,7 @@ window.Quarto = {
   <li><a href="#spectral-dynamics-reconstruction" id="toc-spectral-dynamics-reconstruction" class="nav-link" data-scroll-target="#spectral-dynamics-reconstruction">Spectral dynamics reconstruction</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a>
+  <li><a href="#results." id="toc-results." class="nav-link" data-scroll-target="#results.">Results.</a>
   <ul class="collapse">
   <li><a href="#model-validation-and-parameter-recovery-on-synthetic-data" id="toc-model-validation-and-parameter-recovery-on-synthetic-data" class="nav-link" data-scroll-target="#model-validation-and-parameter-recovery-on-synthetic-data">Model validation and parameter recovery on synthetic data</a></li>
   <li><a href="#superiority-of-the-generative-model-over-conventional-windowed-methods" id="toc-superiority-of-the-generative-model-over-conventional-windowed-methods" class="nav-link" data-scroll-target="#superiority-of-the-generative-model-over-conventional-windowed-methods">Superiority of the generative model over conventional windowed methods</a></li>
@@ -307,7 +307,132 @@ A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathb
 <p>We designed three distinct scenarios to probe the model’s capabilities under diverse and challenging conditions. These scenarios: (1) a classic sympatho-vagal response, (2) an incomplete recovery with spectral persistence, and (3) a high noise with a stable spectrum, were chosen specifically to test the limitations inherent in standard analysis methods, these separate scenarios can be seen in Figure 1 and the parameters used to generate the data can be seen in Table 1. Each simulated dataset was analyzed with our full Bayesian model and, for comparison, with conventional techniques: a sliding-window analysis for time-domain metrics and a Short-Time Fourier Transform (STFT) for spectral dynamics.</p>
 <p><img src="figures/fig-generated-data.svg" class="img-fluid" style="width:100.0%"></p>
 <p><strong>Figure 1</strong>. Three scenarios simulated from the probabilistic model to assess the inference capabilities to recover the data generation process. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum. Subpanels indicate observed RRi signal with true component (<span class="math inline">\(\mu(t_i)\)</span>) highlighted, true underlying RRi trend and SDNN, next to spectral signature of the signal, depicting the relative contribution of each frequency band as a dynamic process.</p>
-<p>&lt;&lt;Table 1&gt;&gt;</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 39%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 17%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Interpretation</th>
+<th style="text-align: left;">Scenario A</th>
+<th style="text-align: left;">Scenario B</th>
+<th style="text-align: left;">Scenario C</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\tau\)</span></td>
+<td style="text-align: left;">Time onset</td>
+<td style="text-align: left;">6.00</td>
+<td style="text-align: left;">6.00</td>
+<td style="text-align: left;">6.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\delta\)</span></td>
+<td style="text-align: left;">Stimulus durantion</td>
+<td style="text-align: left;">3.00</td>
+<td style="text-align: left;">3.00</td>
+<td style="text-align: left;">3.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\lambda\)</span></td>
+<td style="text-align: left;">Rate of dynamics onset</td>
+<td style="text-align: left;">3.00</td>
+<td style="text-align: left;">3.00</td>
+<td style="text-align: left;">1.50</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\phi\)</span></td>
+<td style="text-align: left;">Rate of recovery</td>
+<td style="text-align: left;">2.00</td>
+<td style="text-align: left;">2.00</td>
+<td style="text-align: left;">1.50</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\alpha_r\)</span></td>
+<td style="text-align: left;">Resting RRi</td>
+<td style="text-align: left;">950.00</td>
+<td style="text-align: left;">950.00</td>
+<td style="text-align: left;">900.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\beta_r\)</span></td>
+<td style="text-align: left;">Magnitude of RRi decay</td>
+<td style="text-align: left;">250.00</td>
+<td style="text-align: left;">250.00</td>
+<td style="text-align: left;">300.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(c_r\)</span></td>
+<td style="text-align: left;">RRi recovery proportion</td>
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">0.50</td>
+<td style="text-align: left;">1.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\alpha_s\)</span></td>
+<td style="text-align: left;">Resting SDNN</td>
+<td style="text-align: left;">60.00</td>
+<td style="text-align: left;">60.00</td>
+<td style="text-align: left;">100.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\beta_s\)</span></td>
+<td style="text-align: left;">Magnitude of SDNN decay</td>
+<td style="text-align: left;">40.00</td>
+<td style="text-align: left;">40.00</td>
+<td style="text-align: left;">20.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(c_s\)</span></td>
+<td style="text-align: left;">SDNN recovery proportion</td>
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">0.60</td>
+<td style="text-align: left;">1.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\pi_{base}\)</span></td>
+<td style="text-align: left;">Base-state [VLF, LF, HF] proportion</td>
+<td style="text-align: left;">[0.1, 0.2, 0.7]</td>
+<td style="text-align: left;">[0.1, 0.2, 0.7]</td>
+<td style="text-align: left;">[0.1, 0.45, 0.45]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\pi_{pert}\)</span></td>
+<td style="text-align: left;">Perturbed-state [VLF, LF, HF] proportion</td>
+<td style="text-align: left;">[0.5, 0.3, 0.2]</td>
+<td style="text-align: left;">[0.7, 0.2, 0.1]</td>
+<td style="text-align: left;">[0.2, 0.5, 0.3]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(c_c\)</span></td>
+<td style="text-align: left;">Spectral recovery proportion</td>
+<td style="text-align: left;">0.80</td>
+<td style="text-align: left;">0.40</td>
+<td style="text-align: left;">1.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(b\)</span></td>
+<td style="text-align: left;">Spectral structure</td>
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">1.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(w\)</span></td>
+<td style="text-align: left;">Proportion of structured variance</td>
+<td style="text-align: left;">0.90</td>
+<td style="text-align: left;">0.90</td>
+<td style="text-align: left;">0.60</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Table 1</strong>. Ground-truth parameter values used in the generation of three simulation scenarios. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum.</p>
 <section id="time-domain-trajectory-reconstruction" class="level3">
 <h3 class="anchored" data-anchor-id="time-domain-trajectory-reconstruction">Time-domain trajectory reconstruction</h3>
 <p>The capacity to accurately capture time-domain dynamics was evaluated by comparing the model’s continuous estimates of <span class="math inline">\(\mathrm{RR}(t_i)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span> against the stepwise approximations derived from a standard sliding-window mean and standard deviation. To provide a comprehensive evaluation of reconstruction fidelity, model performance was quantified against the ground-truth trajectories using a suite of complementary metrics. The root mean squared error (RMSE) and mean absolute error (MAE) were used to measure the average magnitude of the estimation error, with MAE offering a more robust assessment against sporadic outliers. The model’s bias (mean error) was calculated to identify any systematic tendency for over- or underestimation. Finally, the coefficient of determination (<span class="math inline">\(R^2\)</span>) was used to assess the proportion of variance in the true signal captured by the estimate.</p>
@@ -318,9 +443,8 @@ A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathb
 </section>
 </section>
 </section>
-<section id="results" class="level1">
-<h1>Results</h1>
-<p>This section presents the performance and application of our novel generative model for RRi analysis. We first establish the model’s validity and accuracy through a series of simulation studies, demonstrating its ability to recover known ground-truth parameters with high fidelity. We then provide a direct quantitative comparison against conventional windowed analysis techniques, highlighting the superior temporal and spectral resolution of our approach. Finally, we apply the model to an empirical dataset from a physiological perturbation protocol to illustrate its capacity for yielding enhanced mechanistic insights into autonomic dynamics.</p>
+<section id="results." class="level1">
+<h1>Results.</h1>
 <section id="model-validation-and-parameter-recovery-on-synthetic-data" class="level2">
 <h2 class="anchored" data-anchor-id="model-validation-and-parameter-recovery-on-synthetic-data">Model validation and parameter recovery on synthetic data</h2>
 <p>To verify the model’s correctness and inferential accuracy, we first applied it to synthetic RRi data generated with known underlying parameters. This allowed for a direct comparison between the model’s estimates and the ground-truth dynamics, providing a gold-standard validation of its performance.</p>
@@ -367,7 +491,7 @@ A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathb
 </section>
 <section id="limitations-and-considerations-for-future-work" class="level2">
 <h2 class="anchored" data-anchor-id="limitations-and-considerations-for-future-work">Limitations and considerations for future work</h2>
-<p>Despite its advantages, the proposed model is not without limitations, and an honest appraisal of these is essential for guiding future research. The first and most practical limitation is its computational demand. Full Bayesian inference via Markov chain Monte Carlo is an intensive process, requiring substantially more time and computational resources than conventional algorithms. This currently limits the model’s utility for real-time applications or for the analysis of very large-scale datasets with thousands of subjects.</p>
+<p>Despite its advantages, the proposed model is not without limitations, and an honest appraisal of these is essential for guiding future research. The first and most practical limitation of this model is its computational demand, which scales with the time series length (<span class="math inline">\(N\)</span>) and spectral resolution (<span class="math inline">\(N_{sin}\)</span>) at a rate of <span class="math inline">\(O(N \cdot N_{sin} + N_{sin}^2)\)</span>. This scaling can pose a substantial barrier to the analysis of high-dimensional physiological data. For instance, applying the model to long-duration recordings, such as 24-hour Holter monitor data, or to studies requiring fine-grained spectral detail (a large <span class="math inline">\(N_{sin}\)</span>), could result in prohibitively long runtimes. This computational burden not only constrains the model’s feasibility for large-scale clinical studies but also hinders the iterative process of model development and validation, where rapid feedback is essential for scientific progress.</p>
 <p>Second, the model’s architecture relies on specific structural assumptions. The choice of the double-logistic function to represent the perturbation-recovery dynamic is central to the model’s interpretability. While this function is highly flexible and well-suited for the acute, transient stressors investigated here, it is by no means a universal model for all physiological dynamics. More complex, multi-phasic responses or long-term phenomena like circadian rhythms would not be well-captured by this specific functional form. Similarly, the spectral component of the model assumes that the signal can be effectively represented by a sum of sinusoids within pre-defined frequency bands. While this is a standard and powerful approach, it remains a model of the underlying spectral density and is constrained by the choice of those fixed frequencies.</p>
 <p>Finally, the scope of the model’s validation must be considered. The current study demonstrated the model’s efficacy on simulated data and provided a proof-of-concept application on a single, acute physiological stressor. Its generalizability to other contexts has not yet been established. The model’s performance on different types of physiological challenges, such as orthostatic stress, cognitive load, or pharmacological interventions, requires explicit investigation. Moreover, its application to long-term, 24-hour ambulatory recordings presents both a significant opportunity and a challenge, as such data often contain multiple, overlapping events and distinct physiological states (e.g., wakefulness, sleep) that would require extensions to the current model structure.</p>
 </section>
