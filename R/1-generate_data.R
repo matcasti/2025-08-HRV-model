@@ -32,7 +32,7 @@ source("R/_functions.R")
 
 # Define shared simulation parameters
 SIM_DURATION_MIN <- 15 # Total duration in minutes
-SAMPLING_RATE_HZ <- 4  # Sampling rate for RRi series (4 Hz is typical)
+SAMPLING_RATE_HZ <- 2  # Sampling rate for RRi series (4 Hz is typical)
 N_points <- SIM_DURATION_MIN * 60 * SAMPLING_RATE_HZ
 time_vector <- seq(0, SIM_DURATION_MIN, length.out = N_points)
 
@@ -122,9 +122,6 @@ simulated_data <- vector("list", length = 3)
 # This block demonstrates how to use the function and visualize the output.
 if (interactive()) {
 
-  # Set a seed for reproducibility
-  set.seed(123)
-
   plots <- vector("list", length = 3)
 
   for(i in 1:3) {
@@ -136,7 +133,7 @@ if (interactive()) {
         t_max = SIM_DURATION_MIN,
         params = params[[i]],
         N_sin = N_SINUSOIDS,
-        seed = 12345
+        seed = 123
       )
 
     legend <- FALSE

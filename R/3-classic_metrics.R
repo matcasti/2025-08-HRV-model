@@ -43,16 +43,13 @@ OVERLAP_PERC <- 0.99  # 99% overlap for smoother estimates
 
 for (i in 1:3) {
 
-  # --- A. Setup and Data Generation ---
-  set.seed(1234)
-
   # Generate the ground-truth data
   sim_data <- generate_rri_simulation(
     N = N_points,
     t_max = SIM_DURATION_MIN,
     params = params[[i]],
     N_sin = N_SINUSOIDS,
-    seed = 12345
+    seed = 123
   )
 
   # --- B. Run Conventional Analyses ---

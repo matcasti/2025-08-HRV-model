@@ -13,96 +13,96 @@
 #' @return A data frame containing the time vector 't', the final generated
 #'   'RR' series, the underlying mean 'mu', and other key components.
 #'
-generate_rri_simulation <- function(
-    # --- Simulation Settings ---
-  N = 00,
-  t_max = 15,
-  N_sin = 25,
-  # --- True Parameter Values ---
-  params,
-  # --- Reproducibility ---
-  seed = 12345
-) {
+generate_rri_simulation <- function(N,
+                                    t_max,
+                                    params,
+                                    N_sin,
+                                    seed = 123) {
 
-  # --- 0. Setup & Validation ---
-  set.seed(seed)
-  softmax <- function(x) exp(x) / sum(exp(x))
-  inv_logit <- function(x) plogis(x)
-  logistic_curve <- function(t, location, rate) inv_logit(rate * (t - location))
+  D_1 <- function(t) { 1 / (1 + exp(-params$lambda * (t - params$tau))) }
+  D_2 <- function(t) { 1 / (1 + exp(-params$phi * (t - params$tau - params$delta))) }
 
-  if (abs(sum(params$pi_base) - 1.0) > 1e-9 || abs(sum(params$pi_pert) - 1.0) > 1e-9) {
-    stop("Spectral proportions in pi_base and pi_pert must sum to 1.")
-  }
-
-  # --- 1. Define Time and Frequencies ---
-  t <- seq(from = 0, to = t_max, length.out = N)
-  freq_bands <- list(VLF = c(0.003, 0.039), LF = c(0.04, 0.149), HF = c(0.15, 0.40))
-  freqs <- lapply(freq_bands, function(band) runif(N_sin, min = band[1], max = band[2]))
-
-  # --- 2. Pre-computation ---
-  t_sec <- t * 60
-  sin_mat <- lapply(1:3, function(j) sin(2 * pi * outer(t_sec, freqs[[j]], "*")))
-  cos_mat <- lapply(1:3, function(j) cos(2 * pi * outer(t_sec, freqs[[j]], "*")))
-  log_freqs <- lapply(freqs, log)
-
-  normalization <- 1.0 / (N - 1)
-  G_sin <- lapply(sin_mat, function(m) (t(m) %*% m) * normalization)
-  G_cos <- lapply(cos_mat, function(m) (t(m) %*% m) * normalization)
-  G_sin_cos <- lapply(1:3, function(j) (t(sin_mat[[j]]) %*% cos_mat[[j]]) * normalization)
-
-  # --- 3. Generate Oscillator Coefficients ---
-  z_sin <- lapply(1:3, function(x) rnorm(N_sin, 0, 1))
-  z_cos <- lapply(1:3, function(x) rnorm(N_sin, 0, 1))
-
-  # --- 4. Generative Process (build components from constrained parameters) ---
-  D1 <- logistic_curve(t, params$tau, params$lambda)
-  D2 <- logistic_curve(t, params$tau + params$delta, params$phi)
-
-  RR_baseline <- params$alpha_r - params$beta_r * D1 + (params$c_r * params$beta_r) * D2
-  SDNN_t <- params$alpha_s - params$beta_s * D1 + (params$c_s * params$beta_s) * D2
-  SDNN_t[SDNN_t < 0] <- 1e-6
-
-  C_t <- D1 * (1.0 - params$c_c * D2)
-  p_t <- outer(1.0 - C_t, params$pi_base) + outer(C_t, params$pi_pert)
-
-  u_sin <- lapply(1:3, function(j) z_sin[[j]] * exp(-0.5 * params$b * log_freqs[[j]]))
-  u_cos <- lapply(1:3, function(j) z_cos[[j]] * exp(-0.5 * params$b * log_freqs[[j]]))
-
-  S_t_matrix <- vapply(1:3, function(j) {
-    S_j <- sin_mat[[j]] %*% u_sin[[j]] + cos_mat[[j]] %*% u_cos[[j]]
-    S_j - mean(S_j)
-  }, numeric(N))
-
-  Sigma_S_diag <- vapply(1:3, function(j) {
-    (t(u_sin[[j]]) %*% G_sin[[j]] %*% u_sin[[j]]) +
-      (t(u_cos[[j]]) %*% G_cos[[j]] %*% u_cos[[j]]) +
-      (2 * t(u_sin[[j]]) %*% G_sin_cos[[j]] %*% u_cos[[j]])
-  }, numeric(1))
-  Sigma_S <- diag(Sigma_S_diag)
-
-  var_struct <- SDNN_t^2 * params$w
-  denom <- sqrt(rowSums((p_t %*% Sigma_S) * p_t))
-  # Avoid division by zero if oscillators have no power
-  denom[denom < 1e-9] <- 1e-9
-  A_t <- sqrt(var_struct) / denom
-
-  sum_weighted_S <- rowSums(S_t_matrix * p_t)
-  mu <- RR_baseline + A_t * sum_weighted_S
-
-  var_resid <- SDNN_t^2 * (1.0 - params$w)
-  final_RR <- rnorm(N, mean = mu, sd = sqrt(var_resid))
-
-  # --- 5. Return Results ---
-  out <- data.table::data.table(
-    t = t,
-    RR = final_RR,
-    mu = mu,
-    RR_baseline = RR_baseline,
-    SDNN_t = SDNN_t,
-    p_vlf = p_t[, 1],
-    p_lf = p_t[, 2],
-    p_hf = p_t[, 3]
+  # --- Spectral bands ---
+  band_defs <- list(
+    VLF = list(min = 0.003, max = 0.039),
+    LF  = list(min = 0.040, max = 0.149),
+    HF  = list(min = 0.150, max = 0.400)
   )
+
+  t <- seq(0, t_max, length.out = N)  # Simulation grid
+
+  # Mean R-R interval (logistic drop + partial recovery)
+  RR_t <- params$alpha_r - params$beta_r * D_1(t) + params$c_r * params$beta_r * D_2(t)
+
+  # Standard deviation of RR intervals (SDNN_t)
+  SDNN_t <- params$alpha_s - params$beta_s * D_1(t) + params$c_s * params$beta_s * D_2(t)
+
+  # Spectral mixing curve C(t)
+  C_t <- D_1(t) * (1 - params$c_c * D_2(t))
+
+  # Time-varying band proportions p_j(t)
+  p_j <- (1 - C_t) %*% t(params$pi_base) + C_t %*% t(params$pi_pert)
+  colnames(p_j) <- c("VLF", "LF", "HF")
+
+  # Construct stochastic signals for each band using sine-wave mixtures
+  S_t_matrix <- matrix(0, nrow = N, ncol = 3)
+  colnames(S_t_matrix) <- c("VLF", "LF", "HF")
+
+  set.seed(seed)  # For reproducibility of random phases
+
+  phases_stan <- vector("list", 3)
+  freqs_stan <- vector("list", 3)
+  for (j in 1:3) {
+    f_min <- band_defs[[j]]$min
+    f_max <- band_defs[[j]]$max
+    # Frequencies (linearly spaced in each band)
+    f_k <- seq(f_min, f_max, length.out = N_sin)
+    # Random phases
+    phi_k <- runif(N_sin, 0, 2 * pi)
+    # Amplitudes with power-law scaling
+    a_k <- f_k^(-params$b / 2)
+    # Generate sine waves for this band
+    sine_waves <- sin(
+      2 * pi * outer(t * 60, f_k) +
+        matrix(phi_k, nrow = N, ncol = N_sin, byrow = TRUE)
+    )
+    # Weighted sum of sine waves, centered at 0
+    S_t_matrix[, j] <- sine_waves %*% a_k - mean(sine_waves %*% a_k)
+  }
+  # Covariance of band signals (used for scaling)
+  Sigma_S <- cov(S_t_matrix)
+
+  # Structured vs unstructured variance components
+  var_structured <- SDNN_t^2 * params$w
+  var_noise      <- SDNN_t^2 * (1 - params$w)
+
+  # Denominator: quadratic form p' Σ p
+  denom_sq <- rowSums((p_j %*% Sigma_S) * p_j)
+
+  # Amplitude scaling factor A(t)
+  A_t <- sqrt(var_structured) / sqrt(denom_sq)
+
+  # Weighted spectral contributions
+  weighted_S <- S_t_matrix * p_j
+  sum_weighted_S <- rowSums(weighted_S)
+
+  # Deterministic + structured component
+  mu <- RR_t + A_t * sum_weighted_S
+
+  # Add Gaussian residuals for unstructured noise
+  RRi_t <- rnorm(N, mean = mu, sd = sqrt(var_noise))
+
+  out <- data.table(
+    t = t,
+    RR = RRi_t,
+    mu = mu,
+    RR_baseline = RR_t,
+    SDNN_t = SDNN_t,
+    p_vlf = p_j[, "VLF"],
+    p_lf = p_j[, "LF"],
+    p_hf = p_j[, "HF"]
+  )
+
   return(out)
 }
 

@@ -37,16 +37,19 @@ for(i in 1:3) {
       t = simulated_data[[i]]$t,
       RR = simulated_data[[i]]$RR,
       N_sin = 25,
-      freqs = freq_bands
+      freqs = freq_bands,
+      lambda_mu = params[[i]]$lambda,
+      phi_mu = params[[i]]$phi,
+      tau_mu = params[[i]]$tau,
+      delta_mu = params[[i]]$delta
     ),
     iter = 10000, warmup = 5000,
-    chains = 5, cores = 5,
-    seed = 12345,
-    control = list(adapt_delta = 0.99, ## Target acceptance rate
-                   max_treedepth = 20) ## Maximum per-side steps (before U-turn)
+    chains = 4, cores = 4,
+    seed = 1234,
+    control = list(adapt_delta = 0.80, ## Target acceptance rate
+                   max_treedepth = 10) ## Maximum per-side steps (before U-turn)
   )
 
   # Save fitted object to disk for reproducibility
   saveRDS(model_fit, file = paste0("models/model_fit_scenario_",i,".RDS"))
 }
-

@@ -36,6 +36,12 @@ data {
   // The frequencies are provided, and the model estimates their amplitudes.
   int<lower=1> N_sin;            // Number of sinusoids per frequency band.
   array[3] vector[N_sin] freqs;  // Pre-calculated frequencies for VLF, LF, and HF bands.
+
+  // --- Priors on DL parameters to enhance model identifiability ---
+  real<lower=0> tau_mu;
+  real<lower=0> delta_mu;
+  real<lower=0> lambda_mu;
+  real<lower=0> phi_mu;
 }
 
 // =====================================================================
@@ -256,10 +262,10 @@ model {
   // Priors are placed on the unconstrained parameters.
 
   // --- Priors for logistic components (timing and rates) ---
-  tau_logit ~ normal(logit(0.4), 0.1);   // Expects transition around 40% of the way through.
-  delta_logit ~ normal(logit(0.3), 0.1); // Expects recovery to start after 30% of remaining time.
-  lambda_log ~ normal(log(2), 0.5);      // Expects a moderate initial transition.
-  phi_log ~ normal(log(2), 0.5);         // Expects a moderate recovery transition.
+  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), 0.1);
+  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), 0.1);
+  lambda_log ~ normal(log(lambda_mu), 0.1);
+  phi_log ~ normal(log(phi_mu), 0.1);
 
   // --- Priors for RR(t) and SDNN(t) parameters ---
   alpha_r_logit ~ normal(0, 1);
