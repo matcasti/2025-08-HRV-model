@@ -115,7 +115,7 @@ window.Quarto = {
                 <div>
             <div class="quarto-title-meta-heading">Modified</div>
             <div class="quarto-title-meta-contents">
-              <p class="date-modified">September 9, 2025</p>
+              <p class="date-modified">September 11, 2025</p>
             </div>
           </div>
                 
@@ -136,6 +136,19 @@ window.Quarto = {
    
   <ul>
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a>
+  <ul class="collapse">
+  <li><a href="#model-validation-and-parameter-recovery-on-synthetic-data" id="toc-model-validation-and-parameter-recovery-on-synthetic-data" class="nav-link" data-scroll-target="#model-validation-and-parameter-recovery-on-synthetic-data">Model validation and parameter recovery on synthetic data</a></li>
+  <li><a href="#superiority-of-the-generative-model-over-conventional-windowed-methods" id="toc-superiority-of-the-generative-model-over-conventional-windowed-methods" class="nav-link" data-scroll-target="#superiority-of-the-generative-model-over-conventional-windowed-methods">Superiority of the generative model over conventional windowed methods</a></li>
+  <li><a href="#application-to-an-empirical-dataset" id="toc-application-to-an-empirical-dataset" class="nav-link" data-scroll-target="#application-to-an-empirical-dataset">Application to an empirical dataset</a></li>
+  </ul></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a>
+  <ul class="collapse">
+  <li><a href="#methodological-superiority-and-the-abandonment-of-stationarity" id="toc-methodological-superiority-and-the-abandonment-of-stationarity" class="nav-link" data-scroll-target="#methodological-superiority-and-the-abandonment-of-stationarity">Methodological superiority and the abandonment of stationarity</a></li>
+  <li><a href="#physiological-and-clinical-significance-of-the-models-parameters" id="toc-physiological-and-clinical-significance-of-the-models-parameters" class="nav-link" data-scroll-target="#physiological-and-clinical-significance-of-the-models-parameters">Physiological and clinical significance of the model’s parameters</a></li>
+  <li><a href="#limitations-and-considerations-for-future-work" id="toc-limitations-and-considerations-for-future-work" class="nav-link" data-scroll-target="#limitations-and-considerations-for-future-work">Limitations and considerations for future work</a></li>
+  <li><a href="#future-directions" id="toc-future-directions" class="nav-link" data-scroll-target="#future-directions">Future directions</a></li>
+  </ul></li>
   <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
   <ul class="collapse">
   <li><a href="#model-formulation" id="toc-model-formulation" class="nav-link" data-scroll-target="#model-formulation">Model formulation</a>
@@ -150,20 +163,6 @@ window.Quarto = {
   <li><a href="#spectral-dynamics-reconstruction" id="toc-spectral-dynamics-reconstruction" class="nav-link" data-scroll-target="#spectral-dynamics-reconstruction">Spectral dynamics reconstruction</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#results." id="toc-results." class="nav-link" data-scroll-target="#results.">Results.</a>
-  <ul class="collapse">
-  <li><a href="#model-validation-and-parameter-recovery-on-synthetic-data" id="toc-model-validation-and-parameter-recovery-on-synthetic-data" class="nav-link" data-scroll-target="#model-validation-and-parameter-recovery-on-synthetic-data">Model validation and parameter recovery on synthetic data</a></li>
-  <li><a href="#superiority-of-the-generative-model-over-conventional-windowed-methods" id="toc-superiority-of-the-generative-model-over-conventional-windowed-methods" class="nav-link" data-scroll-target="#superiority-of-the-generative-model-over-conventional-windowed-methods">Superiority of the generative model over conventional windowed methods</a></li>
-  <li><a href="#application-to-an-empirical-dataset" id="toc-application-to-an-empirical-dataset" class="nav-link" data-scroll-target="#application-to-an-empirical-dataset">Application to an empirical dataset</a></li>
-  </ul></li>
-  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a>
-  <ul class="collapse">
-  <li><a href="#methodological-superiority-and-the-abandonment-of-stationarity" id="toc-methodological-superiority-and-the-abandonment-of-stationarity" class="nav-link" data-scroll-target="#methodological-superiority-and-the-abandonment-of-stationarity">Methodological superiority and the abandonment of stationarity</a></li>
-  <li><a href="#physiological-and-clinical-significance-of-the-models-parameters" id="toc-physiological-and-clinical-significance-of-the-models-parameters" class="nav-link" data-scroll-target="#physiological-and-clinical-significance-of-the-models-parameters">Physiological and clinical significance of the model’s parameters</a></li>
-  <li><a href="#limitations-and-considerations-for-future-work" id="toc-limitations-and-considerations-for-future-work" class="nav-link" data-scroll-target="#limitations-and-considerations-for-future-work">Limitations and considerations for future work</a></li>
-  <li><a href="#future-directions" id="toc-future-directions" class="nav-link" data-scroll-target="#future-directions">Future directions</a></li>
-  </ul></li>
-  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   <li><a href="#author-contributions" id="toc-author-contributions" class="nav-link" data-scroll-target="#author-contributions">Author Contributions</a></li>
   <li><a href="#funding" id="toc-funding" class="nav-link" data-scroll-target="#funding">Funding</a></li>
@@ -187,6 +186,324 @@ window.Quarto = {
 <p>To advance the field beyond these constraints, a new generation of statistical models is clearly needed. A framework capable of surpassing these barriers should, at a minimum, satisfy four critical criteria. First, it must explicitly address the non-stationarity inherent to physiological signals, obviating the need for arbitrary analysis windows. Second, it must be capable of mechanistically decomposing the signal into its distinct components: a gross, underlying trend in heart rate and the structured, oscillatory variability that represents physiological regulation. Third, its parameters should have a direct, interpretable link to specific physiological processes, such as autonomic tone and recovery dynamics. Finally, as a probabilistic framework, it must provide a principled means of quantifying uncertainty for all estimates, moving beyond a reliance on simple point estimates.</p>
 <p>To meet these challenges, we therefore propose a novel probabilistic framework. Here, we introduce a model designed to directly confront non-stationarity by treating the RRi signal as a continuous stochastic process. This framework is built to mechanistically decompose the signal into its constituent parts, including a baseline trend and its structured variability. Its core components are defined by flexible functions whose parameters are intended to provide direct physiological insight into response and recovery dynamics. Finally, we will demonstrate how its implementation as a fully Bayesian model yields the robust uncertainty quantification required of a modern analytical framework.</p>
 <p>This study introduces and validates a novel probabilistic model for analyzing non-stationary RRi signals. We test the central hypothesis that this framework provides a more robust, informative, and physiologically interpretable analysis of heart rate dynamics than traditional methods. Specifically, we demonstrate its ability to accurately capture transient perturbations and show that its parameters offer enhanced mechanistic nuance into autonomic control. Through this work, we seek to establish a new standard for the analysis of dynamic physiological signals.</p>
+</section>
+<section id="results" class="level1">
+<h1>Results</h1>
+<p>This section presents the performance and application of our novel generative model for RRi analysis. We first establish the model’s validity and accuracy through a series of simulation studies, demonstrating its ability to recover known ground-truth parameters with high fidelity. We then provide a direct quantitative comparison against conventional windowed analysis techniques, highlighting the superior temporal and spectral resolution of our approach. Finally, we apply the model to an empirical dataset from a physiological perturbation protocol to illustrate its capacity for yielding enhanced mechanistic insights into autonomic dynamics.</p>
+<section id="model-validation-and-parameter-recovery-on-synthetic-data" class="level2">
+<h2 class="anchored" data-anchor-id="model-validation-and-parameter-recovery-on-synthetic-data">Model validation and parameter recovery on synthetic data</h2>
+<p>To verify the model’s correctness and inferential accuracy, we first applied it to synthetic RRi data generated with known underlying parameters. This allowed for a direct comparison between the model’s estimates and the ground-truth dynamics, providing a gold-standard validation of its performance.</p>
+<p>Our model accurately reconstructs the full, continuous dynamics of the RRi signal. Figure 2 showcases the model’s performance on a representative simulation of a classic sympatho-vagal response. The top panels display the model’s posterior mean estimates for the baseline RRi trajectory (<span class="math inline">\(\mathrm{RR_{base}}(t)\)</span>) and the total variability trajectory (<span class="math inline">\(\mathrm{SDNN}(t)\)</span>). The estimates closely follow the true generative trajectories, and the 95% posterior credible intervals consistently envelop the ground truth, demonstrating both accuracy and uncertainty quantification. The bottom panel shows the corresponding reconstruction of the time-varying spectral proportions (<span class="math inline">\(p_j(t)\)</span>), where the model again successfully captures the rapid, dynamic shift from a HF dominant state at baseline to a VLF dominant state during the perturbation.</p>
+<p><img src="figures/fig-model-method.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Figure 2</strong>. Reconstruction of synthetic data from model estimates. The model’s posterior estimates (solid lines) and 95% credible intervals (shaded ribbons) for the baseline RRi, total SDNN, and spectral proportions trajectories are shown overlaid on the known ground-truth dynamics (dashed lines). The model demonstrates high fidelity in capturing both time-domain and frequency-domain non-stationarities.</p>
+<p>Beyond reconstructing the continuous trajectories, the model also accurately recovers the underlying mechanistic parameters that control them. Table 2 summarizes the posterior estimates for key generative parameters across all three challenging simulation scenarios. For critical parameters such as the timing of the response (<span class="math inline">\(\tau\)</span>), the recovery delay (<span class="math inline">\(\delta\)</span>), the magnitudes of the RRi and SDNN drops (<span class="math inline">\(\beta_r\)</span>, <span class="math inline">\(\beta_s\)</span>), and the fraction of structured variance (<span class="math inline">\(w\)</span>), the 95% credible intervals consistently contained the true values used for data generation. This robust performance across diverse conditions confirms the model’s ability to reliably estimate the interpretable parameters at the core of its design.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 5%">
+<col style="width: 8%">
+<col style="width: 17%">
+<col style="width: 5%">
+<col style="width: 8%">
+<col style="width: 17%">
+<col style="width: 5%">
+<col style="width: 8%">
+<col style="width: 17%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Truth</th>
+<th style="text-align: right;">Estimate</th>
+<th style="text-align: left;">95% CI</th>
+<th style="text-align: left;">Truth</th>
+<th style="text-align: right;">Estimate</th>
+<th style="text-align: left;">95% CI</th>
+<th style="text-align: left;">Truth</th>
+<th style="text-align: right;">Estimate</th>
+<th style="text-align: left;">95% CI</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\lambda\)</span></td>
+<td style="text-align: left;">3.0</td>
+<td style="text-align: right;">2.76</td>
+<td style="text-align: left;">[2.36, 3.19]</td>
+<td style="text-align: left;">3.0</td>
+<td style="text-align: right;">2.80</td>
+<td style="text-align: left;">[2.41, 3.22]</td>
+<td style="text-align: left;">1.5</td>
+<td style="text-align: right;">1.42</td>
+<td style="text-align: left;">[1.17, 1.71]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\phi\)</span></td>
+<td style="text-align: left;">2.0</td>
+<td style="text-align: right;">1.98</td>
+<td style="text-align: left;">[1.71, 2.26]</td>
+<td style="text-align: left;">2.0</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: left;">[1.66, 2.36]</td>
+<td style="text-align: left;">1.5</td>
+<td style="text-align: right;">1.49</td>
+<td style="text-align: left;">[1.22, 1.78]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\tau\)</span></td>
+<td style="text-align: left;">6.0</td>
+<td style="text-align: right;">5.99</td>
+<td style="text-align: left;">[5.9, 6.09]</td>
+<td style="text-align: left;">6.0</td>
+<td style="text-align: right;">6.01</td>
+<td style="text-align: left;">[5.92, 6.09]</td>
+<td style="text-align: left;">6.0</td>
+<td style="text-align: right;">6.02</td>
+<td style="text-align: left;">[5.76, 6.27]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\delta\)</span></td>
+<td style="text-align: left;">3.0</td>
+<td style="text-align: right;">2.99</td>
+<td style="text-align: left;">[2.77, 3.19]</td>
+<td style="text-align: left;">3.0</td>
+<td style="text-align: right;">2.93</td>
+<td style="text-align: left;">[2.67, 3.19]</td>
+<td style="text-align: left;">3.0</td>
+<td style="text-align: right;">2.97</td>
+<td style="text-align: left;">[2.54, 3.41]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\alpha_r\)</span></td>
+<td style="text-align: left;">950</td>
+<td style="text-align: right;">949.47</td>
+<td style="text-align: left;">[947.66, 951.19]</td>
+<td style="text-align: left;">950</td>
+<td style="text-align: right;">949.21</td>
+<td style="text-align: left;">[947.47, 950.97]</td>
+<td style="text-align: left;">900</td>
+<td style="text-align: right;">897.78</td>
+<td style="text-align: left;">[890.86, 904.77]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\beta_r\)</span></td>
+<td style="text-align: left;">250</td>
+<td style="text-align: right;">252.06</td>
+<td style="text-align: left;">[237.16, 267.91]</td>
+<td style="text-align: left;">250</td>
+<td style="text-align: right;">253.04</td>
+<td style="text-align: left;">[241.95, 266.19]</td>
+<td style="text-align: left;">300</td>
+<td style="text-align: right;">303.85</td>
+<td style="text-align: left;">[266.17, 347.8]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(c_r\)</span></td>
+<td style="text-align: left;">1.0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: left;">[0.99, 1.01]</td>
+<td style="text-align: left;">0.5</td>
+<td style="text-align: right;">0.51</td>
+<td style="text-align: left;">[0.48, 0.53]</td>
+<td style="text-align: left;">1.0</td>
+<td style="text-align: right;">1.01</td>
+<td style="text-align: left;">[0.98, 1.04]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\alpha_s\)</span></td>
+<td style="text-align: left;">60</td>
+<td style="text-align: right;">60.76</td>
+<td style="text-align: left;">[59.13, 62.45]</td>
+<td style="text-align: left;">60</td>
+<td style="text-align: right;">60.72</td>
+<td style="text-align: left;">[59.12, 62.38]</td>
+<td style="text-align: left;">100</td>
+<td style="text-align: right;">100.35</td>
+<td style="text-align: left;">[95.85, 104.53]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\beta_s\)</span></td>
+<td style="text-align: left;">40</td>
+<td style="text-align: right;">40.50</td>
+<td style="text-align: left;">[36.77, 44.31]</td>
+<td style="text-align: left;">40</td>
+<td style="text-align: right;">40.89</td>
+<td style="text-align: left;">[37.47, 44.59]</td>
+<td style="text-align: left;">20</td>
+<td style="text-align: right;">19.75</td>
+<td style="text-align: left;">[9.19, 30.25]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(c_s\)</span></td>
+<td style="text-align: left;">1.0</td>
+<td style="text-align: right;">0.93</td>
+<td style="text-align: left;">[0.87, 0.99]</td>
+<td style="text-align: left;">0.6</td>
+<td style="text-align: right;">0.54</td>
+<td style="text-align: left;">[0.48, 0.59]</td>
+<td style="text-align: left;">1.0</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: left;">[0.44, 1.07]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(c_c\)</span></td>
+<td style="text-align: left;">0.8</td>
+<td style="text-align: right;">0.84</td>
+<td style="text-align: left;">[0.79, 0.88]</td>
+<td style="text-align: left;">0.4</td>
+<td style="text-align: right;">0.47</td>
+<td style="text-align: left;">[0.37, 0.57]</td>
+<td style="text-align: left;">1.0</td>
+<td style="text-align: right;">0.93</td>
+<td style="text-align: left;">[0.81, 0.99]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(b\)</span></td>
+<td style="text-align: left;">1.0</td>
+<td style="text-align: right;">1.02</td>
+<td style="text-align: left;">[0.76, 1.3]</td>
+<td style="text-align: left;">1.0</td>
+<td style="text-align: right;">1.09</td>
+<td style="text-align: left;">[0.83, 1.35]</td>
+<td style="text-align: left;">1.0</td>
+<td style="text-align: right;">0.93</td>
+<td style="text-align: left;">[0.66, 1.21]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(w\)</span></td>
+<td style="text-align: left;">0.9</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: left;">[0.89, 0.91]</td>
+<td style="text-align: left;">0.9</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: left;">[0.89, 0.91]</td>
+<td style="text-align: left;">0.6</td>
+<td style="text-align: right;">0.60</td>
+<td style="text-align: left;">[0.57, 0.62]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\pi_{base}\)</span>[VLF]</td>
+<td style="text-align: left;">0.1</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: left;">[0.07, 0.14]</td>
+<td style="text-align: left;">0.1</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: left;">[0.06, 0.12]</td>
+<td style="text-align: left;">0.1</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: left;">[0.07, 0.15]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\pi_{base}\)</span>[LF]</td>
+<td style="text-align: left;">0.2</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: left;">[0.16, 0.25]</td>
+<td style="text-align: left;">0.2</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: left;">[0.15, 0.24]</td>
+<td style="text-align: left;">0.45</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: left;">[0.39, 0.53]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\pi_{base}\)</span>[HF]</td>
+<td style="text-align: left;">0.7</td>
+<td style="text-align: right;">0.70</td>
+<td style="text-align: left;">[0.63, 0.77]</td>
+<td style="text-align: left;">0.7</td>
+<td style="text-align: right;">0.72</td>
+<td style="text-align: left;">[0.66, 0.78]</td>
+<td style="text-align: left;">0.45</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: left;">[0.36, 0.52]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\pi_{pert}\)</span>[VLF]</td>
+<td style="text-align: left;">0.5</td>
+<td style="text-align: right;">0.51</td>
+<td style="text-align: left;">[0.4, 0.62]</td>
+<td style="text-align: left;">0.7</td>
+<td style="text-align: right;">0.70</td>
+<td style="text-align: left;">[0.59, 0.8]</td>
+<td style="text-align: left;">0.2</td>
+<td style="text-align: right;">0.23</td>
+<td style="text-align: left;">[0.14, 0.33]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\pi_{pert}\)</span>[LF]</td>
+<td style="text-align: left;">0.3</td>
+<td style="text-align: right;">0.28</td>
+<td style="text-align: left;">[0.22, 0.35]</td>
+<td style="text-align: left;">0.2</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: left;">[0.13, 0.25]</td>
+<td style="text-align: left;">0.5</td>
+<td style="text-align: right;">0.47</td>
+<td style="text-align: left;">[0.37, 0.57]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\pi_{pert}\)</span>[HF]</td>
+<td style="text-align: left;">0.2</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: left;">[0.11, 0.3]</td>
+<td style="text-align: left;">0.1</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: left;">[0.03, 0.19]</td>
+<td style="text-align: left;">0.3</td>
+<td style="text-align: right;">0.30</td>
+<td style="text-align: left;">[0.18, 0.42]</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Table 2</strong>.</p>
+</section>
+<section id="superiority-of-the-generative-model-over-conventional-windowed-methods" class="level2">
+<h2 class="anchored" data-anchor-id="superiority-of-the-generative-model-over-conventional-windowed-methods">Superiority of the generative model over conventional windowed methods</h2>
+<p>Having established the model’s validity, we next benchmarked its performance directly against traditional analysis techniques, specifically, sliding-window analysis for time-domain metrics and the Short-Time Fourier Transform (STFT) for spectral dynamics.</p>
+<p>The model provides superior temporal resolution for time-domain dynamics. Conventional sliding-window methods inherently smooth and delay the detection of dynamic changes. Figure 3 illustrates this critical limitation by comparing the model’s instantaneous <span class="math inline">\(\mathrm{SDNN}(t)\)</span> estimate against that of a 60-second sliding window. While our model’s estimate precisely tracks the non-linear recovery phase of the ground-truth signal, the windowed approach produces a delayed, blunted, and stepwise approximation that obscures the true physiological dynamics. This demonstrates the model’s ability to overcome the core limitation of stationarity assumptions that plagues traditional methods.</p>
+<p><img src="figures/fig-windowed-method.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Figure 3</strong>. Reconstruction of synthetic data from windowed methods. The moving estimates from windowed methods (solid lines) for the baseline RRi, total SDNN, and spectral proportions trajectories are shown overlaid on the known ground-truth dynamics (dashed lines). The windowed methods introduces significant lag and its not able to separate propperly the noise from the signal, introducing biased estimators.</p>
+<p>The model resolves spectral dynamics without the time-frequency uncertainty trade-off. The STFT is fundamentally limited by the trade-off between temporal and frequency resolution. Our model provides a continuous, and accurate depiction of the switch from HF to VLF dominance. In contrast, the STFT spectrogram produces a smeared and indistinct representation, failing to precisely resolve either the timing or the magnitude of the spectral shift.</p>
+<p>Quantitative analysis confirms the model’s superior accuracy. The visual advantages of our approach are supported by quantitative performance metrics. Table 3 presents the Root Mean Squared Error (RMSE) and coefficient of determination (<span class="math inline">\(R^2\)</span>) for our model versus conventional methods across all simulation scenarios. For both time-domain and spectral-domain reconstructions, our model consistently achieved a significantly lower RMSE and a higher <span class="math inline">\(R^2\)</span>, often by a substantial margin, particularly in scenarios involving rapid transitions or high noise. These results provide definitive evidence that the model’s window-free, generative approach yields a more accurate and faithful representation of heart rate dynamics.</p>
+<p>&lt;&lt;Tabla 3&gt;&gt;</p>
+</section>
+<section id="application-to-an-empirical-dataset" class="level2">
+<h2 class="anchored" data-anchor-id="application-to-an-empirical-dataset">Application to an empirical dataset</h2>
+<p>To demonstrate the model’s utility in a real-world context, we applied it to an RRi series recorded from a healthy subject undergoing a cold pressor test, a potent sympatho-excitatory stimulus. This allows us to move beyond validation and showcase the model’s power for physiological discovery.</p>
+<p>The model mechanistically decomposes the full autonomic response. Figure 4 presents the complete decomposition of the empirical RRi signal. The model reveals a multi-phasic response not easily captured by traditional metrics. Panel A shows the raw RRi data. Panel B illustrates the inferred <span class="math inline">\(\mathrm{RR_{base}}(t)\)</span> trajectory, quantifying a rapid initial tachycardia followed by a partial, slow recovery. Panel C reveals the dynamics of total variability (<span class="math inline">\(\mathrm{SDNN}(t)\)</span>), which shows a profound suppression that persists long after the mean RRi has begun to recover. Most critically, Panel D uncovers the underlying spectral shifts: the response is characterized by an almost complete withdrawal of parasympathetically-mediated HF power and a corresponding surge in sympathetically-mediated VLF power.</p>
+<p><strong>Figure 4</strong>. Mechanistic Decomposition of an Empirical Cold Pressor Response. The model’s analysis of a real RRi signal. (A) Raw data. (B) Inferred baseline RRi trajectory. (C) Inferred total SDNN trajectory. (D) Inferred spectral proportion dynamics, showing a clear shift from HF to VLF dominance. Shaded regions are 95% credible intervals.</p>
+<p>Model parameters provide novel, interpretable insights into recovery dynamics. The true power of the model lies in the physiological interpretation of its parameters. Figure 5 displays the posterior distributions for key recovery parameters. We found that the recovery of the mean RRi (<span class="math inline">\(c_r\)</span>) was significantly more complete than the recovery of total HRV (<span class="math inline">\(c_s\)</span>), suggesting a lingering sympathetic activation even after the heart rate has partially normalized. Furthermore, the spectral recovery parameter (<span class="math inline">\(c_c\)</span>) was near zero, indicating a profound “spectral persistence” where the VLF-dominant state remained long after the stimulus ended. Finally, the structured variance fraction (<span class="math inline">\(w\)</span>) was estimated to be high throughout, confirming that the observed variability was dominated by structured autonomic oscillations rather than noise. These parameters provide a nuanced, quantitative, and mechanistic narrative of the physiological response that is inaccessible with conventional analysis.</p>
+<p>&lt;&lt;Figura 5&gt;&gt;</p>
+</section>
+</section>
+<section id="discussion" class="level1">
+<h1>Discussion</h1>
+<p>The analysis of heart rate variability has long served as an indispensable tool for probing the complexities of the autonomic nervous system. However, the field has been persistently challenged by the non-stationary nature of physiological signals, a characteristic that fundamentally conflicts with the stationarity assumptions underpinning traditional analysis methods. The present study was designed to address these limitations by developing and validating a novel, fully generative probabilistic model for R-R interval time series. The results of our simulation studies and empirical application confirm our central hypothesis: the proposed framework provides a more robust, informative, and physiologically interpretable analysis of heart rate dynamics than conventional, windowed techniques. This discussion will interpret the significance of these findings, place them within the broader context of physiological modeling, acknowledge the model’s limitations, and outline promising directions for future research.</p>
+<p>The primary contribution of this work is the demonstration of a model that successfully overcomes the principal obstacles in dynamic HRV analysis. The results from our simulation studies provide robust evidence for the model’s internal validity and inferential accuracy. Across multiple, challenging scenarios with known ground-truth dynamics, the model consistently recovered the underlying generative parameters with high precision, as evidenced by the posterior credible intervals that reliably contained the true values. Furthermore, the model accurately reconstructed the continuous, non-linear trajectories of both the mean RRi and its time-varying standard deviation, showcasing its ability to faithfully represent the signal’s evolution. This performance establishes a crucial foundation of trust in the model’s mechanics and its capacity to make accurate inferences from complex data.</p>
+<p>Building upon this validation, the direct benchmarking against conventional methods highlighted the practical advantages of our approach. The quantitative analyses, which demonstrated consistently lower Root Mean Squared Error (RMSE) and higher coefficients of determination (<span class="math inline">\(R^2\)</span>) for our model, provide objective evidence of its superior accuracy in tracking dynamic signals. This superiority stems directly from the model’s architecture, which meets the four critical criteria outlined in the introduction. First, it explicitly models non-stationarity, obviating the need for arbitrary analysis windows. Second, it performs a mechanistic decomposition of the signal into a baseline trend, structured variability, and residual noise. Third, its parameters are designed for direct physiological interpretation. Finally, its implementation within a Bayesian framework provides principled and robust uncertainty quantification for all estimates. The successful fulfillment of these criteria represents a significant step towards a more powerful and nuanced analysis of physiological signals.</p>
+<section id="methodological-superiority-and-the-abandonment-of-stationarity" class="level2">
+<h2 class="anchored" data-anchor-id="methodological-superiority-and-the-abandonment-of-stationarity">Methodological superiority and the abandonment of stationarity</h2>
+<p>A central argument of this paper is that the limitations of traditional HRV analysis are not merely technical but are conceptual, rooted in the flawed assumption of signal stationarity. Our results provide a clear illustration of why this assumption is so problematic. Windowed methods, whether for time-domain or frequency-domain analysis, are fundamentally signal processing filters. A sliding-window calculation of the mean or standard deviation, for instance, acts as a low-pass filter on the true underlying dynamic trajectory. This process inherently introduces artifacts: it blunts the magnitude of rapid changes, creates artificial delays in their detection, and produces a stepwise output that misrepresents the smooth nature of physiological regulation. The comparison in our results, where the windowed SDNN estimate lagged behind and smoothed over the true recovery dynamic, provides a stark example of this distortion.</p>
+<p>A similar and well-documented issue plagues windowed spectral analysis, such as the Short-Time Fourier Transform (STFT). The STFT is constrained by the Heisenberg-Gabor uncertainty principle, which dictates an inescapable trade-off between temporal and frequency resolution. Short analysis windows can pinpoint the timing of spectral changes but produce noisy and poorly resolved frequency estimates; long windows provide cleaner spectral estimates but cannot precisely locate them in time. This limitation was evident in our benchmarking results, where the STFT produced a smeared and ambiguous representation of the rapid sympatho-vagal shift that our model resolved with high precision.</p>
+<p>Our model circumvents these issues by reframing the problem from one of signal processing to one of statistical inference. Instead of filtering the data to reveal its properties, the model posits a generative process with an explicit mathematical structure, the double-logistic function, and infers the parameters of that process from the data. Because the model has a formal representation for the entire time-course of the physiological response, it is not constrained by the localizing limitations of a window. It uses information from the entire time series to inform its estimate at any single point, allowing it to simultaneously achieve high resolution in both the time and frequency domains. This fundamental shift from a descriptive, filtering approach to a generative, inferential one is the core reason for its demonstrated methodological superiority.</p>
+</section>
+<section id="physiological-and-clinical-significance-of-the-models-parameters" class="level2">
+<h2 class="anchored" data-anchor-id="physiological-and-clinical-significance-of-the-models-parameters">Physiological and clinical significance of the model’s parameters</h2>
+<p>The true value of this modeling framework lies not only in its improved accuracy but in its ability to yield deeper physiological insight. Traditional HRV metrics provide descriptive summaries of the signal, whereas the model’s parameters offer a more mechanistic, quantitative narrative of the underlying autonomic processes. This transition from description to mechanism has significant implications for both basic physiological research and potential clinical applications.</p>
+<p>A key area of innovation is the model’s detailed quantification of recovery dynamics. Standard analysis might report that HRV returned to baseline after a certain time, but our model deconstructs this recovery into distinct, interpretable components. The parameters for recovery rate (<span class="math inline">\(\phi\)</span>), delay (<span class="math inline">\(\delta\)</span>), and completeness (<span class="math inline">\(c_s\)</span>, <span class="math inline">\(c_c\)</span>) allow for a multi-dimensional assessment of autonomic resilience. For example, the model could distinguish between an individual with a rapid but incomplete recovery and one with a slow but complete recovery, a nuance entirely lost to traditional methods. The ability to separately quantify the recovery completeness of the mean R-R interval (<span class="math inline">\(c_r\)</span>), total variability (<span class="math inline">\(c_s\)</span>), and spectral balance (<span class="math inline">\(c_c\)</span>) could be particularly powerful. A finding of dissonant recovery, for instance, a rapid return of heart rate to baseline but a persistently suppressed HRV, could serve as a sensitive marker for lingering sympathetic activation or impaired parasympathetic reactivation, concepts central to stress physiology and cardiovascular health.</p>
+<p>Furthermore, the introduction of the structured variance fraction, <span class="math inline">\(w\)</span>, opens a new avenue for interpreting the <em>nature</em> of heart rate variability. This parameter quantifies the balance between coherent, physiologically structured oscillations and unstructured, residual noise. A high value of <span class="math inline">\(w\)</span> would suggest a state where the majority of variability is driven by well-organized autonomic regulation, whereas a low value could indicate a breakdown of this regulation, a pathological state, or a high degree of measurement noise. This parameter may therefore provide a novel index of autonomic coherence. For instance, in clinical contexts, a chronically low <span class="math inline">\(w\)</span> could be a marker for conditions like atrial fibrillation or other dysautonomias where the RRi signal becomes more erratic. In sports science, tracking <span class="math inline">\(w\)</span> could help distinguish between the healthy, structured variability of a well-recovered athlete and the potentially noisy, less structured variability of an over-trained one. These novel parameters, taken together, provide a richer and more granular toolkit for interrogating physiological states.</p>
+</section>
+<section id="limitations-and-considerations-for-future-work" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-and-considerations-for-future-work">Limitations and considerations for future work</h2>
+<p>Despite its advantages, the proposed model is not without limitations, and an honest appraisal of these is essential for guiding future research. The first and most practical limitation of this model is its computational demand, which scales with the time series length (<span class="math inline">\(N\)</span>) and spectral resolution (<span class="math inline">\(N_{sin}\)</span>) at a rate of <span class="math inline">\(O(N \cdot N_{sin} + N_{sin}^2)\)</span>. This scaling can pose a substantial barrier to the analysis of high-dimensional physiological data. For instance, applying the model to long-duration recordings, such as 24-hour Holter monitor data, or to studies requiring fine-grained spectral detail (a large <span class="math inline">\(N_{sin}\)</span>), could result in prohibitively long runtimes. This computational burden not only constrains the model’s feasibility for large-scale clinical studies but also hinders the iterative process of model development and validation, where rapid feedback is essential for scientific progress.</p>
+<p>Second, the model’s architecture relies on specific structural assumptions. The choice of the double-logistic function to represent the perturbation-recovery dynamic is central to the model’s interpretability. While this function is highly flexible and well-suited for the acute, transient stressors investigated here, it is by no means a universal model for all physiological dynamics. More complex, multi-phasic responses or long-term phenomena like circadian rhythms would not be well-captured by this specific functional form. Similarly, the spectral component of the model assumes that the signal can be effectively represented by a sum of sinusoids within pre-defined frequency bands. While this is a standard and powerful approach, it remains a model of the underlying spectral density and is constrained by the choice of those fixed frequencies.</p>
+<p>Finally, the scope of the model’s validation must be considered. The current study demonstrated the model’s efficacy on simulated data and provided a proof-of-concept application on a single, acute physiological stressor. Its generalizability to other contexts has not yet been established. The model’s performance on different types of physiological challenges, such as orthostatic stress, cognitive load, or pharmacological interventions, requires explicit investigation. Moreover, its application to long-term, 24-hour ambulatory recordings presents both a significant opportunity and a challenge, as such data often contain multiple, overlapping events and distinct physiological states (e.g., wakefulness, sleep) that would require extensions to the current model structure.</p>
+</section>
+<section id="future-directions" class="level2">
+<h2 class="anchored" data-anchor-id="future-directions">Future directions</h2>
+<p>The limitations of the current model naturally illuminate several promising avenues for future research. To address the issue of fixed functional forms, the double-logistic component could be replaced with more flexible, non-parametric alternatives, such as Gaussian processes or penalized splines. This would create a semi-parametric model capable of capturing a much wider array of dynamic shapes, albeit potentially at the cost of some of the direct parameter interpretability. To enhance the model’s explanatory power and move towards subject-level inference, it could be extended into a hierarchical or mixed-effects framework. In such a model, key parameters like recovery rates or response magnitudes could be modeled as functions of subject-level covariates, such as age, sex, disease status, or fitness level, allowing for formal statistical testing of group differences in autonomic dynamics.</p>
+<p>A clear priority for future work is the broad application and validation of the model across diverse datasets. Applying the model to existing clinical cohorts, for example, in studies of post-myocardial infarction risk stratification or diabetic autonomic neuropathy, could reveal whether its novel parameters offer superior prognostic value compared to traditional HRV metrics. Furthermore, deploying the model to analyze data from controlled interventions, such as exercise training programs or mindfulness-based stress reduction, would allow for a mechanistic quantification of how these interventions reshape autonomic function. On the computational front, the development of efficient approximate inference techniques, such as variational Bayes, could drastically reduce runtime and make the model a more practical tool for large-scale research and, eventually, clinical use.</p>
+</section>
 </section>
 <section id="methods" class="level1">
 <h1>Methods</h1>
@@ -304,9 +621,9 @@ A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathb
 <section id="simulation-studies" class="level2">
 <h2 class="anchored" data-anchor-id="simulation-studies">Simulation Studies</h2>
 <p>To evaluate the model’s performance, we conducted a series of simulation studies. The objectives were to assess the model’s ability to recover known ground-truth parameters from synthetic data and to quantitatively benchmark its reconstruction of key HRV dynamics against conventional, windowed analysis techniques. Synthetic RRi time series were generated using the model’s own generative structure with pre-specified parameter values. This process provided datasets with perfectly known underlying dynamics for <span class="math inline">\(\mathrm{RR}(t_i)\)</span>, <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span>, and <span class="math inline">\(p_j(t_i)\)</span>, serving as an objective gold standard for evaluation.</p>
-<p>We designed three distinct scenarios to probe the model’s capabilities under diverse and challenging conditions. These scenarios: (1) a classic sympatho-vagal response, (2) an incomplete recovery with spectral persistence, and (3) a high noise with a stable spectrum, were chosen specifically to test the limitations inherent in standard analysis methods, these separate scenarios can be seen in Figure 1 and the parameters used to generate the data can be seen in Table 1. Each simulated dataset was analyzed with our full Bayesian model and, for comparison, with conventional techniques: a sliding-window analysis for time-domain metrics and a Short-Time Fourier Transform (STFT) for spectral dynamics.</p>
+<p>We designed three distinct scenarios to probe the model’s capabilities under diverse and challenging conditions. These scenarios: (1) a classic sympatho-vagal response, (2) an incomplete recovery with spectral persistence, and (3) a high noise with a stable spectrum, were chosen specifically to test the limitations inherent in standard analysis methods, these separate scenarios can be seen in Figure 1 and the parameters used to generate the data can be seen in Table XX. Each simulated dataset was analyzed with our full Bayesian model and, for comparison, with conventional techniques: a sliding-window analysis for time-domain metrics and a Short-Time Fourier Transform (STFT) for spectral dynamics.</p>
 <p><img src="figures/fig-generated-data.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Figure 1</strong>. Three scenarios simulated from the probabilistic model to assess the inference capabilities to recover the data generation process. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum. Subpanels indicate observed RRi signal with true component (<span class="math inline">\(\mu(t_i)\)</span>) highlighted, true underlying RRi trend and SDNN, next to spectral signature of the signal, depicting the relative contribution of each frequency band as a dynamic process.</p>
+<p><strong>Figure XX</strong>. Three scenarios simulated from the probabilistic model to assess the inference capabilities to recover the data generation process. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum. Subpanels indicate observed RRi signal with true component (<span class="math inline">\(\mu(t_i)\)</span>) highlighted, true underlying RRi trend and SDNN, next to spectral signature of the signal, depicting the relative contribution of each frequency band as a dynamic process.</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 12%">
@@ -432,7 +749,7 @@ A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathb
 </tr>
 </tbody>
 </table>
-<p><strong>Table 1</strong>. Ground-truth parameter values used in the generation of three simulation scenarios. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum.</p>
+<p><strong>Table XX</strong>. Ground-truth parameter values used in the generation of three simulation scenarios. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum.</p>
 <section id="time-domain-trajectory-reconstruction" class="level3">
 <h3 class="anchored" data-anchor-id="time-domain-trajectory-reconstruction">Time-domain trajectory reconstruction</h3>
 <p>The capacity to accurately capture time-domain dynamics was evaluated by comparing the model’s continuous estimates of <span class="math inline">\(\mathrm{RR}(t_i)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span> against the stepwise approximations derived from a standard sliding-window mean and standard deviation. To provide a comprehensive evaluation of reconstruction fidelity, model performance was quantified against the ground-truth trajectories using a suite of complementary metrics. The root mean squared error (RMSE) and mean absolute error (MAE) were used to measure the average magnitude of the estimation error, with MAE offering a more robust assessment against sporadic outliers. The model’s bias (mean error) was calculated to identify any systematic tendency for over- or underestimation. Finally, the coefficient of determination (<span class="math inline">\(R^2\)</span>) was used to assess the proportion of variance in the true signal captured by the estimate.</p>
@@ -442,68 +759,6 @@ A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathb
 <p>To evaluate the reconstruction of spectral dynamics, our model’s continuous estimates of the spectral proportions, <span class="math inline">\(p_j(t_i)\)</span>, were compared against those derived from an STFT. For a direct comparison, the spectrogram generated by the STFT was normalized at each time step to yield proportional power within the VLF, LF, and HF bands. The performance of both methods was then assessed by comparing their estimated trajectories to the known ground-truth proportions using the same comprehensive suite of metrics (RMSE, MAE, Bias, and <span class="math inline">\(R^2\)</span>). This comparative framework was designed to objectively quantify the trade-offs in temporal and frequency resolution inherent to windowed methods versus the continuous estimation provided by our model, especially in the presence of rapid transitions or low signal-to-noise ratios. As part of the model’s internal validation, we also confirmed that the 95% posterior credible intervals for all generative parameters consistently contained the known ground-truth values, ensuring both inferential accuracy and appropriate uncertainty quantification.</p>
 </section>
 </section>
-</section>
-<section id="results." class="level1">
-<h1>Results.</h1>
-<section id="model-validation-and-parameter-recovery-on-synthetic-data" class="level2">
-<h2 class="anchored" data-anchor-id="model-validation-and-parameter-recovery-on-synthetic-data">Model validation and parameter recovery on synthetic data</h2>
-<p>To verify the model’s correctness and inferential accuracy, we first applied it to synthetic RRi data generated with known underlying parameters. This allowed for a direct comparison between the model’s estimates and the ground-truth dynamics, providing a gold-standard validation of its performance.</p>
-<p>Our model accurately reconstructs the full, continuous dynamics of the RRi signal. Figure 2 showcases the model’s performance on a representative simulation of a classic sympatho-vagal response. The top panels display the model’s posterior mean estimates for the baseline RRi trajectory (<span class="math inline">\(\mathrm{RR_{base}}(t)\)</span>) and the total variability trajectory (<span class="math inline">\(\mathrm{SDNN}(t)\)</span>). The estimates closely follow the true generative trajectories, and the 95% posterior credible intervals consistently envelop the ground truth, demonstrating both accuracy and uncertainty quantification. The bottom panel shows the corresponding reconstruction of the time-varying spectral proportions (<span class="math inline">\(p_j(t)\)</span>), where the model again successfully captures the rapid, dynamic shift from a HF dominant state at baseline to a VLF dominant state during the perturbation.</p>
-<p>&lt;&lt;FIGURA 2&gt;&gt; <strong>Figure 2</strong>. Reconstruction of Synthetic Data. The model’s posterior estimates (solid lines) and 95% credible intervals (shaded ribbons) for the baseline RRi, total SDNN, and spectral proportions trajectories are shown overlaid on the known ground-truth dynamics (dashed lines). The model demonstrates high fidelity in capturing both time-domain and frequency-domain non-stationarities.</p>
-<p>Beyond reconstructing the continuous trajectories, the model also accurately recovers the underlying mechanistic parameters that control them. Table 2 summarizes the posterior estimates for key generative parameters across all three challenging simulation scenarios. For critical parameters such as the timing of the response (<span class="math inline">\(\tau\)</span>), the recovery delay (<span class="math inline">\(\delta\)</span>), the magnitudes of the RRi and SDNN drops (<span class="math inline">\(\beta_r\)</span>, <span class="math inline">\(\beta_s\)</span>), and the fraction of structured variance (<span class="math inline">\(w\)</span>), the 95% credible intervals consistently contained the true values used for data generation. This robust performance across diverse conditions confirms the model’s ability to reliably estimate the interpretable parameters at the core of its design.</p>
-<p>&lt;&lt;Table 2&gt;&gt;</p>
-</section>
-<section id="superiority-of-the-generative-model-over-conventional-windowed-methods" class="level2">
-<h2 class="anchored" data-anchor-id="superiority-of-the-generative-model-over-conventional-windowed-methods">Superiority of the generative model over conventional windowed methods</h2>
-<p>Having established the model’s validity, we next benchmarked its performance directly against traditional analysis techniques, specifically, sliding-window analysis for time-domain metrics and the Short-Time Fourier Transform (STFT) for spectral dynamics.</p>
-<p>The model provides superior temporal resolution for time-domain dynamics. Conventional sliding-window methods inherently smooth and delay the detection of dynamic changes. Figure 3 illustrates this critical limitation by comparing the model’s instantaneous <span class="math inline">\(\mathrm{SDNN}(t)\)</span> estimate against that of a 60-second sliding window. While our model’s estimate precisely tracks the non-linear recovery phase of the ground-truth signal, the windowed approach produces a delayed, blunted, and stepwise approximation that obscures the true physiological dynamics. This demonstrates the model’s ability to overcome the core limitation of stationarity assumptions that plagues traditional methods.</p>
-<p><img src="figures/fig-windowed-method.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Figure 3</strong>. Time-Domain Reconstruction Comparison. The continuous, instantaneous estimate of the <span class="math inline">\(\mathrm{SDNN}(t)\)</span> trajectory from our model (blue) is compared against the stepwise approximation from a 60-second sliding-window analysis (orange). The model accurately captures the rapid recovery dynamic, whereas the windowed method introduces significant lag and artifactually smooths the transition.</p>
-<p>The model resolves spectral dynamics without the time-frequency uncertainty trade-off. The STFT is fundamentally limited by the trade-off between temporal and frequency resolution. Our model provides a continuous, and accurate depiction of the switch from HF to VLF dominance. In contrast, the STFT spectrogram produces a smeared and indistinct representation, failing to precisely resolve either the timing or the magnitude of the spectral shift.</p>
-<p>Quantitative analysis confirms the model’s superior accuracy. The visual advantages of our approach are supported by quantitative performance metrics. Table 3 presents the Root Mean Squared Error (RMSE) and coefficient of determination (<span class="math inline">\(R^2\)</span>) for our model versus conventional methods across all simulation scenarios. For both time-domain and spectral-domain reconstructions, our model consistently achieved a significantly lower RMSE and a higher <span class="math inline">\(R^2\)</span>, often by a substantial margin, particularly in scenarios involving rapid transitions or high noise. These results provide definitive evidence that the model’s window-free, generative approach yields a more accurate and faithful representation of heart rate dynamics.</p>
-<p>&lt;&lt;Tabla 3&gt;&gt;</p>
-</section>
-<section id="application-to-an-empirical-dataset" class="level2">
-<h2 class="anchored" data-anchor-id="application-to-an-empirical-dataset">Application to an empirical dataset</h2>
-<p>To demonstrate the model’s utility in a real-world context, we applied it to an RRi series recorded from a healthy subject undergoing a cold pressor test, a potent sympatho-excitatory stimulus. This allows us to move beyond validation and showcase the model’s power for physiological discovery.</p>
-<p>The model mechanistically decomposes the full autonomic response. Figure 4 presents the complete decomposition of the empirical RRi signal. The model reveals a multi-phasic response not easily captured by traditional metrics. Panel A shows the raw RRi data. Panel B illustrates the inferred <span class="math inline">\(\mathrm{RR_{base}}(t)\)</span> trajectory, quantifying a rapid initial tachycardia followed by a partial, slow recovery. Panel C reveals the dynamics of total variability (<span class="math inline">\(\mathrm{SDNN}(t)\)</span>), which shows a profound suppression that persists long after the mean RRi has begun to recover. Most critically, Panel D uncovers the underlying spectral shifts: the response is characterized by an almost complete withdrawal of parasympathetically-mediated HF power and a corresponding surge in sympathetically-mediated VLF power.</p>
-<p><strong>Figure 4</strong>. Mechanistic Decomposition of an Empirical Cold Pressor Response. The model’s analysis of a real RRi signal. (A) Raw data. (B) Inferred baseline RRi trajectory. (C) Inferred total SDNN trajectory. (D) Inferred spectral proportion dynamics, showing a clear shift from HF to VLF dominance. Shaded regions are 95% credible intervals.</p>
-<p>Model parameters provide novel, interpretable insights into recovery dynamics. The true power of the model lies in the physiological interpretation of its parameters. Figure 5 displays the posterior distributions for key recovery parameters. We found that the recovery of the mean RRi (<span class="math inline">\(c_r\)</span>) was significantly more complete than the recovery of total HRV (<span class="math inline">\(c_s\)</span>), suggesting a lingering sympathetic activation even after the heart rate has partially normalized. Furthermore, the spectral recovery parameter (<span class="math inline">\(c_c\)</span>) was near zero, indicating a profound “spectral persistence” where the VLF-dominant state remained long after the stimulus ended. Finally, the structured variance fraction (<span class="math inline">\(w\)</span>) was estimated to be high throughout, confirming that the observed variability was dominated by structured autonomic oscillations rather than noise. These parameters provide a nuanced, quantitative, and mechanistic narrative of the physiological response that is inaccessible with conventional analysis.</p>
-<p>&lt;&lt;Figura 5&gt;&gt;</p>
-</section>
-</section>
-<section id="discussion" class="level1">
-<h1>Discussion</h1>
-<p>The analysis of heart rate variability has long served as an indispensable tool for probing the complexities of the autonomic nervous system. However, the field has been persistently challenged by the non-stationary nature of physiological signals, a characteristic that fundamentally conflicts with the stationarity assumptions underpinning traditional analysis methods. The present study was designed to address these limitations by developing and validating a novel, fully generative probabilistic model for R-R interval time series. The results of our simulation studies and empirical application confirm our central hypothesis: the proposed framework provides a more robust, informative, and physiologically interpretable analysis of heart rate dynamics than conventional, windowed techniques. This discussion will interpret the significance of these findings, place them within the broader context of physiological modeling, acknowledge the model’s limitations, and outline promising directions for future research.</p>
-<p>The primary contribution of this work is the demonstration of a model that successfully overcomes the principal obstacles in dynamic HRV analysis. The results from our simulation studies provide robust evidence for the model’s internal validity and inferential accuracy. Across multiple, challenging scenarios with known ground-truth dynamics, the model consistently recovered the underlying generative parameters with high precision, as evidenced by the posterior credible intervals that reliably contained the true values. Furthermore, the model accurately reconstructed the continuous, non-linear trajectories of both the mean RRi and its time-varying standard deviation, showcasing its ability to faithfully represent the signal’s evolution. This performance establishes a crucial foundation of trust in the model’s mechanics and its capacity to make accurate inferences from complex data.</p>
-<p>Building upon this validation, the direct benchmarking against conventional methods highlighted the practical advantages of our approach. The quantitative analyses, which demonstrated consistently lower Root Mean Squared Error (RMSE) and higher coefficients of determination (<span class="math inline">\(R^2\)</span>) for our model, provide objective evidence of its superior accuracy in tracking dynamic signals. This superiority stems directly from the model’s architecture, which meets the four critical criteria outlined in the introduction. First, it explicitly models non-stationarity, obviating the need for arbitrary analysis windows. Second, it performs a mechanistic decomposition of the signal into a baseline trend, structured variability, and residual noise. Third, its parameters are designed for direct physiological interpretation. Finally, its implementation within a Bayesian framework provides principled and robust uncertainty quantification for all estimates. The successful fulfillment of these criteria represents a significant step towards a more powerful and nuanced analysis of physiological signals.</p>
-<section id="methodological-superiority-and-the-abandonment-of-stationarity" class="level2">
-<h2 class="anchored" data-anchor-id="methodological-superiority-and-the-abandonment-of-stationarity">Methodological superiority and the abandonment of stationarity</h2>
-<p>A central argument of this paper is that the limitations of traditional HRV analysis are not merely technical but are conceptual, rooted in the flawed assumption of signal stationarity. Our results provide a clear illustration of why this assumption is so problematic. Windowed methods, whether for time-domain or frequency-domain analysis, are fundamentally signal processing filters. A sliding-window calculation of the mean or standard deviation, for instance, acts as a low-pass filter on the true underlying dynamic trajectory. This process inherently introduces artifacts: it blunts the magnitude of rapid changes, creates artificial delays in their detection, and produces a stepwise output that misrepresents the smooth nature of physiological regulation. The comparison in our results, where the windowed SDNN estimate lagged behind and smoothed over the true recovery dynamic, provides a stark example of this distortion.</p>
-<p>A similar and well-documented issue plagues windowed spectral analysis, such as the Short-Time Fourier Transform (STFT). The STFT is constrained by the Heisenberg-Gabor uncertainty principle, which dictates an inescapable trade-off between temporal and frequency resolution. Short analysis windows can pinpoint the timing of spectral changes but produce noisy and poorly resolved frequency estimates; long windows provide cleaner spectral estimates but cannot precisely locate them in time. This limitation was evident in our benchmarking results, where the STFT produced a smeared and ambiguous representation of the rapid sympatho-vagal shift that our model resolved with high precision.</p>
-<p>Our model circumvents these issues by reframing the problem from one of signal processing to one of statistical inference. Instead of filtering the data to reveal its properties, the model posits a generative process with an explicit mathematical structure, the double-logistic function, and infers the parameters of that process from the data. Because the model has a formal representation for the entire time-course of the physiological response, it is not constrained by the localizing limitations of a window. It uses information from the entire time series to inform its estimate at any single point, allowing it to simultaneously achieve high resolution in both the time and frequency domains. This fundamental shift from a descriptive, filtering approach to a generative, inferential one is the core reason for its demonstrated methodological superiority.</p>
-</section>
-<section id="physiological-and-clinical-significance-of-the-models-parameters" class="level2">
-<h2 class="anchored" data-anchor-id="physiological-and-clinical-significance-of-the-models-parameters">Physiological and clinical significance of the model’s parameters</h2>
-<p>The true value of this modeling framework lies not only in its improved accuracy but in its ability to yield deeper physiological insight. Traditional HRV metrics provide descriptive summaries of the signal, whereas the model’s parameters offer a more mechanistic, quantitative narrative of the underlying autonomic processes. This transition from description to mechanism has significant implications for both basic physiological research and potential clinical applications.</p>
-<p>A key area of innovation is the model’s detailed quantification of recovery dynamics. Standard analysis might report that HRV returned to baseline after a certain time, but our model deconstructs this recovery into distinct, interpretable components. The parameters for recovery rate (<span class="math inline">\(\phi\)</span>), delay (<span class="math inline">\(\delta\)</span>), and completeness (<span class="math inline">\(c_s\)</span>, <span class="math inline">\(c_c\)</span>) allow for a multi-dimensional assessment of autonomic resilience. For example, the model could distinguish between an individual with a rapid but incomplete recovery and one with a slow but complete recovery, a nuance entirely lost to traditional methods. The ability to separately quantify the recovery completeness of the mean R-R interval (<span class="math inline">\(c_r\)</span>), total variability (<span class="math inline">\(c_s\)</span>), and spectral balance (<span class="math inline">\(c_c\)</span>) could be particularly powerful. A finding of dissonant recovery, for instance, a rapid return of heart rate to baseline but a persistently suppressed HRV, could serve as a sensitive marker for lingering sympathetic activation or impaired parasympathetic reactivation, concepts central to stress physiology and cardiovascular health.</p>
-<p>Furthermore, the introduction of the structured variance fraction, <span class="math inline">\(w\)</span>, opens a new avenue for interpreting the <em>nature</em> of heart rate variability. This parameter quantifies the balance between coherent, physiologically structured oscillations and unstructured, residual noise. A high value of <span class="math inline">\(w\)</span> would suggest a state where the majority of variability is driven by well-organized autonomic regulation, whereas a low value could indicate a breakdown of this regulation, a pathological state, or a high degree of measurement noise. This parameter may therefore provide a novel index of autonomic coherence. For instance, in clinical contexts, a chronically low <span class="math inline">\(w\)</span> could be a marker for conditions like atrial fibrillation or other dysautonomias where the RRi signal becomes more erratic. In sports science, tracking <span class="math inline">\(w\)</span> could help distinguish between the healthy, structured variability of a well-recovered athlete and the potentially noisy, less structured variability of an over-trained one. These novel parameters, taken together, provide a richer and more granular toolkit for interrogating physiological states.</p>
-</section>
-<section id="limitations-and-considerations-for-future-work" class="level2">
-<h2 class="anchored" data-anchor-id="limitations-and-considerations-for-future-work">Limitations and considerations for future work</h2>
-<p>Despite its advantages, the proposed model is not without limitations, and an honest appraisal of these is essential for guiding future research. The first and most practical limitation of this model is its computational demand, which scales with the time series length (<span class="math inline">\(N\)</span>) and spectral resolution (<span class="math inline">\(N_{sin}\)</span>) at a rate of <span class="math inline">\(O(N \cdot N_{sin} + N_{sin}^2)\)</span>. This scaling can pose a substantial barrier to the analysis of high-dimensional physiological data. For instance, applying the model to long-duration recordings, such as 24-hour Holter monitor data, or to studies requiring fine-grained spectral detail (a large <span class="math inline">\(N_{sin}\)</span>), could result in prohibitively long runtimes. This computational burden not only constrains the model’s feasibility for large-scale clinical studies but also hinders the iterative process of model development and validation, where rapid feedback is essential for scientific progress.</p>
-<p>Second, the model’s architecture relies on specific structural assumptions. The choice of the double-logistic function to represent the perturbation-recovery dynamic is central to the model’s interpretability. While this function is highly flexible and well-suited for the acute, transient stressors investigated here, it is by no means a universal model for all physiological dynamics. More complex, multi-phasic responses or long-term phenomena like circadian rhythms would not be well-captured by this specific functional form. Similarly, the spectral component of the model assumes that the signal can be effectively represented by a sum of sinusoids within pre-defined frequency bands. While this is a standard and powerful approach, it remains a model of the underlying spectral density and is constrained by the choice of those fixed frequencies.</p>
-<p>Finally, the scope of the model’s validation must be considered. The current study demonstrated the model’s efficacy on simulated data and provided a proof-of-concept application on a single, acute physiological stressor. Its generalizability to other contexts has not yet been established. The model’s performance on different types of physiological challenges, such as orthostatic stress, cognitive load, or pharmacological interventions, requires explicit investigation. Moreover, its application to long-term, 24-hour ambulatory recordings presents both a significant opportunity and a challenge, as such data often contain multiple, overlapping events and distinct physiological states (e.g., wakefulness, sleep) that would require extensions to the current model structure.</p>
-</section>
-<section id="future-directions" class="level2">
-<h2 class="anchored" data-anchor-id="future-directions">Future directions</h2>
-<p>The limitations of the current model naturally illuminate several promising avenues for future research. To address the issue of fixed functional forms, the double-logistic component could be replaced with more flexible, non-parametric alternatives, such as Gaussian processes or penalized splines. This would create a semi-parametric model capable of capturing a much wider array of dynamic shapes, albeit potentially at the cost of some of the direct parameter interpretability. To enhance the model’s explanatory power and move towards subject-level inference, it could be extended into a hierarchical or mixed-effects framework. In such a model, key parameters like recovery rates or response magnitudes could be modeled as functions of subject-level covariates, such as age, sex, disease status, or fitness level, allowing for formal statistical testing of group differences in autonomic dynamics.</p>
-<p>A clear priority for future work is the broad application and validation of the model across diverse datasets. Applying the model to existing clinical cohorts, for example, in studies of post-myocardial infarction risk stratification or diabetic autonomic neuropathy, could reveal whether its novel parameters offer superior prognostic value compared to traditional HRV metrics. Furthermore, deploying the model to analyze data from controlled interventions, such as exercise training programs or mindfulness-based stress reduction, would allow for a mechanistic quantification of how these interventions reshape autonomic function. On the computational front, the development of efficient approximate inference techniques, such as variational Bayes, could drastically reduce runtime and make the model a more practical tool for large-scale research and, eventually, clinical use.</p>
-</section>
-</section>
-<section id="conclusion" class="level1">
-<h1>Conclusion</h1>
-<p>This study introduced and validated a novel generative framework for the analysis of non-stationary R-R interval signals. By moving beyond the restrictive assumptions of traditional methods, our model provides a more accurate, detailed, and mechanistically interpretable view of heart rate dynamics. The results demonstrate its ability to not only overcome the artifacts associated with windowed analysis but also to furnish a new set of parameters that quantify distinct aspects of autonomic control, such as the completeness and rate of physiological recovery. While further validation and extension are necessary, we believe this work represents a significant step forward. It helps to shift the paradigm of physiological signal analysis away from a reliance on descriptive, summary statistics and towards a more powerful and insightful science of mechanistic, probabilistic inference.</p>
 </section>
 <section id="references" class="level1">
 <h1>References</h1>

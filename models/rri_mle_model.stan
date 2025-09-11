@@ -36,12 +36,6 @@ data {
   // The frequencies are provided, and the model estimates their amplitudes.
   int<lower=1> N_sin;            // Number of sinusoids per frequency band.
   array[3] vector[N_sin] freqs;  // Pre-calculated frequencies for VLF, LF, and HF bands.
-
-  // --- Priors on DL parameters to enhance model identifiability ---
-  real<lower=0> tau_mu;
-  real<lower=0> delta_mu;
-  real<lower=0> lambda_mu;
-  real<lower=0> phi_mu;
 }
 
 // =====================================================================
@@ -127,7 +121,6 @@ parameters {
   real c_c_logit;    // Fractional recovery of spectral proportions (logit-scaled).
 
   // --- Spectral parameters ---
-  real b_log;         // Exponent for the 1/f^b noise structure (log scale).
   real<lower=0> sigma_u; // Global scale parameter for oscillator amplitudes.
 
   // --- Non-Centered Parameterization for oscillator coefficients ---
@@ -168,7 +161,6 @@ transformed parameters {
   real c_s     = inv_logit(c_s_logit) * 2; // Recovery can be up to 200% (overshoot).
 
   real c_c = inv_logit(c_c_logit); // Spectral recovery is between 0-100%.
-  real b   = exp(b_log);
   real w   = inv_logit(w_logit);   // Structured variance fraction is between 0-1.
 
   // --- 1. Construct the two logistic building blocks ---
@@ -200,7 +192,7 @@ transformed parameters {
   array[3] vector[N_sin] u_cos;
   for (j in 1:3) {
     // `a_k` enforces the 1/f^b spectral shape prior.
-    vector[N_sin] a_k = exp(-0.5 * b .* log_freqs[j]); // Equivalent to freqs^(-b/2).
+    vector[N_sin] a_k = exp(-0.5 .* log_freqs[j]); // Equivalent to freqs^(-b/2).
     // `sigma_u` controls the overall power of the oscillators.
     u_sin[j] = z_sin[j] .* sigma_u .* a_k;
     u_cos[j] = z_cos[j] .* sigma_u .* a_k;
@@ -258,16 +250,6 @@ transformed parameters {
 // This block specifies the priors for the parameters and the likelihood function
 // that connects the model to the observed data.
 model {
-  // --- Priors for spectral proportion p_j(t) parameters ---
-  // These priors encode a physiological hypothesis:
-  // Baseline state is HF-dominant (low y_base_log).
-  // Perturbed state is LF/VLF-dominant (high y_pert_log).
-  y_base_log ~ normal([0, 0]', 2);
-  y_pert_log ~ normal([0, 0]', 2);
-
-  // --- Priors for spectral parameters ---
-  b_log ~ normal(0, 1); // Weakly regularizes the 1/f exponent around 1 (since b=exp(0)).
-
   // A half-normal prior on the global amplitude scale.
   sigma_u ~ normal(0, 0.5) T[0, ];
 

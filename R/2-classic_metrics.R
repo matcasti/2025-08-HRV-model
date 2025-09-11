@@ -116,7 +116,7 @@ for (i in 1:3) {
     geom_line(aes(y = SDNN_windowed_interp, color = "Windowed estimate"), show.legend = legend) +
     scale_color_manual(values = c("Ground truth" = "black",
                                   "Windowed estimate" = "darkorange")) +
-    scale_y_continuous(n.breaks = 4) +
+    scale_y_continuous(n.breaks = 5) +
     labs(subtitle = ifelse(i == 1, "Signal SDNN", ""), color = "Line",
          x = "Time (minutes)", y = "ms") +
     theme_classic(base_size = 12)
@@ -142,7 +142,7 @@ for (i in 1:3) {
                        aesthetics = c("color", "fill")) +
     scale_linetype_manual(values = c(6,1)) +
     scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(limits = 0:1, n.breaks = 4) +
+    scale_y_continuous(limits = 0:1, n.breaks = 5) +
     labs(subtitle = ifelse(i == 1, "Spectral signature", ""),
          x = "Time (minutes)", y = "Proportion of Power", color = "Color", linetype = "Line") +
     theme_classic(base_size = 12)
