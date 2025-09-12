@@ -54,7 +54,7 @@ if (!file.exists("data/model_predictions.RDS")) {
     x[j = generate_rri_simulation(
       N = 1800,
       t_max = 15,
-      N_sin = 25,
+      N_sin = 20,
       seed = 123,
       params = list(
         lambda = lambda, phi = phi, tau = tau, delta = delta,

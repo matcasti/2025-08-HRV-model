@@ -91,7 +91,11 @@ transformed data {
   // The GP prior operates on the log of the frequencies to better handle
   // the wide range of frequencies often seen in HRV.
   array[3] vector[N_sin] log_freqs;
-  for (j in 1:3) log_freqs[j] = log(freqs[j]);
+  array[3] real f_diff;
+  for (j in 1:3) {
+    log_freqs[j] = log(freqs[j]);
+    f_diff[j] = max(log_freqs[j]) - min(log_freqs[j]);
+  }
 
   // --- Precompute per-band Gram matrices ---
   // These matrices contain the inner products of the basis vectors (e.g., sin_i * sin_j).
@@ -328,8 +332,12 @@ model {
   // --- Priors for GP hyperparameters ---
   // `rho_gp` is given a lognormal prior as it must be positive and often
   // spans orders of magnitude, making its log a natural scale to work on.
-  alpha_gp ~ normal(0, 0.5) T[0, ];   // half-normal, favors modest envelope
-  rho_gp   ~ lognormal(0, 0.5);
+  for (j in 1:3) {
+  alpha_gp[j] ~ normal(0, 0.5) T[0,];
+  // center rho at half the log-frequency range;
+  real rho_center = f_diff[j] / 2.0;
+  rho_gp[j] ~ lognormal(log(rho_center), 0.5);
+}
 
   // --- Priors for Non-Centered Parameters ---
   // As part of the NCP pattern, the "raw" parameters are given standard normal

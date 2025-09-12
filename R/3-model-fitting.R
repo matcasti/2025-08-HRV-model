@@ -36,11 +36,11 @@ for(i in 1:3) {
       N = length(simulated_data[[i]]$data$t),
       t = simulated_data[[i]]$data$t,
       RR = simulated_data[[i]]$data$RR,
-      N_sin = 25,
+      N_sin = 20,
       freqs = list(
-        seq(0.003, 0.039, length.out = 25), # VLF
-        seq(0.040, 0.149, length.out = 25), # LF
-        seq(0.150, 0.400, length.out = 25)  # HD
+        seq(0.003, 0.039, length.out = 20), # VLF
+        seq(0.040, 0.149, length.out = 20), # LF
+        seq(0.150, 0.400, length.out = 20)  # HD
       ),
       lambda_mu = params[[i]]$lambda,
       phi_mu = params[[i]]$phi,
@@ -49,8 +49,8 @@ for(i in 1:3) {
     ),
     iter = 10000, warmup = 5000,
     chains = 4, cores = 4,
-    seed = 123,
-    control = list(adapt_delta = 0.90, ## Target acceptance rate
+    seed = 12345,
+    control = list(adapt_delta = 0.95, ## Target acceptance rate
                    max_treedepth = 10) ## Maximum per-side steps (before U-turn)
   )
 

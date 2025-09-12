@@ -37,7 +37,7 @@ N_points <- SIM_DURATION_MIN * 60 * SAMPLING_RATE_HZ
 time_vector <- seq(0, SIM_DURATION_MIN, length.out = N_points)
 
 # Define frequency bands (VLF, LF, HF)
-N_SINUSOIDS <- 25 # Number of sinusoids to approximate spectrum in each band
+N_SINUSOIDS <- 20 # Number of sinusoids to approximate spectrum in each band
 freq_bands <- list(
   vlf = seq(0.003, 0.039, length.out = N_SINUSOIDS),
   lf  = seq(0.040, 0.149, length.out = N_SINUSOIDS),
