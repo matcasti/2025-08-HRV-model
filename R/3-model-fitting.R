@@ -23,21 +23,25 @@ for(i in 1:3) {
       "lambda_log","phi_log","tau_logit","delta_logit",
       "alpha_r_logit","beta_r_logit","c_r_logit",
       "alpha_s_logit","beta_s_logit","c_s_logit",
-      "c_c_logit", "b_log", "w_logit", "sigma_u",
+      "c_c_logit", "w_logit","alpha_gp","rho_gp",
       "y_base_log", "y_pert_log",
       "lambda","phi","tau","delta",
       "alpha_r","beta_r","c_r",
       "alpha_s","beta_s","c_s",
-      "c_c", "b", "w",
+      "c_c", "w",
       "pi_base", "pi_pert"
     ),
     include = TRUE,
     data = list(
-      N = length(simulated_data[[i]]$t),
-      t = simulated_data[[i]]$t,
-      RR = simulated_data[[i]]$RR,
+      N = length(simulated_data[[i]]$data$t),
+      t = simulated_data[[i]]$data$t,
+      RR = simulated_data[[i]]$data$RR,
       N_sin = 25,
-      freqs = freq_bands,
+      freqs = list(
+        seq(0.003, 0.039, length.out = 25), # VLF
+        seq(0.040, 0.149, length.out = 25), # LF
+        seq(0.150, 0.400, length.out = 25)  # HD
+      ),
       lambda_mu = params[[i]]$lambda,
       phi_mu = params[[i]]$phi,
       tau_mu = params[[i]]$tau,
@@ -45,8 +49,8 @@ for(i in 1:3) {
     ),
     iter = 10000, warmup = 5000,
     chains = 4, cores = 4,
-    seed = 1234,
-    control = list(adapt_delta = 0.80, ## Target acceptance rate
+    seed = 123,
+    control = list(adapt_delta = 0.90, ## Target acceptance rate
                    max_treedepth = 10) ## Maximum per-side steps (before U-turn)
   )
 

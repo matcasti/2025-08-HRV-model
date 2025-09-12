@@ -2,6 +2,7 @@
 title: "A Unified Probabilistic Framework for Non-Stationary Heart Rate Variability Analysis"
 subtitle: "Modeling the Dynamic Evolution of Autonomic Control"
 date-modified: today
+bibliography: "bibliography.bib"
 execute: 
   echo: false
 author: 
@@ -30,11 +31,15 @@ editor_options:
 
 # Introduction
 
-The rhythm of the human heart, far from being a simple, constant beat, is a complex and dynamic signal reflecting the continuous interplay between an organism and its internal and external environments. The precise timing between successive heartbeats, measured as the R-R interval (RRi), is a primary non-invasive proxy for autonomic nervous system (ANS) activity. The analysis of variations in this interval, a discipline known as heart rate variability (HRV), has become a cornerstone for assessing cardiovascular health, stress responses, and overall physiological state. This variability arises from the coordinated actions of multiple regulatory systems, including the sympathetic and parasympathetic branches of the ANS, baroreflexes, and thermoregulatory mechanisms.
+The rhythm of the human heart, far from being a simple, constant beat, is a complex and dynamic signal reflecting the continuous interplay between an organism and its internal and external environments [@arakaki2023connection]. The precise timing between successive heartbeats, measured as the R-R interval (RRi), is a primary non-invasive proxy for autonomic nervous system (ANS) activity. The analysis of variations in this interval, a biomarker known as heart rate variability (HRV), has become a cornerstone for assessing cardiovascular health, stress responses, and overall physiological state [@arakaki2023connection; @huber2025brain]. This variability arises from the coordinated actions of multiple regulatory systems, including the sympathetic and parasympathetic branches of the ANS, baroreflexes, and thermoregulatory mechanisms [@tiwari2021analysis].
 
-Despite its utility, a significant limitation of traditional HRV analysis is its reliance on time-domain or frequency-domain metrics derived from static, short-term data windows. While such methods may offer insights into a snapshot of a physiological state under controlled conditions, they are fundamentally ill-suited to capture the dynamic, non-stationary nature of RRi signals during physiological transitions or stress. The implicit assumption of stationarity in these fixed-window approaches can obscure subtle, yet physiologically critical, shifts in heart rate and its underlying variability. Furthermore, these conventional analyses often fail to establish a direct mechanistic link between observed changes in HRV and the underlying physiological processes responsible for them.
+Despite its utility, a significant limitation of traditional HRV analysis is its reliance on time-domain or frequency-domain metrics derived from static, short-term data windows [@kim2021ultra; @lu2023uncertainties]. The conventional approach, standardized by consensus, typically involves calculating metrics over a five-minute recording period. In the time domain, this yields summary statistics such as the standard deviation of normal-to-normal intervals (SDNN) or the root mean square of successive differences (RMSSD) [@shaffer2020critical]. While informative, these metrics fundamentally collapse a dynamic, evolving process into a single, static number [@kim2021ultra]. An RMSSD value of 40 ms, for example, provides an aggregate measure of high-frequency variability but offers no information about whether that variability was constant, increasing, or decreasing over the five-minute window. This temporal averaging obscures the very dynamics that are often of greatest physiological interest, particularly when an organism is adapting to a challenge [@kim2021ultra]. For a system in constant flux, a single mean or standard deviation is an impoverished descriptor, akin to summarizing a film with a single still frame.
 
-While various modeling approaches have attempted to address these limitations, they often fall short. For instance, state-space models have shown promise in tracking the evolution of cardiac dynamics, but their complexity can make parameter estimation difficult and their physiological interpretability limited. Time-frequency analysis methods, such as wavelets, can successfully visualize the time-varying nature of spectral content, but they typically do not provide a generative model for testing specific physiological hypotheses. Consequently, no existing model provides a unified, probabilistic framework that can simultaneously capture and mechanistically interpret changes in both the mean RRi and its multi-component variability.
+This issue is arguably more acute in conventional frequency-domain analysis. Methods based on the Fast Fourier Transform (FFT) are predicated on the mathematical assumption that the signal is wide-sense stationary—that its statistical properties, such as mean and variance, are constant over the analysis window. Yet, physiological signals, especially during transitions like the onset of exercise or recovery from a cognitive stressor, are the epitome of non-stationarity. When a non-stationary signal is subjected to an FFT, the resulting power spectrum is not a true representation of any single physiological state. Instead, it becomes a composite, a smeared average of all the different spectral states that occurred within the window. A peak in the low-frequency (LF) band, for instance, might not reflect sustained sympathetic activity but rather the aliased result of a rapid change in heart rate. Consequently, while such methods may offer insights into a snapshot of a physiological state under controlled, steady-state conditions, they are fundamentally ill-suited to capture the dynamic, non-stationary nature of RRi signals during physiological transitions or stress [@tiwari2021analysis; @lu2023uncertainties]. The implicit assumption of stationarity in these fixed-window approaches can obscure subtle, yet physiologically critical, shifts in heart rate and its underlying variability [@kim2021ultra; @lu2023uncertainties]. This methodological constraint forces researchers into a difficult compromise: use short windows to better approximate stationarity at the cost of poor frequency resolution, or use long windows to achieve better frequency resolution at the cost of violating the stationarity assumption more severely. Furthermore, these conventional analyses often fail to establish a direct mechanistic link between observed changes in HRV and the underlying physiological processes responsible for them. A change in a summary statistic does not, by itself, constitute a model of the physiological process that produced it; it is a description of an outcome, not an explanation of a mechanism.
+
+While various advanced modeling approaches have attempted to address these limitations, they often fall short in other critical areas, leaving a significant gap in the analytical toolkit. For instance, state-space models have shown promise in tracking the evolution of cardiac dynamics [@rosas2024bayesian; @liu2024efficient], conceptualizing the RRi signal as an observation of a hidden, underlying physiological state that evolves through time. This approach is conceptually elegant and explicitly built to handle non-stationarity. However, its practical application is frequently hindered by significant challenges. The complexity of defining a physiologically realistic state transition model can lead to models with a large number of parameters, making robust estimation difficult and increasing the risk of overfitting. Furthermore, the inferred hidden states and transition matrices often lack a direct, one-to-one correspondence with clear physiological concepts. A latent state variable may track changes in variability, but it does not inherently distinguish between, for example, parasympathetic withdrawal and sympathetic activation, thereby limiting the model's physiological interpretability.
+
+On another front, time-frequency analysis methods have become a popular tool for visualizing non-stationary signals. Techniques like the Short-Time Fourier Transform (STFT) or the Continuous Wavelet Transform (CWT) produce intuitive time-frequency representations, or spectrograms, that show how spectral power changes over time. The CWT, in particular, offers advantages through its multi-resolution analysis, providing better temporal resolution for high-frequency events and better frequency resolution for low-frequency events. These methods can successfully visualize the time-varying nature of spectral content, revealing, for example, a decrease in high-frequency power following a stimulus. However, their primary limitation is that they are fundamentally descriptive, not generative. They provide a processed depiction of the data but do not constitute a formal model of the underlying process. As such, they cannot be used to test specific physiological hypotheses in a principled way. From a wavelet spectrogram, one can observe a change, but one cannot estimate a parameter for the *rate* of that change, the *completeness* of recovery, or the *statistical significance* of a temporal shift. Consequently, no existing model provides a unified, probabilistic framework that can simultaneously capture and mechanistically interpret changes in both the mean RRi and its multi-component variability. The field is thus caught between overly simplistic windowed methods that discard dynamic information and more sophisticated techniques that are either difficult to interpret or are not structured for formal, mechanistic hypothesis testing.
 
 To advance the field beyond these constraints, a new generation of statistical models is clearly needed. A framework capable of surpassing these barriers should, at a minimum, satisfy four critical criteria. First, it must explicitly address the non-stationarity inherent to physiological signals, obviating the need for arbitrary analysis windows. Second, it must be capable of mechanistically decomposing the signal into its distinct components: a gross, underlying trend in heart rate and the structured, oscillatory variability that represents physiological regulation. Third, its parameters should have a direct, interpretable link to specific physiological processes, such as autonomic tone and recovery dynamics. Finally, as a probabilistic framework, it must provide a principled means of quantifying uncertainty for all estimates, moving beyond a reliance on simple point estimates.
 
@@ -58,11 +63,37 @@ theme_set(
 
 # Results
 
-This section presents the performance and application of our novel generative model for RRi analysis. We first establish the model's validity and accuracy through a series of simulation studies, demonstrating its ability to recover known ground-truth parameters with high fidelity. We then provide a direct quantitative comparison against conventional windowed analysis techniques, highlighting the superior temporal and spectral resolution of our approach. Finally, we apply the model to an empirical dataset from a physiological perturbation protocol to illustrate its capacity for yielding enhanced mechanistic insights into autonomic dynamics.
+This section presents the performance and application of our novel generative model for RRi analysis. We first establish the model's validity and accuracy through a series of simulation studies, demonstrating its ability to recover known ground-truth parameters. We then provide a direct quantitative comparison against conventional windowed analysis techniques, highlighting the superior temporal and spectral resolution of our approach. Finally, we apply the model to an empirical dataset from a physiological perturbation protocol to illustrate its capacity for yielding enhanced mechanistic insights into autonomic dynamics.
 
 ## Model validation and parameter recovery on synthetic data
 
-To verify the model's correctness and inferential accuracy, we first applied it to synthetic RRi data generated with known underlying parameters. This allowed for a direct comparison between the model's estimates and the ground-truth dynamics, providing a gold-standard validation of its performance.
+To verify the model's correctness and inferential accuracy, we first applied it to synthetic RRi data generated with known underlying parameters. This allowed for a direct comparison between the model's estimates and the ground-truth dynamics, providing a gold-standard validation of its performance. These separate scenarios can be seen in Figure 1 and the parameters used to generate the data can be seen in Table XX.
+
+::: {.content-visible when-format="html"}
+![](figures/fig-generated-data.svg){width=100%}
+:::
+::: {.content-visible when-format="pdf"}
+![](figures/fig-generated-data.pdf){width=100%}
+:::
+**Figure XX**. Three scenarios simulated from the probabilistic model to assess the inference capabilities to recover the data generation process. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum. Subpanels indicate observed RRi signal with true component ($\mu(t_i)$) highlighted, true underlying RRi trend and SDNN, next to spectral signature of the signal, depicting the relative contribution of each frequency band as a dynamic process.
+
+|Parameter    |Interpretation                           |Scenario A      |Scenario B      |Scenario C        |
+|:------------|:----------------------------------------|:---------------|:---------------|:-----------------|
+|$\tau$       |Time onset                               |6.00            |6.00            |6.00              |
+|$\delta$     |Stimulus durantion                       |3.00            |3.00            |3.00              |
+|$\lambda$    |Rate of dynamics onset                   |3.00            |3.00            |1.50              |
+|$\phi$       |Rate of recovery                         |2.00            |2.00            |1.50              |
+|$\alpha_r$   |Resting RRi                              |800.00          |950.00          |900.00            |
+|$\beta_r$    |Magnitude of RRi decay                   |300.00          |450.00          |300.00            |
+|$c_r$        |RRi recovery proportion                  |1.00            |0.50            |1.00              |
+|$\alpha_s$   |Resting SDNN                             |60.00           |60.00           |100.00            |
+|$\beta_s$    |Magnitude of SDNN decay                  |40.00           |40.00           |20.00             |
+|$c_s$        |SDNN recovery proportion                 |1.00            |0.60            |1.00              |
+|$\pi_{base}$ |Base-state [VLF, LF, HF] proportion      |[0.2, 0.4, 0.4] |[0.1, 0.2, 0.7] |[0.1, 0.45, 0.45] |
+|$\pi_{pert}$ |Perturbed-state [VLF, LF, HF] proportion |[0.7, 0.2, 0.1] |[0.7, 0.2, 0.1] |[0.2, 0.5, 0.3]   |
+|$c_c$        |Spectral recovery proportion             |0.80            |0.40            |1.00              |
+|$w$          |Proportion of structured variance        |0.90            |0.90            |0.60              |
+**Table 2**. Ground-truth parameter values used in the generation of three simulation scenarios. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum.
 
 Our model accurately reconstructs the full, continuous dynamics of the RRi signal. Figure 2 showcases the model's performance on a representative simulation of a classic sympatho-vagal response. The top panels display the model's posterior mean estimates for the baseline RRi trajectory ($\mathrm{RR_{base}}(t)$) and the total variability trajectory ($\mathrm{SDNN}(t)$). The estimates closely follow the true generative trajectories, and the 95% posterior credible intervals consistently envelop the ground truth, demonstrating both accuracy and uncertainty quantification. The bottom panel shows the corresponding reconstruction of the time-varying spectral proportions ($p_j(t)$), where the model again successfully captures the rapid, dynamic shift from a HF dominant state at baseline to a VLF dominant state during the perturbation.
 
@@ -173,9 +204,9 @@ A clear priority for future work is the broad application and validation of the 
 
 # Methods
 
-## Model formulation
+## Model Formulation
 
-We present a comprehensive generative model for the RRi signal, observed at a discrete set of time points $\{t_i\}_{i=1}^N$. The model's architecture is designed to deconstruct the signal into its constituent physiological components, providing a mechanistic account of the processes that shape heart rate dynamics. This is achieved by conceptualizing the signal as a probabilistic process controlled by a time-varying mean, $\mu(t_i)$, and a partitioned, time-varying standard deviation. This sophisticated approach moves beyond simple curve-fitting to formalize a theory of autonomic control and its temporal evolution.
+We presented a comprehensive generative model for the RRi signal, observed at a discrete set of time points $\{t_i\}_{i=1}^N$. The model's architecture is designed to deconstruct the signal into its constituent physiological components, providing a mechanistic account of the processes that shape heart rate dynamics. This is achieved by conceptualizing the signal as a probabilistic process controlled by a time-varying mean, $\mu(t_i)$, and a partitioned, time-varying standard deviation. This sophisticated approach moves beyond simple curve-fitting to formalize a theory of autonomic control and its temporal evolution within a fully Bayesian framework.
 
 The cornerstone of the model is the partitioning of the total signal variance into two distinct, time-dependent components: a structured variance, $\sigma^2_{\text{struct}}(t_i)$, which captures the physiologically meaningful, oscillatory patterns of HRV, and a residual variance, $\sigma^2_{\text{resid}}(t_i)$, which accounts for unstructured, moment-to-moment fluctuations or measurement noise. The complete observation model, which integrates these components, is defined by the Normal likelihood in @eq-full-likelihood.
 
@@ -192,7 +223,7 @@ $$
 \underbrace{A(t_i) \cdot \sum_{j=1}^{J} p_j(t_i) \cdot S_j(t_i)}_{\substack{\text{Structured Variability Signal}}}
 $${#eq-mean-model}
 
-Here, $\mathrm{RR_{base}}(t_i)$ represents the gross, underlying heart period trajectory. The structured variability signal is synthesized from a set of dynamically evolving spectral oscillators, $S_j(t_i)$, which represent activity in different physiological frequency bands ($j=1,2,3$ for VLF, LF, and HF, respectively). These oscillators are weighted by time-varying proportions, $p_j(t_i)$, and their overall magnitude is controlled by a scaling amplitude, $A(t_i)$, which is deterministically calculated to ensure the signal's variance matches the target structured variance, $\sigma^2_{\text{struct}}(t_i)$.
+Here, $\mathrm{RR_{base}}(t_i)$ represents the gross, underlying heart period trajectory. The structured variability signal is synthesized from a set of dynamically evolving spectral oscillators, $S_j(t_i)$, which represent activity in different physiological frequency bands ($j=1,2,3$ for VLF, LF, and HF, respectively). These oscillators are weighted by time-varying proportions, $p_j(t_i)$, and their overall magnitude is controlled by a scaling amplitude, $A(t_i)$. This amplitude is deterministically calculated to ensure the signal's variance exactly matches the target structured variance, $\sigma^2_{\text{struct}}(t_i)$.
 
 A pivotal feature is a dynamic trajectory for the total signal variability, denoted $\mathrm{SDNN}(t_i)$, which is then partitioned into its structured and residual components. This partition is controlled by a parameter, $w \in [0, 1]$, which represents the fraction of total variance attributable to the structured component, as defined in @eq-var-structure.
 
@@ -203,9 +234,9 @@ $$
 \end{aligned}
 $${#eq-var-structure}
 
-This formulation allows the model to simultaneously learn not only how the total amount of HRV changes over time (via $\mathrm{SDNN}(t_i)$), but also how the nature of that variability evolves, that is, the balance between predictable, oscillatory patterns and unpredictable noise (via $w$). This unified analysis facilitates a deeper understanding of autonomic regulation by capturing phenomena across both time and frequency domains within a single, coherent inferential framework.
+This formulation allows the model to simultaneously learn not only how the total amount of HRV changes over time (via $\mathrm{SDNN}(t_i)$), but also how the nature of that variability evolves, that is the balance between predictable, oscillatory patterns and unpredictable noise (via $w$). This unified analysis facilitates a deeper understanding of autonomic regulation by capturing phenomena across both time and frequency domains within a single, coherent inferential framework.
 
-### Baseline heart period and total variability trajectories
+### Baseline Heart Period and Total Variability Trajectories
 
 The model posits that the primary trends in both the mean heart period and its total variability are driven by a common underlying physiological response to a stimulus. To capture this, both the $\mathrm{RR_{base}}(t_i)$ and $\mathrm{SDNN}(t_i)$ trajectories are parameterized using the same flexible double-logistic functional form.
 
@@ -244,13 +275,13 @@ $${#eq-logistic-components}
 
 The shared timing parameters enforce a strong physiological coupling: $\tau$ is the inflection point of the initial response, with rate $\lambda$. The second transition, representing recovery, is offset by a delay $\delta$ and proceeds at a rate $\phi$. This shared structure ensures that changes in the magnitude of variability are temporally synchronized with changes in the mean heart period, while still allowing their relative magnitudes and recovery profiles to differ.
 
-### Generative model for the structured signal
+### Generative Model for the Structured Signal
 
-The structured component of the signal is where the model's spectral properties are defined. Its construction involves three key elements: the dynamic spectral proportions, the latent spectral oscillators, and the deterministic amplitude inversion that ties them to the target variance.
+The structured component of the signal is where the model's spectral properties are defined. Its construction involves three key elements: the dynamic spectral proportions, the latent spectral oscillators (whose amplitudes are governed by a Gaussian Process), and a deterministic amplitude inversion that ties them to the target variance.
 
-#### Dynamic frequency band proportions
+#### Dynamic Frequency Band Proportions
 
-The proportions $p_j(t_i)$ dictate how the total structured variance, $\sigma^2_{\text{struct}}(t_i)$, is allocated across the different frequency bands at each moment. The model captures the evolution of these proportions as a smooth transition between two distinct spectral states: a baseline state ($\vec\pi_{\text{base}}$) and a perturbed state ($\vec\pi_{\text{pert}}$). The transition is orchestrated by a single master controller function, $C(t_i)$, as shown in the convex combination of @eq-pj-using-ct.
+The proportions $p_j(t_i)$ dictate how the total structured variance, $\sigma^2_{\text{struct}}(t_i)$, is allocated across the different frequency bands at each moment. The model captures the evolution of these proportions as a smooth transition between two distinct spectral states: a baseline state ($\vec\pi_{\text{base}}$) and a perturbed state ($\vec\pi_{\text{pert}}$). The transition is determined by a single master controller function, $C(t_i)$, as shown in the convex combination of @eq-pj-using-ct.
 
 $$
 \vec{p}(t_i) = (1 - C(t_i)) \cdot \vec\pi_{\text{base}} + C(t_i) \cdot \vec\pi_{\text{pert}}
@@ -264,23 +295,45 @@ $${#eq-master-controller}
 
 This function naturally transitions from 0 towards 1, with the parameter $c_c \in [0, 1]$ allowing for an incomplete spectral recovery.
 
-#### Latent multi-sine spectral oscillators
+#### Latent Spectral Oscillators via a Gaussian Process Prior
 
-The model explicitly learns the phase and amplitude of the underlying spectral components from the data. Each oscillator, $S_j(t_i)$, is constructed as a superposition of $K_j$ sinusoids with pre-specified frequencies but with unknown amplitudes. The signal for band $j$ is given by @eq-multi-sine-fun.
+A central task of the model is to infer the power of oscillations across a range of frequencies from the observed data. A simple approach might impose a rigid mathematical structure on the spectrum (e.g., a $1/f^b$ power law) or treat the power at each frequency as independent. However, physiological spectra are rarely so simple; they typically exhibit smooth, continuous shapes with broad peaks.
+
+To capture this realistic structure, we employ a flexible, non-parametric Gaussian Process (GP) prior. A GP is a statistical tool that allows us to place a prior on an unknown function, enforcing the assumption that it is smooth. In this context, it formalizes the intuition that the amplitudes of nearby frequencies should be similar, allowing the model to learn the characteristic shape of the spectrum within each band directly from the data.
+
+Each underlying oscillator, $S_j(t_i)$, which contributes to the structured variability, is modeled as a sum of simple sine and cosine waves with pre-specified frequencies ($f_{j,k}$) but unknown amplitudes ($u_{j,k}$), as shown in @eq-multi-sine-fun.
 
 $$
 S_j(t_i) = \sum_{k=1}^{K_j} \left[ u_{j,k}^{(\sin)} \sin(2 \pi f_{j,k} t_i) + u_{j,k}^{(\cos)} \cos(2 \pi f_{j,k} t_i) \right]
 $${#eq-multi-sine-fun}
 
-The coefficients $u_{j,k}^{(\sin)}$ and $u_{j,k}^{(\cos)}$ are the unknown amplitudes for the sine and cosine components at each frequency $f_{j,k}$. To ensure a realistic spectral structure and aid inference, we place a hierarchical prior on these coefficients. This is achieved using a non-centered parameterization, where the coefficients are modeled as draws from a Normal distribution whose standard deviation is frequency-dependent, as defined in @eq-hierarchical-prior-spectral.
+The key innovation is the prior placed on these amplitudes. This is a multi-step process designed for both flexibility and computational stability. First, we model the underlying log-amplitude envelope, a vector denoted $\vec{v}_j$, as a single draw from a GP. The GP is defined by a zero-mean function and a squared exponential covariance kernel ($\mathbf{K}_j$), which determines the smoothness of the spectral shape, defined in @eq-gp-kernel.
 
 $$
-u_{j,k}^{(\cdot)} \sim \mathcal{N}(0, \sigma_{u} \cdot a_{j,k})
-$${#eq-hierarchical-prior-spectral}
+\vec{v}_j \sim \mathcal{GP}(\vec{0}, \mathbf{K}_j), \quad \text{where } (\mathbf{K}_j)_{kl} = \alpha_{gp,j}^2 \exp\left(-\frac{(f_{j,k} - f_{j,l})^2}{2\rho_{gp,j}^2}\right)
+$${#eq-gp-kernel}
 
-Here, the scale of the prior is determined by two components. First, $a_{j,k}$ imposes a power-law relationship with frequency, $a_{j,k} = f_{j,k}^{-b/2}$, where $b$ is a global spectral exponent. This enforces a $1/f^b$ noise structure, a common characteristic of biological signals. Second, $\sigma_{u}$ is a single global scaling parameter that adjusts the overall power across all bands. Finally, after construction, each oscillator signal $S_j(t_i)$ is mean-centered to ensure it represents pure variability.
+The covariance matrix $\mathbf{K}_j$ is governed by two hyperparameters which are themselves estimated from the data: $\alpha_{gp,j}$, which correspond to the marginal standard deviation, which controls the overall magnitude or "waviness" of the spectral shape. A larger $\alpha_{gp,j}$ allows for larger peaks and deeper troughs in the spectrum. Moreover, $\rho_{gp,j}$ is the length-scale, which controls the smoothness of the function. A large $\rho_{gp,j}$ enforces a very smooth, slowly changing shape, while a small value allows for more rapid variations and narrower spectral peaks.
 
-#### Deterministic amplitude inversion
+To ensure this complex model can be estimated efficiently, we use a non-centered parameterization. This is a computational technique that improves the performance of the sampler by reducing correlations between parameters. Instead of estimating the highly correlated vector $\vec{v}_j$ directly, the model estimates a vector of independent standard normal deviates, $\vec{z}_{gp,j}$. The target log-amplitude envelope is then deterministically constructed via the transformation $\vec{v}_j = \mathbf{L}_j \vec{z}_{gp,j}$, where $\mathbf{L}_j$ is the Cholesky factor of the covariance matrix ($\mathbf{K}_j = \mathbf{L}_j \mathbf{L}_j^\top$). This approach makes the estimation problem much simpler for the algorithm, leading to more robust and reliable inference.
+
+#### Normalization for Identifiability
+
+A critical step in the model's construction is to ensure that its parameters are identifiable, meaning there is a unique set of parameters that explains the data. A potential ambiguity arises because two components of the model control amplitude: the GP's marginal standard deviation ($\alpha_{gp,j}$) and the overall signal amplitude, $A(t_i)$. Without a constraint, the model could achieve the same result by increasing the GP's amplitude while decreasing $A(t_i)$, making it difficult to interpret either parameter.
+
+To resolve this, we enforce a clear division of labor. The Gaussian Process is assigned the exclusive role of determining the relative shape of the spectrum, while $A(t_i)$ is assigned the role of setting the absolute power.
+
+This is achieved by normalizing the amplitude envelope derived from the GP. First, let $\vec{a}_j = \exp(\vec{v}_j)$ be the vector of positive amplitudes determined by the GP. We then create a normalized scaling vector, $\vec{s}_j$, such that the expected variance of the synthesized oscillator $S_j(t_i)$ is precisely 1.
+
+Because the final coefficients $u_{j,k}$ are generated by scaling standard normal deviates ($z_{j,k} \sim \mathcal{N}(0,1)$), the appropriate normalization must be based on the expected variance of this random process. A key property of this process is that the expected value of cross-products between independent random coefficients is zero. Consequently, the total expected variance simplifies to a sum that depends only on the diagonal elements of the pre-computed Gram matrices ($\mathbf{G}_{\sin,j}$ and $\mathbf{G}_{\cos,j}$). This procedure is formalized in @eq-normalization.
+
+$$
+\vec{s}_j = \frac{\vec{a}_j}{\sqrt{\sum_{k=1}^{K_j} a_{j,k}^2 \left( (\mathbf{G}_{\sin,j})_{kk} + (\mathbf{G}_{\cos,j})_{kk} \right)}}
+$${#eq-normalization}
+
+The final oscillator coefficients are then constructed as $u_{j,k}^{(\sin)} = z_{j,k}^{(\sin)} \cdot s_{j,k}$ and $u_{j,k}^{(\cos)} = z_{j,k}^{(\cos)} \cdot s_{j,k}$. This procedure ensures that the GP component only informs the spectral shape, normalized to have a unit expected variance, thereby removing the ambiguity and making the model's parameters clearly interpretable.
+
+#### Deterministic Amplitude Inversion
 
 The final step is to ensure that the synthesized structured signal, $X(t_i) = A(t_i) \sum_{j=1}^J p_j(t_i) S_j(t_i)$, has a variance equal to the target structured variance, $\sigma^2_{\text{struct}}(t_i)$, at every time point. A key feature of this model is that it does not assume the sinusoids form an orthogonal basis over the discrete, finite time domain. Instead, it computes the exact sample variance for each synthesized oscillator, $\mathrm{Var}[S_j(t_i)]$, given the current values of its coefficients.
 
@@ -306,48 +359,23 @@ To ensure numerical stability and efficient sampling, all model parameters are e
 
 Parameters constrained to a specific interval are parameterized on the logit scale, while positive parameters are on the log scale. For instance, the timing parameters $\tau$ and $\delta$ are mapped to the observed time interval ($t_\text{range}$) and the remaining time, respectively, using the inverse logit transformation, such that $\tau = \text{logit}^{-1}(\tau_\text{logit}) \cdot t_\text{range} + t_\text{min}$ and $\delta = \text{logit}^{-1}(\delta_\text{logit}) \cdot (t_\text{range} - \tau)$.
 
-The positive rate parameters $\lambda$ and $\phi$ are simply log-transformed, i.e., $\lambda = \exp(\lambda_\text{log})$. The recovery coefficients for the time-domain components ($c_r,c_s$) are mapped to the interval $[0, 2]$, while the recovery parameter for spectral components ($c_c$) is mapped to the $[0, 1]$ interval, using a scaled logit function, $c = \text{logit}^{-1}(c_\text{logit}) \cdot \text{scale}$. Similarly, the fraction of structured variance, $w$, is constrained between 0 and 1 via $w = \text{logit}^{-1}(w_{\text{logit}})$.
+The positive rate parameters $\lambda$ and $\phi$ are simply log-transformed, i.e., $\lambda = \exp(\lambda_\text{log})$. The recovery coefficients for the time-domain components ($c_r,c_s$) are mapped to the interval $[0, 2]$, while the recovery parameter for spectral components ($c_c$) is mapped to the $[0, 1]$ interval, using a scaled logit function. Similarly, the fraction of structured variance, $w$, is constrained between 0 and 1 via $w = \text{logit}^{-1}(w_{\text{logit}})$.
 
-The magnitude parameters ($\alpha_r, \beta_r, \alpha_s, \beta_s$) are scaled relative to data-derived quantities to create dimensionless parameters whose priors are easier to specify. For instance, $\alpha_r$ is defined as $\alpha_r = \text{logit}^{-1}(\alpha_{r, \text{logit}}) \cdot 2 \cdot \text{rr}_\text{range} + \text{rr}_\text{min}$, which then scales its corresponding $\beta$ parameter, $\beta_r = \text{logit}^{-1}(\beta_{r, \text{logit}}) \cdot \alpha_r$. A similar relationship holds for $\alpha_s$ and $\beta_s$, which are scaled by the data's standard deviation. These transformations ensure the sampler explores a valid and well-behaved parameter space.
+The magnitude parameters ($\alpha_r, \beta_r, \alpha_s, \beta_s$) are scaled relative to data-derived quantities to create dimensionless parameters whose priors are easier to specify. These transformations ensure the sampler explores a valid and well-behaved parameter space.
 
 #### Spectral and Oscillator Parameters
 
-The spectral proportions, $\vec\pi_{\text{base}}$ and $\vec\pi_{\text{pert}}$, are mapped from the 3-dimensional simplex to 2-dimensional real vectors, $\vec{y} = [y_1, y_2]$, using the additive log-ratio (ALR) transformation. The model estimates the unconstrained vectors ($\vec{y}_{\text{base, log}}, \vec{y}_{\text{pert, log}}$), which are mapped back to the simplex via the softmax function.
+The spectral proportions, $\vec\pi_{\text{base}}$ and $\vec\pi_{\text{pert}}$, are mapped from the 3-dimensional simplex to 2-dimensional real vectors using the additive log-ratio (ALR) transformation. The model estimates the unconstrained vectors, which are mapped back to the simplex via the softmax function.
 
-To improve sampling efficiency, the oscillator amplitudes, $u_{j,k}$, are handled with a non-centered parameterization. Instead of estimating the highly correlated $u$ values directly, the model estimates standard normal deviates, $z_{j,k}$. These are then scaled by the hierarchical prior to construct the final amplitudes as $u_{j,k} = z_{j,k} \cdot \sigma_{u} \cdot a_{j,k}$, where $a_{j,k} = f_{j,k}^{-b/2}$ is a frequency-dependent component and $\sigma_u$ is a global scale parameter. This technique dramatically reduces posterior correlations between parameters. Weakly informative priors are placed on all unconstrained parameters, allowing the data to drive the final inference.
+The GP hyperparameters are given weakly informative, regularizing priors. The marginal standard deviation is given a half-Normal prior, $\alpha_{gp} \sim \mathcal{N}^+(0, 0.5)$, favoring modest spectral amplitudes. The length-scale is given a $\text{Log-normal}(0, 0.5)$ prior, regularizing the smoothness of the spectral shape.
+
+Finally, the non-centered parameterization is completed by placing standard Normal priors on all latent "z" variables: the GP deviates ($z_{gp}$), the sine coefficients ($z_{\sin}$), and the cosine coefficients ($z_{\cos}$). This technique is critical for efficient sampling, as it decouples the hierarchical dependencies and removes pathological posterior geometries.
 
 ## Simulation Studies
 
 To evaluate the model's performance, we conducted a series of simulation studies. The objectives were to assess the model's ability to recover known ground-truth parameters from synthetic data and to quantitatively benchmark its reconstruction of key HRV dynamics against conventional, windowed analysis techniques. Synthetic RRi time series were generated using the model's own generative structure with pre-specified parameter values. This process provided datasets with perfectly known underlying dynamics for $\mathrm{RR}(t_i)$, $\mathrm{SDNN}(t_i)$, and $p_j(t_i)$, serving as an objective gold standard for evaluation.
 
-We designed three distinct scenarios to probe the model's capabilities under diverse and challenging conditions. These scenarios: (1) a classic sympatho-vagal response, (2) an incomplete recovery with spectral persistence, and (3) a high noise with a stable spectrum, were chosen specifically to test the limitations inherent in standard analysis methods, these separate scenarios can be seen in Figure 1 and the parameters used to generate the data can be seen in Table XX. Each simulated dataset was analyzed with our full Bayesian model and, for comparison, with conventional techniques: a sliding-window analysis for time-domain metrics and a Short-Time Fourier Transform (STFT) for spectral dynamics.
-
-::: {.content-visible when-format="html"}
-![](figures/fig-generated-data.svg){width=100%}
-:::
-::: {.content-visible when-format="pdf"}
-![](figures/fig-generated-data.pdf){width=100%}
-:::
-**Figure XX**. Three scenarios simulated from the probabilistic model to assess the inference capabilities to recover the data generation process. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum. Subpanels indicate observed RRi signal with true component ($\mu(t_i)$) highlighted, true underlying RRi trend and SDNN, next to spectral signature of the signal, depicting the relative contribution of each frequency band as a dynamic process.
-
-|Parameter    |Interpretation                           |Scenario A      |Scenario B      |Scenario C        |
-|:------------|:----------------------------------------|:---------------|:---------------|:-----------------|
-|$\tau$       |Time onset                               |6.00            |6.00            |6.00              |
-|$\delta$     |Stimulus durantion                       |3.00            |3.00            |3.00              |
-|$\lambda$    |Rate of dynamics onset                   |3.00            |3.00            |1.50              |
-|$\phi$       |Rate of recovery                         |2.00            |2.00            |1.50              |
-|$\alpha_r$   |Resting RRi                              |950.00          |950.00          |900.00            |
-|$\beta_r$    |Magnitude of RRi decay                   |250.00          |250.00          |300.00            |
-|$c_r$        |RRi recovery proportion                  |1.00            |0.50            |1.00              |
-|$\alpha_s$   |Resting SDNN                             |60.00           |60.00           |100.00            |
-|$\beta_s$    |Magnitude of SDNN decay                  |40.00           |40.00           |20.00             |
-|$c_s$        |SDNN recovery proportion                 |1.00            |0.60            |1.00              |
-|$\pi_{base}$ |Base-state [VLF, LF, HF] proportion      |[0.1, 0.2, 0.7] |[0.1, 0.2, 0.7] |[0.1, 0.45, 0.45] |
-|$\pi_{pert}$ |Perturbed-state [VLF, LF, HF] proportion |[0.5, 0.3, 0.2] |[0.7, 0.2, 0.1] |[0.2, 0.5, 0.3]   |
-|$c_c$        |Spectral recovery proportion             |0.80            |0.40            |1.00              |
-|$b$          |Spectral structure                       |1.00            |1.00            |1.00              |
-|$w$          |Proportion of structured variance        |0.90            |0.90            |0.60              |
-**Table XX**. Ground-truth parameter values used in the generation of three simulation scenarios. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with spectral persistence, and (C) a high noise with a stable spectrum. 
+We designed three distinct scenarios to probe the model's capabilities under diverse and challenging conditions. These scenarios: (1) a classic sympatho-vagal response, (2) an incomplete recovery with spectral persistence, and (3) a high noise with a stable spectrum, were chosen specifically to test the limitations inherent in standard analysis methods. Each simulated dataset was analyzed with our full Bayesian model and, for comparison, with conventional techniques: a sliding-window analysis for time-domain metrics and a Short-Time Fourier Transform (STFT) for spectral dynamics.
 
 ### Time-domain trajectory reconstruction
 

@@ -38,7 +38,7 @@ metrics <- vector("list", 3)
 plots <- vector("list", 3)
 
 # Define parameters for the conventional analysis
-WINDOW_SECONDS <- 120 # 3-minute window is common
+WINDOW_SECONDS <- 120 # 2-minute window is common
 OVERLAP_PERC <- 0.99  # 99% overlap for smoother estimates
 
 for (i in 1:3) {
@@ -50,7 +50,7 @@ for (i in 1:3) {
     params = params[[i]],
     N_sin = N_SINUSOIDS,
     seed = 123
-  )
+  )$data
 
   # --- B. Run Conventional Analyses ---
 

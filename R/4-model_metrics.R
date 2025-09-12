@@ -60,11 +60,12 @@ if (!file.exists("data/model_predictions.RDS")) {
         lambda = lambda, phi = phi, tau = tau, delta = delta,
         alpha_r = alpha_r, beta_r = beta_r, c_r = c_r,
         alpha_s = alpha_s, beta_s = beta_s, c_s = c_s,
-        w = w, b = b, c_c = c_c,
+        w = w, c_c = c_c,
         pi_base = c(pi_base.V1, pi_base.V2, pi_base.V3),
-        pi_pert = c(pi_pert.V1, pi_pert.V2, pi_pert.V3)
+        pi_pert = c(pi_pert.V1, pi_pert.V2, pi_pert.V3),
+        alpha_gp = c(1,1,1), rho_gp = c(1,1,1)
       )
-    ),
+    )$data,
     keyby = row_id
     ][
       j = list(
@@ -93,7 +94,7 @@ if (!file.exists("data/model_predictions.RDS")) {
 }
 
 plots <- vector("list", length = 3)
-for (i in 1:3) {
+for (i in 1) {
   legend <- FALSE
   if (i == 3) {
     legend <- NA
@@ -107,7 +108,7 @@ for (i in 1:3) {
     geom_line(mapping = aes(t, RR_baseline_mu, color = "Model estimate"),
               data = predicted[[i]], show.legend = legend) +
     geom_line(mapping = aes(t, RR_baseline, color = "Ground truth"),
-              data = sim_data[[i]], linetype = 6, show.legend = legend) +
+              data = sim_data[[i]]$data, linetype = 6, show.legend = legend) +
     scale_color_manual(values = c("Ground truth" = "black",
                                   "Model estimate" = "dodgerblue"),
                        aesthetics = c("fill", "color")) +
@@ -124,7 +125,7 @@ for (i in 1:3) {
     geom_line(mapping = aes(t, SDNN_t_mu, color = "Model estimate"),
               data = predicted[[i]], show.legend = legend) +
     geom_line(mapping = aes(t, SDNN_t, color = "Ground truth"),
-              data = sim_data[[i]], linetype = 5, show.legend = legend) +
+              data = sim_data[[i]]$data, linetype = 5, show.legend = legend) +
     scale_color_manual(values = c("Ground truth" = "black",
                                   "Model estimate" = "darkorange"),
                        aesthetics = c("fill", "color")) +
@@ -134,7 +135,7 @@ for (i in 1:3) {
     theme_classic(base_size = 12)
 
   sim_data_spectral <- melt(
-    data = sim_data[[i]],
+    data = sim_data[[i]]$data,
     id.vars = "t",
     measure.vars = c("p_vlf", "p_lf", "p_hf")
   )
@@ -165,7 +166,7 @@ for (i in 1:3) {
                        aesthetics = c("color", "fill")) +
     scale_linetype_manual(values = c("Ground truth" = 6, "Model estimate" = 1)) +
     scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(limits = c(-0.1, 1.1), n.breaks = 5) +
+    scale_y_continuous(n.breaks = 5) +
     labs(subtitle = ifelse(i == 1, "Spectral signature", ""),
          x = "Time (minutes)", y = "Proportion of Power",
          color = "Color", linetype = "Line", fill = "Color") +

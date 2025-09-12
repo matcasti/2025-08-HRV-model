@@ -12,98 +12,156 @@
 #'
 #' @return A data frame containing the time vector 't', the final generated
 #'   'RR' series, the underlying mean 'mu', and other key components.
-#'
 generate_rri_simulation <- function(N,
                                     t_max,
-                                    params,
+                                    params, # Note: Expects GP params now (alpha_gp, rho_gp)
                                     N_sin,
                                     seed = 123) {
 
+  # Helper function to compute the GP's squared exponential covariance kernel
+  gp_exp_quad_cov <- function(x, alpha, rho) {
+    N <- length(x)
+    K <- matrix(0, N, N)
+    for (i in 1:N) {
+      for (j in 1:N) {
+        K[i, j] <- alpha^2 * exp(-0.5 * ((x[i] - x[j]) / rho)^2)
+      }
+    }
+    return(K)
+  }
+
+  # Set seed for complete reproducibility
+  set.seed(seed)
+
+  # --- 1. Define Core Dynamic Functions ---
+  # These are the double-logistic building blocks for the model's dynamics.
   D_1 <- function(t) { 1 / (1 + exp(-params$lambda * (t - params$tau))) }
   D_2 <- function(t) { 1 / (1 + exp(-params$phi * (t - params$tau - params$delta))) }
 
-  # --- Spectral bands ---
-  band_defs <- list(
-    VLF = list(min = 0.003, max = 0.039),
-    LF  = list(min = 0.040, max = 0.149),
-    HF  = list(min = 0.150, max = 0.400)
-  )
+  # Define the simulation time grid
+  t <- seq(0, t_max, length.out = N)
 
-  t <- seq(0, t_max, length.out = N)  # Simulation grid
-
-  # Mean R-R interval (logistic drop + partial recovery)
+  # --- 2. Generate Time-Varying Trajectories ---
+  # These define the evolution of the signal's mean, total variability, and spectral mix.
   RR_t <- params$alpha_r - params$beta_r * D_1(t) + params$c_r * params$beta_r * D_2(t)
-
-  # Standard deviation of RR intervals (SDNN_t)
   SDNN_t <- params$alpha_s - params$beta_s * D_1(t) + params$c_s * params$beta_s * D_2(t)
-
-  # Spectral mixing curve C(t)
   C_t <- D_1(t) * (1 - params$c_c * D_2(t))
 
-  # Time-varying band proportions p_j(t)
+  # Time-varying band proportions p_j(t) via convex combination
   p_j <- (1 - C_t) %*% t(params$pi_base) + C_t %*% t(params$pi_pert)
   colnames(p_j) <- c("VLF", "LF", "HF")
 
-  # Construct stochastic signals for each band using sine-wave mixtures
-  S_t_matrix <- matrix(0, nrow = N, ncol = 3)
-  colnames(S_t_matrix) <- c("VLF", "LF", "HF")
+  # --- 3. Pre-computation of Basis Functions (like Stan's transformed data) ---
+  band_defs <- list(
+    VLF = c(0.003, 0.039),
+    LF  = c(0.040, 0.149),
+    HF  = c(0.150, 0.400)
+  )
 
-  set.seed(seed)  # For reproducibility of random phases
+  freqs_list <- lapply(band_defs, function(b) seq(b[1], b[2], length.out = N_sin))
+  log_freqs_list <- lapply(freqs_list, log)
 
-  phases_stan <- vector("list", 3)
-  freqs_stan <- vector("list", 3)
+  # Precompute sine/cosine basis matrices and Gram matrices
+  sin_mat_list <- vector("list", 3)
+  cos_mat_list <- vector("list", 3)
+  G_sin_list <- vector("list", 3)
+  G_cos_list <- vector("list", 3)
+  G_sin_cos_list <- vector("list", 3)
+
   for (j in 1:3) {
-    f_min <- band_defs[[j]]$min
-    f_max <- band_defs[[j]]$max
-    # Frequencies (linearly spaced in each band)
-    f_k <- seq(f_min, f_max, length.out = N_sin)
-    # Random phases
-    phi_k <- runif(N_sin, 0, 2 * pi)
-    # Amplitudes with power-law scaling
-    a_k <- f_k^(-params$b / 2)
-    # Generate sine waves for this band
-    sine_waves <- sin(
-      2 * pi * outer(t * 60, f_k) +
-        matrix(phi_k, nrow = N, ncol = N_sin, byrow = TRUE)
-    )
-    # Weighted sum of sine waves, centered at 0
-    S_t_matrix[, j] <- sine_waves %*% a_k - mean(sine_waves %*% a_k)
+    T_mat <- outer(t * 60, freqs_list[[j]])
+    sin_mat_list[[j]] <- sin(2 * pi * T_mat)
+    cos_mat_list[[j]] <- cos(2 * pi * T_mat)
+
+    normalization <- 1.0 / (N - 1)
+    G_sin_list[[j]] <- t(sin_mat_list[[j]]) %*% sin_mat_list[[j]] * normalization
+    G_cos_list[[j]] <- t(cos_mat_list[[j]]) %*% cos_mat_list[[j]] * normalization
+    G_sin_cos_list[[j]] <- t(sin_mat_list[[j]]) %*% cos_mat_list[[j]] * normalization
   }
-  # Covariance of band signals (used for scaling)
-  Sigma_S <- cov(S_t_matrix)
 
-  # Structured vs unstructured variance components
+  # --- 4. Generate Spectral Components via GP (like Stan's transformed parameters) ---
+  # This is the core of the new generative process.
+
+  # A. Simulate the standard normal deviates (the "z" parameters)
+  z_gp <- replicate(3, rnorm(N_sin), simplify = FALSE)
+  z_sin <- replicate(3, rnorm(N_sin), simplify = FALSE)
+  z_cos <- replicate(3, rnorm(N_sin), simplify = FALSE)
+
+  # B. Loop through bands to generate coefficients
+  u_sin_list <- vector("list", 3)
+  u_cos_list <- vector("list", 3)
+  log_v_list <- vector("list", 3)
+
+  for (j in 1:3) {
+    # Step 1: Generate the smooth spectral envelope from the GP
+    K <- gp_exp_quad_cov(log_freqs_list[[j]], params$alpha_gp[j], params$rho_gp[j])
+    K <- K + diag(1e-8 * params$alpha_gp[j]^2 + 1e-12, N_sin) # Scaled jitter
+    L <- t(chol(K)) # Lower triangular Cholesky factor
+    log_v <- L %*% z_gp[[j]]
+
+    log_v_list[[j]] <- log_v
+
+    # Step 2: Normalize the GP output to have unit expected variance
+    a_k <- exp(log_v)
+    diag_sum <- diag(G_sin_list[[j]]) + diag(G_cos_list[[j]])
+    base_v_diag <- sum((a_k^2) * diag_sum)
+    full_scale <- a_k / sqrt(base_v_diag + 1e-12)
+
+    # Step 3: Generate the final oscillator coefficients (NCP)
+    u_sin_list[[j]] <- z_sin[[j]] * full_scale
+    u_cos_list[[j]] <- z_cos[[j]] * full_scale
+  }
+
+  # --- 5. Synthesize Signal and Calculate Final Components ---
+  S_t_matrix <- matrix(0, nrow = N, ncol = 3)
+  Sigma_S_diag <- numeric(3) # Will store Var(S_j) for each band
+
+  for (j in 1:3) {
+    # Synthesize the j-th oscillator signal and mean-center it
+    u_sin <- u_sin_list[[j]]
+    u_cos <- u_cos_list[[j]]
+    S_j <- sin_mat_list[[j]] %*% u_sin + cos_mat_list[[j]] %*% u_cos
+    S_t_matrix[, j] <- S_j - mean(S_j)
+
+    # Calculate its *exact* variance using the Gram matrices
+    vj <- t(u_sin) %*% G_sin_list[[j]] %*% u_sin +
+      t(u_cos) %*% G_cos_list[[j]] %*% u_cos +
+      2 * t(u_sin) %*% G_sin_cos_list[[j]] %*% u_cos
+    Sigma_S_diag[j] <- vj
+  }
+
+  # Calculate the time-varying scaling amplitude A(t)
   var_structured <- SDNN_t^2 * params$w
-  var_noise      <- SDNN_t^2 * (1 - params$w)
+  denom_sq <- rowSums((p_j %*% diag(Sigma_S_diag)) * p_j)
+  A_t <- sqrt(var_structured) / sqrt(denom_sq + 1e-12)
 
-  # Denominator: quadratic form p' Σ p
-  denom_sq <- rowSums((p_j %*% Sigma_S) * p_j)
-
-  # Amplitude scaling factor A(t)
-  A_t <- sqrt(var_structured) / sqrt(denom_sq)
-
-  # Weighted spectral contributions
-  weighted_S <- S_t_matrix * p_j
-  sum_weighted_S <- rowSums(weighted_S)
-
-  # Deterministic + structured component
+  # Combine components for the final mean trajectory
+  sum_weighted_S <- rowSums(S_t_matrix * p_j)
   mu <- RR_t + A_t * sum_weighted_S
 
-  # Add Gaussian residuals for unstructured noise
+  # Generate the final noisy RRi signal
+  var_noise <- SDNN_t^2 * (1 - params$w)
   RRi_t <- rnorm(N, mean = mu, sd = sqrt(var_noise))
 
-  out <- data.table(
+  # --- 6. Format Output ---
+  out <- data.table::data.table(
     t = t,
     RR = RRi_t,
     mu = mu,
     RR_baseline = RR_t,
     SDNN_t = SDNN_t,
-    p_vlf = p_j[, "VLF"],
-    p_lf = p_j[, "LF"],
-    p_hf = p_j[, "HF"]
+    A_t = A_t,
+    w = params$w,
+    p_vlf = p_j[, 1],
+    p_lf = p_j[, 2],
+    p_hf = p_j[, 3]
   )
 
-  return(out)
+  return(list(
+    data = out,
+    freqs = freqs_list,
+    log_v = log_v_list
+  ))
 }
 
 

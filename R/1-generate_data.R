@@ -54,15 +54,16 @@ params[[1]] <- list(
   # Double-logistic timing
   tau = 6, delta = 3, lambda = 3, phi = 2,
   # RR(t) params
-  alpha_r = 950, beta_r = 250, c_r = 1.0,
+  alpha_r = 800, beta_r = 300, c_r = 1.0,
   # SDNN(t) params
   alpha_s = 60, beta_s = 40, c_s = 1.0,
   # p(t) params
-  pi_base = c(0.1, 0.2, 0.7), # VLF, LF, HF - Rest (HF dominant)
-  pi_pert = c(0.5, 0.3, 0.2), # VLF, LF, HF - Stress (LF dominant)
+  pi_base = c(0.2, 0.4, 0.4), # VLF, LF, HF - Rest (HF dominant)
+  pi_pert = c(0.7, 0.2, 0.1), # VLF, LF, HF - Stress (LF dominant)
   c_c = 0.8,
   # Spectral & Noise params
-  b = 1.0, w = 0.90 # 90% structured variance
+  w = 0.90, # 90% structured variance
+  alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
 )
 
 # Scenario 2: Incomplete Recovery with Spectral Persistence
@@ -72,7 +73,7 @@ params[[2]] <- list(
   # Double-logistic timing
   tau = 6, delta = 3, lambda = 3, phi = 2,
   # RR(t) params - c_r < 1 means incomplete mean recovery
-  alpha_r = 950, beta_r = 250, c_r = 0.5,
+  alpha_r = 950, beta_r = 450, c_r = 0.5,
   # SDNN(t) params - c_s < 1 means incomplete variability recovery
   alpha_s = 60, beta_s = 40, c_s = 0.6,
   # p(t) params - c_c < 1 means spectral signature persists
@@ -80,7 +81,8 @@ params[[2]] <- list(
   pi_pert = c(0.7, 0.2, 0.1), # VLF, LF, HF - Stress
   c_c = 0.4,
   # Spectral & Noise params
-  b = 1.0, w = 0.90
+  w = 0.90,
+  alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
 )
 
 # Scenario 3: High Noise with a Stable Spectrum
@@ -99,7 +101,8 @@ params[[3]] <- list(
   pi_pert = c(0.2, 0.5, 0.3), # VLF, LF, HF - Stress
   c_c = 1.0,
   # Spectral & Noise params - w is lower, so more residual noise
-  b = 1.0, w = 0.60 # 60% structured variance
+  w = 0.60, # 60% structured variance
+  alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
 )
 
 ## Pull everything together in a nice table for the paper
@@ -143,9 +146,9 @@ if (interactive()) {
     # --- Create Plots to Visualize the Ground Truth and Simulated Data ---
 
     # Plot 1: Observed RRi and underlying true mean (mu)
-    p1 <- ggplot(sim_data, aes(x = t)) +
-      geom_line(aes(y = RR, color = "Observed"), alpha = 0.8, show.legend = legend) +
-      geom_line(aes(y = mu, color = "True µ(t)"), show.legend = legend) +
+    p1 <- ggplot(sim_data$data, aes(x = t)) +
+      geom_line(aes(y = RR, color = "Observed"), linewidth = 1/3, show.legend = legend) +
+      geom_line(aes(y = mu, color = "True µ(t)"), linewidth = 1/3, show.legend = legend) +
       scale_color_manual(values = c("Observed" = "grey70", "True µ(t)" = "firebrick")) +
       labs(subtitle = ifelse(i==1,"Observed RRi Signal",""),
            x = "Time (minutes)", y = "ms",
@@ -154,7 +157,7 @@ if (interactive()) {
       theme_classic(base_size = 12)
 
     # Plot 2: Ground-truth time-domain dynamics
-    p2 <- sim_data[, c("t","RR_baseline", "SDNN_t")] |>
+    p2 <- sim_data$data[, c("t","RR_baseline", "SDNN_t")] |>
       ggplot(aes(x = t)) +
       geom_ribbon(aes(ymin = RR_baseline - SDNN_t,
                       ymax = RR_baseline + SDNN_t,
@@ -170,7 +173,7 @@ if (interactive()) {
       theme(legend.position = "right")
 
     # Plot 3: Ground-truth spectral proportion dynamics
-    p3 <- melt(sim_data,
+    p3 <- melt(sim_data$data,
                id = "t",
                measure.vars = c("p_vlf","p_lf","p_hf")
     )[, variable := factor(variable,
