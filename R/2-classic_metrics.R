@@ -38,7 +38,7 @@ metrics <- vector("list", 3)
 plots <- vector("list", 3)
 
 # Define parameters for the conventional analysis
-WINDOW_SECONDS <- 120 # 2-minute window is common
+WINDOW_SECONDS <- 60 # 2-minute window is common
 OVERLAP_PERC <- 0.99  # 99% overlap for smoother estimates
 
 for (i in 1:3) {
@@ -150,6 +150,14 @@ for (i in 1:3) {
   # Combine all plots into a final figure
   plots[[i]] <- plot_grid(p_rr, p_sdnn, p_spectral, ncol = 1, rel_heights = c(0.6,0.6,1), align = "hv", axis = "l")
 }
+
+error_classic <- lapply(1:3, function(i) {
+  metrics[[i]]$statistics |> rbindlist(idcol = "Domain")
+}) |> rbindlist(idcol = "Scenario")
+
+names(error_classic) <- c("Scenario", "Domain", "Metric", "Estimate")
+
+saveRDS(error_classic, file = "data/error_stats_classic.RDS")
 
 fig <- ggpubr::ggarrange(plotlist = plots,
                          ncol = 3,

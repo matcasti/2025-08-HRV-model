@@ -1,10 +1,12 @@
 
-
+# -------------------------------------------------------------------------
 # Prepare workspace -------------------------------------------------------
+# -------------------------------------------------------------------------
 
 ## Load libraries
 library(data.table)
 library(rstan)
+library(gt)
 library(ggplot2)
 
 ## Load functions
@@ -20,6 +22,11 @@ models <- lapply(1:3, function(i) {
   readRDS(file_path)
 })
 
+
+# -------------------------------------------------------------------------
+# Compute parameter estimates ---------------------------------------------
+# -------------------------------------------------------------------------
+
 tables <- vector("list", length = 3)
 for (i in 1:3) {
   tbl <- bayestestR::describe_posterior(
@@ -30,24 +37,145 @@ for (i in 1:3) {
     as.data.table()
 
   tables[[i]] <- tbl[
-    i = !Parameter %like% "_log|_logit",
+    i = !Parameter %like% "_log|_logit|_gp",
     list(Parameter = if(i == 1) Parameter else NULL,
          Truth = NA,
          Estimate = round(Median, 2),
-         `95% CI` = paste0("[", round(CI_low, 2), ", ", round(CI_high, 2), "]"))
+         `95% HDI` = paste0("[", round(CI_low, 2), ", ", round(CI_high, 2), "]"))
   ]
+
+  tables[[i]]$Truth <- unlist(params[[i]])[c("lambda","phi","tau","delta","alpha_r",
+                                             "beta_r","c_r","alpha_s","beta_s","c_s",
+                                             "c_c","w","pi_base1","pi_base2","pi_base3",
+                                             "pi_pert1","pi_pert2","pi_pert3")] |>
+    round(digits = 2) |>
+    format(digits = 2, nsmall = 2, scientific = FALSE)
 }
 
-do.call(cbind, tables)
+tbl_model <- do.call(cbind, tables)
+tbl_model$Parameter <- c("$\\lambda$", "$\\phi$", "$\\tau$", "$\\delta$", "$\\alpha_r$", "$\\beta_r$", "$c_r$",
+                         "$\\alpha_s$", "$\\beta_s$", "$c_s$", "$c_c$", "$w$",
+                         "$\\vec{\\pi}_{base}$ [VLF]", "$\\vec{\\pi}_{base}$ [LF]", "$\\vec{\\pi}_{base}$ [HF]",
+                         "$\\vec{\\pi}_{pert}$ [VLF]", "$\\vec{\\pi}_{pert}$ [LF]", "$\\vec{\\pi}_{pert}$ [HF]")
 
+old_names <- names(tbl_model)
+names(tbl_model) <- make.unique(old_names)
+
+gt(tbl_model) |>
+  tab_spanner(label = md("**Scenario A**"), columns = 2:4) |>
+  tab_spanner(label = md("**Scenario B**"), columns = 5:7) |>
+  tab_spanner(label = md("**Scenario C**"), columns = 8:10) |>
+  fmt_markdown(columns = "Parameter") |>
+  cols_label(.list = `names<-`(as.list(old_names), names(tbl_model))) |>
+  opt_stylize(style = 5) |>
+  tab_style(style = cell_text(size = "small"),
+            locations = list(cells_body(),
+                             cells_column_labels(),
+                             cells_column_spanners())) |>
+  saveRDS(file = "tables/tbl-2.RDS")
+
+# -------------------------------------------------------------------------
 # Extract model posterior distribution ------------------------------------
+# -------------------------------------------------------------------------
 
 posteriors <- lapply(models, function(x) {
   X <- as.data.table(x = extract(x))
   X[, row_id := seq_len(.N)][]
 })
 
+
+# -------------------------------------------------------------------------
+# Compute error statistics ------------------------------------------------
+# -------------------------------------------------------------------------
+
+if(!file.exists("data/error_statistics.RDS")) {
+  error_statistics <- lapply(1:3, function(i) {
+    posteriors[[i]][j = generate_rri_simulation(
+      N = 1800,
+      t_max = 15,
+      N_sin = 20,
+      seed = 123,
+      params = list(
+        lambda = lambda, phi = phi, tau = tau, delta = delta,
+        alpha_r = alpha_r, beta_r = beta_r, c_r = c_r,
+        alpha_s = alpha_s, beta_s = beta_s, c_s = c_s,
+        w = w, c_c = c_c,
+        pi_base = c(pi_base.V1, pi_base.V2, pi_base.V3),
+        pi_pert = c(pi_pert.V1, pi_pert.V2, pi_pert.V3),
+        alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
+      )
+    )$data,
+    keyby = row_id
+    ][j = list(
+      rr_metrics = calculate_metrics(sim_data[[i]]$data$RR_baseline, RR_baseline) |> as.list(),
+      sdnn_metrics = calculate_metrics(sim_data[[i]]$data$SDNN_t, SDNN_t) |> as.list(),
+      vlf_metrics = calculate_metrics(sim_data[[i]]$data$p_vlf, p_vlf) |> as.list(),
+      lf_metrics = calculate_metrics(sim_data[[i]]$data$p_lf, p_lf) |> as.list(),
+      hf_metrics = calculate_metrics(sim_data[[i]]$data$p_hf, p_hf) |> as.list()
+    ) |> rbindlist(idcol = "Domain"), keyby = row_id
+    ][j = {
+      hdi <- ggdist::hdci(Value) |> round(digits = 2) |> format(nsmall = 2, digits = 2)
+      list(Estimate = median(Value) |> round(digits = 2) |> format(nsmall = 2, digits = 2),
+           CI_low = hdi[1],
+           CI_high = hdi[2])
+    }, keyby = list(Domain, Metric)]
+  })
+
+  saveRDS(error_statistics, file = "data/error_statistics.RDS")
+} else {
+  error_statistics <- readRDS(file = "data/error_statistics.RDS")
+}
+
+error_classic <- readRDS("data/error_stats_classic.RDS")[, Estimate := round(Estimate, 2)][]
+
+error_statistics <- rbindlist(error_statistics, idcol = "Scenario")
+
+tbl_metrics <- list(Model = error_statistics,
+     Classic = error_classic) |>
+  rbindlist(idcol = "Method", fill = TRUE)
+
+tbl_metrics[, Estimate := fifelse(is.na(CI_low), Estimate, paste0(Estimate, " [", CI_low, ", ", CI_high, "]"))]
+
+tbl_metrics <- tbl_metrics |>
+  dcast.data.table(
+    formula = Domain + Metric ~ Method + Scenario,
+    value.var = "Estimate", fill = NA
+  )
+
+tbl_metrics[, Domain := factor(Domain,
+                     levels = c("rr_metrics", "sdnn_metrics", "hf_metrics", "lf_metrics", "vlf_metrics"),
+                     labels = c("$\\mathrm{RR}(t_i)$", "$\\mathrm{SDNN}(t_i)$", "$\\mathrm{HF}(t_i)$", "$\\mathrm{LF}(t_i)$", "$\\mathrm{VLF}(t_i)$"))]
+
+tbl_metrics <- tbl_metrics[, .SD, keyby = Domain]
+
+gt(tbl_metrics[][, Domain := as.character(Domain)][],
+   groupname_col = "Domain",
+   row_group_as_column = T,
+   auto_align = FALSE,
+   process_md = TRUE) |>
+  fmt_markdown() |>
+  cols_label(
+    Metric = md("**Metric**"),
+    Classic_1 = md("**(A)**"),
+    Classic_2 = md("**(B)**"),
+    Classic_3 = md("**(C)**"),
+    Model_1 = md("**(A)**"),
+    Model_2 = md("**(B)**"),
+    Model_3 = md("**(C)**")
+  ) |>
+  gt::tab_spanner(label = md("**Windowed Methods**"), columns = 3:5) |>
+  gt::tab_spanner(label = md("**Generative Model**"), columns = 6:8) |>
+  opt_stylize(style = 5) |>
+  tab_style(style = cell_text(size = "small"),
+            locations = list(cells_body(),
+                             cells_column_labels(),
+                             cells_column_spanners())) |>
+  tab_style(style = cell_text(weight = "bold"), locations = cells_body(columns = 2)) |>
+  saveRDS(file = "tables/tbl-3.RDS")
+
+# -------------------------------------------------------------------------
 # Compute predicted RRi curve ---------------------------------------------
+# -------------------------------------------------------------------------
 
 if (!file.exists("data/model_predictions.RDS")) {
   predicted <- lapply(posteriors, function(x) {
@@ -94,7 +222,7 @@ if (!file.exists("data/model_predictions.RDS")) {
 }
 
 plots <- vector("list", length = 3)
-for (i in 1) {
+for (i in 1:3) {
   legend <- FALSE
   if (i == 3) {
     legend <- NA
@@ -158,10 +286,10 @@ for (i in 1) {
                               ymin = mu - hdi,
                               ymax = mu + hdi),
                 data = predicted_spectral, show.legend = legend, alpha = 0.5) +
+    geom_line(mapping = aes(t, value, linetype = "Ground truth"), color = "black",
+              data = sim_data_spectral, show.legend = legend) +
     geom_line(mapping = aes(t, mu, color = variable, linetype = "Model estimate"),
               data = predicted_spectral, show.legend = legend) +
-    geom_line(mapping = aes(t, value, color = variable, linetype = "Ground truth"),
-              data = sim_data_spectral, show.legend = legend) +
     scale_color_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
                        aesthetics = c("color", "fill")) +
     scale_linetype_manual(values = c("Ground truth" = 6, "Model estimate" = 1)) +
@@ -185,3 +313,4 @@ ggsave(filename = "figures/fig-model-method.svg", fig,
        device = "svg", width = 9, height = 9)
 ggsave(filename = "figures/fig-model-method.pdf", fig,
        device = "pdf", width = 9, height = 9)
+

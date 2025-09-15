@@ -26,6 +26,7 @@
 # 1. --- Load necessary libraries and scripts ---
 library(data.table)
 library(ggplot2)
+library(gt)
 source("R/_functions.R")
 
 # 2. --- Simulation Setup ---
@@ -52,17 +53,16 @@ params <- vector("list", length = 3)
 # from high-frequency (HF) to low-frequency (LF) power and back.
 params[[1]] <- list(
   # Double-logistic timing
-  tau = 6, delta = 3, lambda = 3, phi = 2,
+  lambda = 3, phi = 2, tau = 6, delta = 3,
   # RR(t) params
   alpha_r = 800, beta_r = 300, c_r = 1.0,
   # SDNN(t) params
   alpha_s = 60, beta_s = 40, c_s = 1.0,
-  # p(t) params
-  pi_base = c(0.2, 0.4, 0.4), # VLF, LF, HF - Rest (HF dominant)
-  pi_pert = c(0.7, 0.2, 0.1), # VLF, LF, HF - Stress (LF dominant)
-  c_c = 0.8,
   # Spectral & Noise params
-  w = 0.90, # 90% structured variance
+  c_c = 0.8, w = 0.90, # 90% structured variance
+  # p(t) params
+  pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest (HF dominant)
+  pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress (LF dominant)
   alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
 )
 
@@ -71,42 +71,45 @@ params[[1]] <- list(
 # spectral signature of the perturbation.
 params[[2]] <- list(
   # Double-logistic timing
-  tau = 6, delta = 3, lambda = 3, phi = 2,
+  lambda = 3, phi = 2, tau = 6, delta = 3,
   # RR(t) params - c_r < 1 means incomplete mean recovery
-  alpha_r = 950, beta_r = 450, c_r = 0.5,
+  alpha_r = 1000, beta_r = 500, c_r = 0.5,
   # SDNN(t) params - c_s < 1 means incomplete variability recovery
   alpha_s = 60, beta_s = 40, c_s = 0.6,
-  # p(t) params - c_c < 1 means spectral signature persists
-  pi_base = c(0.1, 0.2, 0.7), # VLF, LF, HF - Rest
-  pi_pert = c(0.7, 0.2, 0.1), # VLF, LF, HF - Stress
-  c_c = 0.4,
   # Spectral & Noise params
-  w = 0.90,
+  c_c = 0.4, w = 0.90,
+  # p(t) params - c_c < 1 means spectral signature persists
+  pi_base = c(0.1, 0.3, 0.6), # VLF, LF, HF - Rest
+  pi_pert = c(0.3, 0.5, 0.2), # VLF, LF, HF - Stress
   alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
 )
 
-# Scenario 3: High Noise with a Stable Spectrum
-# A scenario with high overall variability but where the spectral balance
-# remains constant. This tests the model's ability to separate structured
+# Scenario 3: High Noise with Incomplete Recovery
+# A scenario with high overall variability and incomplete spectral recovery
+# This tests the model's ability to separate structured
 # variance from random noise.
 params[[3]] <- list(
   # Double-logistic timing (less dramatic transition)
-  tau = 6, delta = 3, lambda = 1.5, phi = 1.5,
+  lambda = 1.5, phi = 1.5, tau = 6, delta = 3,
   # RR(t) params
-  alpha_r = 900, beta_r = 300, c_r = 1.0,
+  alpha_r = 900, beta_r = 400, c_r = 1.0,
   # SDNN(t) params - High baseline variability
   alpha_s = 100, beta_s = 20, c_s = 1.0,
   # p(t) params - Stable spectrum (base and pert are similar)
-  pi_base = c(0.1, 0.45, 0.45), # VLF, LF, HF - Rest
-  pi_pert = c(0.2, 0.5, 0.3), # VLF, LF, HF - Stress
-  c_c = 1.0,
-  # Spectral & Noise params - w is lower, so more residual noise
-  w = 0.60, # 60% structured variance
+  c_c = 0.4, w = 0.60, # 60% structured variance
+  pi_base = c(0.1, 0.1, 0.8), # VLF, LF, HF - Rest
+  pi_pert = c(0.45, 0.45, 0.1), # VLF, LF, HF - Stress
+  # Spectral & Noise params
   alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
 )
 
+
+# -------------------------------------------------------------------------
+
+## Create and export table 1
+
 ## Pull everything together in a nice table for the paper
-params_table <- lapply(`names<-`(params, paste("Scenario", 1:3)), function(i) {
+params_table <- lapply(`names<-`(params, paste("Scenario", LETTERS[1:3])), function(i) {
   char_params <- lapply(i, function(j) {
     if (length(j) > 1) {
       paste0("[",paste0(j, collapse = ", "),"]")
@@ -116,8 +119,48 @@ params_table <- lapply(`names<-`(params, paste("Scenario", 1:3)), function(i) {
   })
   as.data.table(char_params)
 }) |> rbindlist(idcol = "Scenario") |>
-  transpose(keep.names = "Parameter", make.names = "Scenario") |>
-  knitr::kable()
+  transpose(keep.names = "Parameter", make.names = "Scenario")
+
+params_table <- params_table[!Parameter %like% "_gp"]
+
+params_table$Interpretation <- c(
+  "Rate of dynamics onset",
+  "Rate of recovery",
+  "Time onset",
+  "Stimulus durantion",
+  "Resting RRi",
+  "Magnitude of RRi decay",
+  "RRi recovery proportion",
+  "Resting SDNN",
+  "Magnitude of SDNN decay",
+  "SDNN recovery proportion",
+  "Spectral recovery proportion",
+  "Proportion of structured variance",
+  "Base-state [VLF, LF, HF] proportion",
+  "Perturbed-state [VLF, LF, HF] proportion"
+)
+
+params_table$Parameter <- c("$\\lambda$", "$\\phi$", "$\\tau$", "$\\delta$",
+                            "$\\alpha_r$", "$\\beta_r$", "$c_r$",
+                            "$\\alpha_s$", "$\\beta_s$", "$c_s$",
+                            "$c_c$", "$w$",
+                            "$\\vec{\\pi}_{base}$", "$\\vec{\\pi}_{pert}$")
+
+data.table::setcolorder(params_table,
+                        c("Parameter", "Interpretation", paste("Scenario", LETTERS[1:3])))
+
+gt(params_table) |>
+  fmt_markdown(columns = "Parameter") |>
+  opt_stylize(style = 5) |>
+  tab_style(style = cell_text(size = "small"),
+            locations = list(cells_body(),
+                             cells_column_labels(),
+                             cells_column_spanners())) |>
+  saveRDS(file = "tables/tbl-1.RDS")
+
+# -------------------------------------------------------------------------
+
+
 
 simulated_data <- vector("list", length = 3)
 
@@ -153,7 +196,7 @@ if (interactive()) {
       labs(subtitle = ifelse(i==1,"Observed RRi Signal",""),
            x = "Time (minutes)", y = "ms",
            color = "Signal") +
-      scale_x_continuous(expand = c(0,0), name = NULL, breaks = NULL) +
+      scale_x_continuous(expand = c(0,0)) +
       theme_classic(base_size = 12)
 
     # Plot 2: Ground-truth time-domain dynamics
@@ -168,7 +211,7 @@ if (interactive()) {
       labs(subtitle = ifelse(i==1,"Time-domain dynamics",""),
            x = "Time (minutes)", y = "ms",
            color = "Line", fill = "Shaded area") +
-      scale_x_continuous(expand = c(0,0), name = NULL, breaks = NULL) +
+      scale_x_continuous(expand = c(0,0)) +
       theme_classic(base_size = 12) +
       theme(legend.position = "right")
 

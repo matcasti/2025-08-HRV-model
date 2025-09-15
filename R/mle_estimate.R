@@ -44,6 +44,8 @@ find_mle_stan <- function(stan_model_file, time, RR, N_sin = 25, n_runs = 20, it
 
   cat(paste0("Model compiled successfully. Starting ", n_runs, " optimization runs...\n"))
 
+  guess <- CardioCurveR::estimate_RRi_curve(time, RRi = RR)$parameters |>
+    abs()
   stan_data <- list(
     N = length(time),
     t = time,
@@ -53,7 +55,11 @@ find_mle_stan <- function(stan_model_file, time, RR, N_sin = 25, n_runs = 20, it
       seq(0.003, 0.039, length.out = N_sin),
       seq(0.04, 0.149, length.out = N_sin),
       seq(0.15, 0.4, length.out = N_sin)
-    )
+    ),
+    tau_mu = guess[["tau"]],
+    delta_mu = guess[["delta"]],
+    lambda_mu = guess[["lambda"]],
+    phi_mu = guess[["phi"]]
   )
 
   # --- 2. Run the Optimizer Multiple Times ---
@@ -104,7 +110,7 @@ find_mle_stan <- function(stan_model_file, time, RR, N_sin = 25, n_runs = 20, it
 
   mle_estimates <- best_estimates[
     i = V1 %like% "tau|delta|phi|lambda|alpha|beta|^c|^pi_|^w|^b" &
-      !V1 %like% "log$|logit$",
+      !V1 %like% "log$|logit$|_gp",
     j = list(Parameter = V1, Estimate = V2)
   ]
 
@@ -132,19 +138,26 @@ find_mle_stan <- function(stan_model_file, time, RR, N_sin = 25, n_runs = 20, it
 library(data.table)
 
 rr_data <- CardioCurveR::import_RRi_txt(
-  file = "../../Desarrollo web/Polar H10 R-R interval/R/polar_h10_rr_only_mi-pollito_2025-08-28_01-19-14.txt"
+  file = "../../Desarrollo web/Polar H10 R-R interval/R/polar_h10_rr_only_2025-08-26.txt"
 ) |> as.data.table()
 
 mle_estimate <-
-  find_mle_stan(stan_model_file = "models/rri_mle_model.stan",
+  find_mle_stan(stan_model_file = "models/rri_model.stan",
                 time = rr_data$time,
                 RR = rr_data$RRi,
-                N_sin = 10,
-                n_runs = 100,
-                iter = 1000,
-                seed = 123)
+                N_sin = 50,
+                n_runs = 20,
+                iter = 50000,
+                seed = 1)
 
 mle_estimate$mle_estimates[, round(Estimate, 3), Parameter]
 
 mle_estimate$predicted_rri[, plot(time, mu, type = "l", ylim = c())]
 rr_data[, lines(time, RRi, col = "red")]
+
+mle_estimate$predicted_rri[, plot(mu[((1 + 2):.N)], mu[1:(.N-2)])]
+rr_data[, plot(RRi[((1 + 2):.N)], RRi[1:(.N-2)])]
+
+mle_estimate$predicted_rri[, p_vlf:p_hf] |> matplot(type = "l", lty = 1)
+
+mle_estimate$predicted_rri |> plot()
