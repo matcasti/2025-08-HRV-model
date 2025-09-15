@@ -180,11 +180,14 @@ window.Quarto = {
   
 
 
+<p><strong>Abstract</strong></p>
+<p>Heart rate variability (HRV) is a cornerstone of non-invasive autonomic nervous system assessment, yet its analysis is hampered by the non-stationary nature of physiological signals. Standard analytical methods, which assume stationarity within fixed time windows, fundamentally distort the underlying dynamics of interest, such as the response to a physiological stressor. This limitation obstructs the development of mechanistic hypotheses about autonomic control. Here, we address this challenge by introducing a unified probabilistic framework for non-stationary HRV analysis. We propose a hypothesis-driven, generative model that recasts the physiological response as a continuous-time stochastic process governed by a double-logistic function. This approach deconstructs the R-R interval (RRi) series into a set of interpretable parameters representing the latency, rate, and magnitude of distinct response and recovery phases. Through simulation, we demonstrate the model’s ability to achieve high-fidelity parameter recovery and show its descriptive superiority over conventional windowed methods. We then apply the framework to an empirical exercise-recovery recording, generating a precise, falsifiable hypothesis of “dissonant autonomic recovery”, where mean heart rate and its variability exhibit distinct recovery timescales. This framework provides a formal methodology for translating complex biosignals into quantitative, testable estimates of their generative processes.</p>
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
-<p>A central goal in contemporary biomedical science is to mechanistically link the dynamics of physiological systems to human health and disease. A primary obstacle to this goal is the inferential gap between what we can measure with high-temporal resolution via wearable sensors, and the unobservable neurobiological processes that generate these measurements <span class="citation" data-cites="huber2025brain">(<a href="#ref-huber2025brain" role="doc-biblioref">Huber et al. 2025</a>)</span>. This “inverse problem” is nowhere more apparent than in the study of the autonomic nervous system (ANS), where heart rate variability (HRV) is the dominant non-invasive proxy <span class="citation" data-cites="shaffer2017overview">(<a href="#ref-shaffer2017overview" role="doc-biblioref">Shaffer and Ginsberg 2017</a>)</span>. The R-R interval (RRi) time-series is an invaluable signal, yet it is also a profound analytical challenge: it is a complex, integrated output reflecting the ceaseless, dynamic interplay of multiple regulatory systems <span class="citation" data-cites="arakaki2023connection">(<a href="#ref-arakaki2023connection" role="doc-biblioref">Arakaki et al. 2023</a>)</span>. Therefore, progress is contingent upon solving a fundamental problem of principled inverse inference: the development of a formal methodology to deconstruct this composite signal into quantitative, interpretable, and falsifiable estimates of its underlying generative processes. The urgency of this problem is underscored by its direct relevance to major public health burdens, as autonomic dysregulation is a core feature of disorders ranging from cardiovascular disease to anxiety and post-traumatic stress <span class="citation" data-cites="cheng2022heart tomasi2024heart schneider2020autonomic">(<a href="#ref-cheng2022heart" role="doc-biblioref">Cheng et al. 2022</a>; <a href="#ref-tomasi2024heart" role="doc-biblioref">Tomasi et al. 2024</a>; <a href="#ref-schneider2020autonomic" role="doc-biblioref">Schneider and Schwerdtfeger 2020</a>)</span>, where a precise characterization of system dynamics is essential for diagnosis and treatment <span class="citation" data-cites="orini2023long">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>)</span>.</p>
+<p>A central goal in contemporary biomedical science is to mechanistically link the dynamics of physiological systems to human health and disease. A primary obstacle to this goal is the inferential gap between what we can measure with high-temporal resolution via wearable sensors, and the unobservable neurobiological processes that generate these measurements <span class="citation" data-cites="huber2025brain">(<a href="#ref-huber2025brain" role="doc-biblioref">Huber et al. 2025</a>)</span>. This “inverse problem” is nowhere more apparent than in the study of the autonomic nervous system (ANS), where heart rate variability (HRV) is the dominant non-invasive proxy <span class="citation" data-cites="shaffer2017overview">(<a href="#ref-shaffer2017overview" role="doc-biblioref">Shaffer and Ginsberg 2017</a>)</span>. The R-R interval (RRi) time-series is an invaluable signal, yet it is also a profound analytical challenge: it is a complex, integrated output reflecting the ceaseless, dynamic interplay of multiple regulatory systems <span class="citation" data-cites="arakaki2023connection">(<a href="#ref-arakaki2023connection" role="doc-biblioref">Arakaki et al. 2023</a>)</span>. Therefore, progress is contingent upon solving a fundamental problem of principled inverse inference: the development of a formal methodology to deconstruct this composite signal into quantitative, interpretable, and falsifiable estimates of its underlying generative processes. The urgency of this problem is underscored by its direct relevance to major public health burdens, as autonomic dysregulation is a core feature of disorders ranging from cardiovascular diseases <span class="citation" data-cites="orini2023long serhiyenko2024post">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>; <a href="#ref-serhiyenko2024post" role="doc-biblioref">Serhiyenko et al. 2024</a>)</span>, to anxiety and post-traumatic stress <span class="citation" data-cites="schneider2020autonomic cheng2022heart tomasi2024heart">(<a href="#ref-schneider2020autonomic" role="doc-biblioref">Schneider and Schwerdtfeger 2020</a>; <a href="#ref-cheng2022heart" role="doc-biblioref">Cheng et al. 2022</a>; <a href="#ref-tomasi2024heart" role="doc-biblioref">Tomasi et al. 2024</a>)</span>, where a precise characterization of system dynamics is essential for diagnosis and treatment <span class="citation" data-cites="orini2023long">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>)</span>.</p>
 <p>The analytical tools currently employed by the majority of researchers are fundamentally unsuited for this task. The prevailing paradigm, which relies on calculating summary statistics within fixed temporal windows, imposes a static, linear worldview on a system that is intrinsically dynamic and non-linear. This approach is predicated on an assumption of stationarity that is inherently violated during any physiological transition of scientific or clinical interest <span class="citation" data-cites="shaffer2020critical kim2021ultra">(<a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. This is not a minor statistical infraction; it is a fundamental limitation for mechanistic inference that produces misleading and often uninterpretable results <span class="citation" data-cites="kim2021ultra">(<a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. For instance, by averaging across a period of stress recovery, such methods conflate the initial sympathetic response with the subsequent parasympathetic rebound, yielding a single, opaque number that masks the system’s adaptive capacity <span class="citation" data-cites="shaffer2020critical kim2021ultra">(<a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. This can render it impossible to distinguish a resilient individual who exhibits a rapid and robust recovery from a vulnerable one whose recovery is sluggish, a critical biomarker of pathology <span class="citation" data-cites="lu2023uncertainties">(<a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>)</span>. This “discretize-and-summarize” approach systematically discards the temporal structure of the data, thereby precluding the direct estimation of core mechanistic properties such as response latencies, rates of change, and adaptive magnitudes, which constitute the very essence of the physiological process <span class="citation" data-cites="tiwari2021analysis">(<a href="#ref-tiwari2021analysis" role="doc-biblioref">Tiwari et al. 2021</a>)</span>.</p>
-<p>Acknowledging these limitations, more sophisticated signal processing and modeling techniques have been proposed, yet these too fail to resolve the core inferential challenge. They present a false choice between phenomenological description and non-interpretable abstraction. Time-frequency decompositions, such as the wavelet transform, excel at providing detailed visualizations of spectral dynamics, making them useful for exploratory analysis <span class="citation" data-cites="german2014wavelet">(<a href="#ref-german2014wavelet" role="doc-biblioref">German-Sallo 2014</a>)</span>. However, they are fundamentally descriptive; they do not instantiate a formal, generative model of the underlying biology. They can show that a change occurred, but they cannot provide a parameterized, testable estimate of what changed <span class="citation" data-cites="guo2022review">(<a href="#ref-guo2022review" role="doc-biblioref">Guo et al. 2022</a>)</span>. Conversely, advanced modeling traditions like state-space models offer mathematical sophistication for tracking and forecasting a system’s evolution <span class="citation" data-cites="martin2018improving rosas2024bayesian">(<a href="#ref-martin2018improving" role="doc-biblioref">Martı́n-González et al. 2018</a>; <a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>)</span>. While powerful, their typical formulations trade physiological fidelity for mathematical convenience; the latent states they infer are defined by statistical properties rather than biological identity, lacking a direct, one-to-one mapping to constructs like vagal tone or sympathetic drive <span class="citation" data-cites="rosas2024bayesian liu2024efficient">(<a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>; <a href="#ref-liu2024efficient" role="doc-biblioref">Liu, Perley, and Coleman 2024</a>)</span>. Consequently, the field remains methodologically stalled, caught between descriptive tools that cannot test mechanisms and abstract models whose mechanisms are not directly interpretable.</p>
+<p>Acknowledging these limitations, more sophisticated signal processing and modeling techniques have been proposed, yet these too often fail to resolve the core inferential challenge. They present a false choice between phenomenological description and non-interpretable abstraction. On one hand, time-frequency decompositions, such as the wavelet transform, excel at providing detailed visualizations of spectral dynamics, making them useful for exploratory analysis <span class="citation" data-cites="german2014wavelet">(<a href="#ref-german2014wavelet" role="doc-biblioref">German-Sallo 2014</a>)</span>. However, they are fundamentally descriptive; they do not instantiate a formal, generative model of the underlying biology. They can show that a change occurred, but they cannot provide a parameterized, testable estimate of what changed <span class="citation" data-cites="guo2022review">(<a href="#ref-guo2022review" role="doc-biblioref">Guo et al. 2022</a>)</span>.</p>
+<p>On the other hand, more advanced modeling traditions like state-space models (SSMs) offer mathematical sophistication for tracking and forecasting a system’s evolution <span class="citation" data-cites="martin2018improving rosas2024bayesian">(<a href="#ref-martin2018improving" role="doc-biblioref">Martı́n-González et al. 2018</a>; <a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>)</span>. While powerful, their typical formulations trade physiological fidelity for mathematical convenience; the latent states they infer are often defined by statistical properties rather than direct biological identity <span class="citation" data-cites="rosas2024bayesian liu2024efficient">(<a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>; <a href="#ref-liu2024efficient" role="doc-biblioref">Liu, Perley, and Coleman 2024</a>)</span>. Even in more tailored applications designed to enhance interpretability, SSMs excel at tracking continuously varying processes but are not explicitly structured to parameterize the distinct phases of a discrete physiological event, such as the specific onset rate, recovery latency, and adaptive magnitude of a stress response. Consequently, the field remains methodologically stalled, caught between descriptive tools that cannot test mechanisms and abstract models whose parameters do not directly map onto the discrete, event-driven components of a physiological hypothesis.</p>
 <p>We argue that bridging the gap between data and mechanism requires a fundamental evolution in analytical philosophy: a shift from model-agnostic data description to the construction of hypothesis-driven, generative models. This approach moves beyond simply characterizing what the data looks like and instead focuses on creating explicit, testable, and quantitative models of the biological machinery that produced it. Here, we introduce and validate such a framework, which recasts physiological analysis as a form of formal hypothesis testing. We posit that a stereotyped autonomic response to an acute perturbation is not random noise but a structured, dynamic process. Consequently, we propose it can be effectively modeled as a continuous-time stochastic process, allowing us to separate the structured response from inherent biological variability. As a specific, falsifiable instantiation of this philosophy, we model the response trajectory using a double-logistic function. This mathematical form is chosen not as a universal truth, but as a parsimonious hypothesis for biphasic dynamics, designed to capture the characteristic onset and subsequent recovery phases <span class="citation" data-cites="castillo2025enhancing">(<a href="#ref-castillo2025enhancing" role="doc-biblioref">Castillo-Aguilar et al. 2025</a>)</span>. The power of this approach lies in its ability to translate the raw signal into a small set of interpretable mechanistic parameters: the latency, rate, and magnitude of each distinct response phase <span class="citation" data-cites="castillo2025enhancing">(<a href="#ref-castillo2025enhancing" role="doc-biblioref">Castillo-Aguilar et al. 2025</a>)</span>. This provides a direct, quantitative window into the system’s underlying reactivity and resilience.</p>
 <p>We implement this approach as a novel generative model within a Bayesian framework. This provides robust parameter estimation with full uncertainty quantification, enables hierarchical modeling of individual and group-level effects, and offers a principled basis for model comparison. This model provides a specific and falsifiable instantiation of our framework, decomposing the RRi series into a time-varying mean, total variance, and a dynamically shifting oscillatory component, all governed by a double-logistic latent dynamic. This paper tests the hypothesis that this model provides a more accurate and useful characterization of autonomic dynamics than existing methods. Through simulation, we demonstrate its capacity to recover known ground-truth parameters, establishing its core validity. We contend that this approach provides the necessary quantitative indices to develop and test mechanistic physiological hypotheses, representing a critical step towards translating complex time-series into falsifiable knowledge.</p>
 </section>
@@ -195,25 +198,25 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="model-validation-and-parameter-recovery-on-synthetic-data">Model validation and parameter recovery on synthetic data</h2>
 <p>To establish the model’s internal consistency and the identifiability of its parameters, we first assessed its ability to perform inference on synthetic data generated from its own structure. This in-silico procedure serves as a necessary check of the model’s self-consistency and the estimation algorithm’s ability to navigate the complex posterior geometry. We designed three distinct scenarios to test performance: (A) a canonical response with complete recovery; (B) an incomplete recovery with persistence in both time and frequency domains; and (C) a high-noise condition with a low structured variance fraction (<span class="math inline">\(w\)</span> = 0.6). The ground-truth dynamics are shown in Figure 1, with generative parameter values listed in Table 1. It is critical to note that this procedure tests for inferential integrity under the assumption that the model is correctly specified; it does not test for robustness to model misspecification, a challenge inherent to all empirical data.</p>
 <p><img src="figures/fig-generated-data.svg" class="img-fluid" style="width:100.0%"> <strong>Figure 1. Ground-truth dynamics of three synthetic scenarios.</strong> The scenarios were designed to test model performance under diverse conditions: (A) a classic sympatho-vagal response, (B) an incomplete recovery with persistence in both time and frequency domains, and (C) a high-noise condition with dissonant (complete time-domain, incomplete spectral) recovery. Panels show the generated RRi data with the true mean signal, the underlying time-domain trajectories for baseline RRi and total SDNN, and the time-varying spectral proportions.</p>
-<div class="cell page-columns page-full">
-<div class="cell-output-display column-screen-inset-left">
-<div id="mkxxqvpqzn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#mkxxqvpqzn table {
+<div class="cell">
+<div class="cell-output-display">
+<div id="fptebqkskf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#fptebqkskf table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#mkxxqvpqzn thead, #mkxxqvpqzn tbody, #mkxxqvpqzn tfoot, #mkxxqvpqzn tr, #mkxxqvpqzn td, #mkxxqvpqzn th {
+#fptebqkskf thead, #fptebqkskf tbody, #fptebqkskf tfoot, #fptebqkskf tr, #fptebqkskf td, #fptebqkskf th {
   border-style: none;
 }
 
-#mkxxqvpqzn p {
+#fptebqkskf p {
   margin: 0;
   padding: 0;
 }
 
-#mkxxqvpqzn .gt_table {
+#fptebqkskf .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -239,12 +242,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#mkxxqvpqzn .gt_caption {
+#fptebqkskf .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#mkxxqvpqzn .gt_title {
+#fptebqkskf .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -256,7 +259,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#mkxxqvpqzn .gt_subtitle {
+#fptebqkskf .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -268,7 +271,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#mkxxqvpqzn .gt_heading {
+#fptebqkskf .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -280,13 +283,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#mkxxqvpqzn .gt_bottom_border {
+#fptebqkskf .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#mkxxqvpqzn .gt_col_headings {
+#fptebqkskf .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -301,7 +304,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#mkxxqvpqzn .gt_col_heading {
+#fptebqkskf .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -321,7 +324,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#mkxxqvpqzn .gt_column_spanner_outer {
+#fptebqkskf .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -333,15 +336,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#mkxxqvpqzn .gt_column_spanner_outer:first-child {
+#fptebqkskf .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#mkxxqvpqzn .gt_column_spanner_outer:last-child {
+#fptebqkskf .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#mkxxqvpqzn .gt_column_spanner {
+#fptebqkskf .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -353,11 +356,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#mkxxqvpqzn .gt_spanner_row {
+#fptebqkskf .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#mkxxqvpqzn .gt_group_heading {
+#fptebqkskf .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -383,7 +386,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#mkxxqvpqzn .gt_empty_group_heading {
+#fptebqkskf .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -398,15 +401,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#mkxxqvpqzn .gt_from_md > :first-child {
+#fptebqkskf .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#mkxxqvpqzn .gt_from_md > :last-child {
+#fptebqkskf .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#mkxxqvpqzn .gt_row {
+#fptebqkskf .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -425,7 +428,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#mkxxqvpqzn .gt_stub {
+#fptebqkskf .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -438,7 +441,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mkxxqvpqzn .gt_stub_row_group {
+#fptebqkskf .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -452,15 +455,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#mkxxqvpqzn .gt_row_group_first td {
+#fptebqkskf .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#mkxxqvpqzn .gt_row_group_first th {
+#fptebqkskf .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#mkxxqvpqzn .gt_summary_row {
+#fptebqkskf .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -470,16 +473,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mkxxqvpqzn .gt_first_summary_row {
+#fptebqkskf .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#mkxxqvpqzn .gt_first_summary_row.thick {
+#fptebqkskf .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#mkxxqvpqzn .gt_last_summary_row {
+#fptebqkskf .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -489,7 +492,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#mkxxqvpqzn .gt_grand_summary_row {
+#fptebqkskf .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -499,7 +502,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mkxxqvpqzn .gt_first_grand_summary_row {
+#fptebqkskf .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -509,7 +512,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#mkxxqvpqzn .gt_last_grand_summary_row_top {
+#fptebqkskf .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -519,11 +522,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#mkxxqvpqzn .gt_striped {
+#fptebqkskf .gt_striped {
   background-color: #F4F4F4;
 }
 
-#mkxxqvpqzn .gt_table_body {
+#fptebqkskf .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -532,7 +535,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#mkxxqvpqzn .gt_footnotes {
+#fptebqkskf .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -546,7 +549,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#mkxxqvpqzn .gt_footnote {
+#fptebqkskf .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -555,7 +558,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mkxxqvpqzn .gt_sourcenotes {
+#fptebqkskf .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -569,7 +572,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#mkxxqvpqzn .gt_sourcenote {
+#fptebqkskf .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -577,72 +580,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mkxxqvpqzn .gt_left {
+#fptebqkskf .gt_left {
   text-align: left;
 }
 
-#mkxxqvpqzn .gt_center {
+#fptebqkskf .gt_center {
   text-align: center;
 }
 
-#mkxxqvpqzn .gt_right {
+#fptebqkskf .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#mkxxqvpqzn .gt_font_normal {
+#fptebqkskf .gt_font_normal {
   font-weight: normal;
 }
 
-#mkxxqvpqzn .gt_font_bold {
+#fptebqkskf .gt_font_bold {
   font-weight: bold;
 }
 
-#mkxxqvpqzn .gt_font_italic {
+#fptebqkskf .gt_font_italic {
   font-style: italic;
 }
 
-#mkxxqvpqzn .gt_super {
+#fptebqkskf .gt_super {
   font-size: 65%;
 }
 
-#mkxxqvpqzn .gt_footnote_marks {
+#fptebqkskf .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#mkxxqvpqzn .gt_asterisk {
+#fptebqkskf .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#mkxxqvpqzn .gt_indent_1 {
+#fptebqkskf .gt_indent_1 {
   text-indent: 5px;
 }
 
-#mkxxqvpqzn .gt_indent_2 {
+#fptebqkskf .gt_indent_2 {
   text-indent: 10px;
 }
 
-#mkxxqvpqzn .gt_indent_3 {
+#fptebqkskf .gt_indent_3 {
   text-indent: 15px;
 }
 
-#mkxxqvpqzn .gt_indent_4 {
+#fptebqkskf .gt_indent_4 {
   text-indent: 20px;
 }
 
-#mkxxqvpqzn .gt_indent_5 {
+#fptebqkskf .gt_indent_5 {
   text-indent: 25px;
 }
 
-#mkxxqvpqzn .katex-display {
+#fptebqkskf .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#mkxxqvpqzn div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#fptebqkskf div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -769,23 +772,23 @@ window.Quarto = {
 <p>Beyond recovering the continuous dynamic trajectories, the model also recovered the discrete parameters that govern the shape and timing of these dynamics. Table 2 presents the posterior summaries for these key parameters, comparing the posterior median and 95% credible intervals against their true values. For all parameters across all scenarios, the 95% credible intervals successfully contained the ground-truth values. This result confirms that the model’s parameters are practically identifiable from data of this type, at least when the data-generating process aligns with the model’s structural assumptions. This successful recovery provides compelling evidence that the parameters are not hopelessly confounded and that the likelihood surface is sufficiently well-behaved to permit robust inference, providing the necessary foundation for the model’s application to more complex, real-world data.</p>
 <div class="cell page-columns page-full">
 <div class="cell-output-display column-screen-inset-left">
-<div id="bouyhydzpj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#bouyhydzpj table {
+<div id="ehzzxdztfp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ehzzxdztfp table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#bouyhydzpj thead, #bouyhydzpj tbody, #bouyhydzpj tfoot, #bouyhydzpj tr, #bouyhydzpj td, #bouyhydzpj th {
+#ehzzxdztfp thead, #ehzzxdztfp tbody, #ehzzxdztfp tfoot, #ehzzxdztfp tr, #ehzzxdztfp td, #ehzzxdztfp th {
   border-style: none;
 }
 
-#bouyhydzpj p {
+#ehzzxdztfp p {
   margin: 0;
   padding: 0;
 }
 
-#bouyhydzpj .gt_table {
+#ehzzxdztfp .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -811,12 +814,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#bouyhydzpj .gt_caption {
+#ehzzxdztfp .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#bouyhydzpj .gt_title {
+#ehzzxdztfp .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -828,7 +831,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#bouyhydzpj .gt_subtitle {
+#ehzzxdztfp .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -840,7 +843,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#bouyhydzpj .gt_heading {
+#ehzzxdztfp .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -852,13 +855,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#bouyhydzpj .gt_bottom_border {
+#ehzzxdztfp .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#bouyhydzpj .gt_col_headings {
+#ehzzxdztfp .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -873,7 +876,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#bouyhydzpj .gt_col_heading {
+#ehzzxdztfp .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -893,7 +896,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#bouyhydzpj .gt_column_spanner_outer {
+#ehzzxdztfp .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -905,15 +908,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#bouyhydzpj .gt_column_spanner_outer:first-child {
+#ehzzxdztfp .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#bouyhydzpj .gt_column_spanner_outer:last-child {
+#ehzzxdztfp .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#bouyhydzpj .gt_column_spanner {
+#ehzzxdztfp .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -925,11 +928,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#bouyhydzpj .gt_spanner_row {
+#ehzzxdztfp .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#bouyhydzpj .gt_group_heading {
+#ehzzxdztfp .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -955,7 +958,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#bouyhydzpj .gt_empty_group_heading {
+#ehzzxdztfp .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -970,15 +973,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#bouyhydzpj .gt_from_md > :first-child {
+#ehzzxdztfp .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#bouyhydzpj .gt_from_md > :last-child {
+#ehzzxdztfp .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#bouyhydzpj .gt_row {
+#ehzzxdztfp .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -997,7 +1000,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#bouyhydzpj .gt_stub {
+#ehzzxdztfp .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -1010,7 +1013,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bouyhydzpj .gt_stub_row_group {
+#ehzzxdztfp .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1024,15 +1027,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#bouyhydzpj .gt_row_group_first td {
+#ehzzxdztfp .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#bouyhydzpj .gt_row_group_first th {
+#ehzzxdztfp .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#bouyhydzpj .gt_summary_row {
+#ehzzxdztfp .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -1042,16 +1045,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bouyhydzpj .gt_first_summary_row {
+#ehzzxdztfp .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#bouyhydzpj .gt_first_summary_row.thick {
+#ehzzxdztfp .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#bouyhydzpj .gt_last_summary_row {
+#ehzzxdztfp .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1061,7 +1064,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#bouyhydzpj .gt_grand_summary_row {
+#ehzzxdztfp .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -1071,7 +1074,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bouyhydzpj .gt_first_grand_summary_row {
+#ehzzxdztfp .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1081,7 +1084,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#bouyhydzpj .gt_last_grand_summary_row_top {
+#ehzzxdztfp .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1091,11 +1094,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#bouyhydzpj .gt_striped {
+#ehzzxdztfp .gt_striped {
   background-color: #F4F4F4;
 }
 
-#bouyhydzpj .gt_table_body {
+#ehzzxdztfp .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1104,7 +1107,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#bouyhydzpj .gt_footnotes {
+#ehzzxdztfp .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1118,7 +1121,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#bouyhydzpj .gt_footnote {
+#ehzzxdztfp .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1127,7 +1130,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bouyhydzpj .gt_sourcenotes {
+#ehzzxdztfp .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1141,7 +1144,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#bouyhydzpj .gt_sourcenote {
+#ehzzxdztfp .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1149,72 +1152,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bouyhydzpj .gt_left {
+#ehzzxdztfp .gt_left {
   text-align: left;
 }
 
-#bouyhydzpj .gt_center {
+#ehzzxdztfp .gt_center {
   text-align: center;
 }
 
-#bouyhydzpj .gt_right {
+#ehzzxdztfp .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#bouyhydzpj .gt_font_normal {
+#ehzzxdztfp .gt_font_normal {
   font-weight: normal;
 }
 
-#bouyhydzpj .gt_font_bold {
+#ehzzxdztfp .gt_font_bold {
   font-weight: bold;
 }
 
-#bouyhydzpj .gt_font_italic {
+#ehzzxdztfp .gt_font_italic {
   font-style: italic;
 }
 
-#bouyhydzpj .gt_super {
+#ehzzxdztfp .gt_super {
   font-size: 65%;
 }
 
-#bouyhydzpj .gt_footnote_marks {
+#ehzzxdztfp .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#bouyhydzpj .gt_asterisk {
+#ehzzxdztfp .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#bouyhydzpj .gt_indent_1 {
+#ehzzxdztfp .gt_indent_1 {
   text-indent: 5px;
 }
 
-#bouyhydzpj .gt_indent_2 {
+#ehzzxdztfp .gt_indent_2 {
   text-indent: 10px;
 }
 
-#bouyhydzpj .gt_indent_3 {
+#ehzzxdztfp .gt_indent_3 {
   text-indent: 15px;
 }
 
-#bouyhydzpj .gt_indent_4 {
+#ehzzxdztfp .gt_indent_4 {
   text-indent: 20px;
 }
 
-#bouyhydzpj .gt_indent_5 {
+#ehzzxdztfp .gt_indent_5 {
   text-indent: 25px;
 }
 
-#bouyhydzpj .katex-display {
+#ehzzxdztfp .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#bouyhydzpj div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#ehzzxdztfp div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1490,23 +1493,23 @@ window.Quarto = {
 <p>A formal quantitative analysis confirms the descriptive efficiency and accuracy of the generative approach for signals of this particular nature. Table 3 provides a summary of key performance metrics. Across all scenarios and all signal components, the generative model consistently provided a more accurate and parsimonious description of the data. It achieved substantially lower error (RMSE and Bias) and captured a significantly higher proportion of the signal’s variance, with <span class="math inline">\(R^2\)</span> values typically exceeding 0.90. It is important to interpret this result with caution. The model’s performance is, in one sense, expected, as the synthetic data were generated from its own structure. However, this does not render the comparison moot. Rather, it precisely illustrates a core theoretical argument of this work: for signals that are plausibly characterized by smooth, continuous transitions between distinct physiological states, a model whose parametric form explicitly encodes this structure will naturally provide a more efficient, less distorted, and more interpretable quantitative summary than a non-parametric, windowed approach that was designed for stationary or quasi-stationary signals.</p>
 <div class="cell page-columns page-full">
 <div class="cell-output-display column-screen-inset-left">
-<div id="uhhejiivby" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#uhhejiivby table {
+<div id="notywkpyen" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#notywkpyen table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#uhhejiivby thead, #uhhejiivby tbody, #uhhejiivby tfoot, #uhhejiivby tr, #uhhejiivby td, #uhhejiivby th {
+#notywkpyen thead, #notywkpyen tbody, #notywkpyen tfoot, #notywkpyen tr, #notywkpyen td, #notywkpyen th {
   border-style: none;
 }
 
-#uhhejiivby p {
+#notywkpyen p {
   margin: 0;
   padding: 0;
 }
 
-#uhhejiivby .gt_table {
+#notywkpyen .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1532,12 +1535,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#uhhejiivby .gt_caption {
+#notywkpyen .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#uhhejiivby .gt_title {
+#notywkpyen .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1549,7 +1552,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#uhhejiivby .gt_subtitle {
+#notywkpyen .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1561,7 +1564,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#uhhejiivby .gt_heading {
+#notywkpyen .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1573,13 +1576,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#uhhejiivby .gt_bottom_border {
+#notywkpyen .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#uhhejiivby .gt_col_headings {
+#notywkpyen .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1594,7 +1597,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#uhhejiivby .gt_col_heading {
+#notywkpyen .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1614,7 +1617,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#uhhejiivby .gt_column_spanner_outer {
+#notywkpyen .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1626,15 +1629,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#uhhejiivby .gt_column_spanner_outer:first-child {
+#notywkpyen .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#uhhejiivby .gt_column_spanner_outer:last-child {
+#notywkpyen .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#uhhejiivby .gt_column_spanner {
+#notywkpyen .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -1646,11 +1649,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#uhhejiivby .gt_spanner_row {
+#notywkpyen .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#uhhejiivby .gt_group_heading {
+#notywkpyen .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1676,7 +1679,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#uhhejiivby .gt_empty_group_heading {
+#notywkpyen .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1691,15 +1694,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#uhhejiivby .gt_from_md > :first-child {
+#notywkpyen .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#uhhejiivby .gt_from_md > :last-child {
+#notywkpyen .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#uhhejiivby .gt_row {
+#notywkpyen .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1718,7 +1721,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#uhhejiivby .gt_stub {
+#notywkpyen .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -1731,7 +1734,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uhhejiivby .gt_stub_row_group {
+#notywkpyen .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1745,15 +1748,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#uhhejiivby .gt_row_group_first td {
+#notywkpyen .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#uhhejiivby .gt_row_group_first th {
+#notywkpyen .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#uhhejiivby .gt_summary_row {
+#notywkpyen .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -1763,16 +1766,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uhhejiivby .gt_first_summary_row {
+#notywkpyen .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#uhhejiivby .gt_first_summary_row.thick {
+#notywkpyen .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#uhhejiivby .gt_last_summary_row {
+#notywkpyen .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1782,7 +1785,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#uhhejiivby .gt_grand_summary_row {
+#notywkpyen .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -1792,7 +1795,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uhhejiivby .gt_first_grand_summary_row {
+#notywkpyen .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1802,7 +1805,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#uhhejiivby .gt_last_grand_summary_row_top {
+#notywkpyen .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1812,11 +1815,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#uhhejiivby .gt_striped {
+#notywkpyen .gt_striped {
   background-color: #F4F4F4;
 }
 
-#uhhejiivby .gt_table_body {
+#notywkpyen .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1825,7 +1828,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#uhhejiivby .gt_footnotes {
+#notywkpyen .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1839,7 +1842,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#uhhejiivby .gt_footnote {
+#notywkpyen .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1848,7 +1851,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uhhejiivby .gt_sourcenotes {
+#notywkpyen .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1862,7 +1865,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#uhhejiivby .gt_sourcenote {
+#notywkpyen .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1870,72 +1873,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uhhejiivby .gt_left {
+#notywkpyen .gt_left {
   text-align: left;
 }
 
-#uhhejiivby .gt_center {
+#notywkpyen .gt_center {
   text-align: center;
 }
 
-#uhhejiivby .gt_right {
+#notywkpyen .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#uhhejiivby .gt_font_normal {
+#notywkpyen .gt_font_normal {
   font-weight: normal;
 }
 
-#uhhejiivby .gt_font_bold {
+#notywkpyen .gt_font_bold {
   font-weight: bold;
 }
 
-#uhhejiivby .gt_font_italic {
+#notywkpyen .gt_font_italic {
   font-style: italic;
 }
 
-#uhhejiivby .gt_super {
+#notywkpyen .gt_super {
   font-size: 65%;
 }
 
-#uhhejiivby .gt_footnote_marks {
+#notywkpyen .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#uhhejiivby .gt_asterisk {
+#notywkpyen .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#uhhejiivby .gt_indent_1 {
+#notywkpyen .gt_indent_1 {
   text-indent: 5px;
 }
 
-#uhhejiivby .gt_indent_2 {
+#notywkpyen .gt_indent_2 {
   text-indent: 10px;
 }
 
-#uhhejiivby .gt_indent_3 {
+#notywkpyen .gt_indent_3 {
   text-indent: 15px;
 }
 
-#uhhejiivby .gt_indent_4 {
+#notywkpyen .gt_indent_4 {
   text-indent: 20px;
 }
 
-#uhhejiivby .gt_indent_5 {
+#notywkpyen .gt_indent_5 {
   text-indent: 25px;
 }
 
-#uhhejiivby .katex-display {
+#notywkpyen .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#uhhejiivby div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#notywkpyen div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -2216,40 +2219,41 @@ window.Quarto = {
 <p>To illustrate the framework’s intended application in a real-world context, we analyzed an RRi time series recorded from a single healthy subject undergoing a standardized two-minute submaximal step test. The express purpose of this N-of-1 analysis is not to draw generalizable physiological conclusions or to make claims about the nature of exercise physiology. Instead, its function is purely illustrative: to demonstrate how the model translates a complex, high-dimensional, and noisy time series into a concise, low-dimensional, and interpretable set of parameters that form the basis for generating new, quantitative, and ultimately falsifiable hypotheses.</p>
 <p>Upon fitting the model to the empirical data, it yields a phenomenological decomposition of the entire exercise-recovery response, as depicted in Figure 4. The framework parses the complex signal into its constituent components, describing the physiological process as a rapid initial tachycardia (a decrease in the baseline RRi component) and a concurrent, profound suppression of total heart rate variability (a decrease in the SDNN component). This initial response is followed by a slower, more gradual recovery phase after the cessation of the exercise stimulus. From a spectral perspective, the model attributes the signature of this response to a near-complete withdrawal of power in the high-frequency (HF) band, a correlate of parasympathetic activity, and a corresponding surge in the proportion of very-low-frequency (VLF) power, a band whose physiological interpretation remains debated but is often associated with sympathetic and other systemic influences. The model captures these dynamics not as a series of disjointed points but as continuous, smooth trajectories, providing a holistic and integrated narrative of the entire physiological event.</p>
 <p><img src="figures/fig-poc.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Figure 4. Phenomenological decomposition of an empirical exercise-recovery response.</strong> (A) Raw RRi data (black line). (B) The reconstructed RRi signal (red line) overlaid the observed RRi signal (gray). (C-D) time-domain components: the baseline RRi trend (<span class="math inline">\(\mathrm{RR_{base}}\)</span>, blue) and the total instantaneous variability (SDNN, orange). (E) The inferred dynamics of the spectral proportions. Shaded regions are 95% highest density intervals.</p>
+<p><strong>Figure 4. Phenomenological decomposition of an empirical exercise-recovery response.</strong> (A) Raw RRi data (black line). (B) The reconstructed RRi signal (red line) overlaid on top of the observed RRi signal (gray). (C-D) time-domain components: the baseline RRi trend (<span class="math inline">\(\mathrm{RR_{base}}\)</span>, blue) and the total instantaneous variability (<span class="math inline">\(\mathrm{SDNN}\)</span>, orange). (E) The inferred dynamics of the spectral proportions. Shaded regions are 95% highest density intervals.</p>
 <p>The framework’s primary scientific utility, however, lies not in this qualitative description but in its generation of quantitative, testable claims, which are encapsulated by the posterior distributions of its parameters (Figure 5). A key feature of the model is its separate parameterization of the recovery dynamics of the signal’s first moment (mean RRi, via the coefficient <span class="math inline">\(c_r\)</span>) and its second moment (total variability, or SDNN, via the coefficient <span class="math inline">\(c_s\)</span>). This explicit separation allows for a direct, quantitative description of their potential divergence. In this particular recording, the posterior distributions for these two recovery parameters were credibly distinct; the 95% credible interval for <span class="math inline">\(c_r\)</span> was clearly separated from that for <span class="math inline">\(c_s\)</span>. This descriptive feature of the model’s output, which we term model-inferred dissonance, provides a precise, data-driven, and falsifiable hypothesis: that the recovery of mean heart rate and the recovery of its variability can follow distinct and dissociable time courses in response to an acute exercise stressor. This hypothesis is not merely a qualitative observation but a quantitative statement, grounded in the posterior probability distributions of the model’s parameters.</p>
-<p><img src="figures/fig-poc-trace.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Figure 5. Traceplots of phenomenological recovery parameters from the empirical analysis.</strong> The stationary distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance, alongside the structured variance fraction (<span class="math inline">\(w\)</span>). The traceplots allows for visual inspection of model convergence and potential divergence between the posteriors for model parameters, and provides a quantitative basis for the hypothesis of dissonant autonomic recovery.</p>
+<p><img src="figures/fig-poc-posterior.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Figure 5. Posterior distribution of phenomenological recovery parameters from the empirical analysis.</strong> The posterior distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance, alongside the structured variance fraction (<span class="math inline">\(w\)</span>). The posterior distribution allows for visual inspection of model convergence of model parameters.</p>
 </section>
 </section>
 <section id="discussion" class="level1">
 <h1>Discussion</h1>
-<p>The quantitative analysis of HRV has long been a principal method for the non-invasive study of the autonomic nervous system. A persistent and fundamental challenge in this field is the inherent non-stationarity of physiological signals, which directly conflicts with the foundational assumptions of traditional analytical techniques, which were often adopted due to the computational constraints of their era. This discrepancy necessitates the use of methodological compromises, most notably time-windowing, that can introduce significant analytical artifacts and obscure the very dynamics they seek to quantify. The present study was undertaken to develop and evaluate a generative probabilistic model for RRi time series, explicitly designed to represent and infer the parameters of transient physiological events. Our findings, based on a comprehensive suite of simulations and an empirical application, suggest that this inferential paradigm offers a more accurate and granular characterization of autonomic dynamics than is achievable with conventional windowed approaches. This discussion aims to critically interrogate these findings, situate the model within the broader landscape of computational biosignal analysis, conduct an exhaustive examination of its limitations and foundational assumptions, and propose a disciplined path forward for future inquiry.</p>
-<p>The primary contribution of this research is not the invention of a fundamentally new class of statistical algorithm, but rather the novel synthesis and application of established principles from modern Bayesian inference to construct a purpose-built, physiologically-oriented measurement instrument. The model formalizes a specific, falsifiable hypothesis about the data-generating process underlying dynamic RRi signals. We employ the term <em>generative</em> to signify this complete probabilistic specification, which enables a coherent inferential procedure regarding the model’s latent parameters. The internal validity and statistical integrity of this inferential process were interrogated through extensive simulation studies. In these controlled in-silico experiments, where the ground truth was known, the model consistently recovered the generative parameters, and its posterior credible intervals were well-calibrated. This provides baseline confidence that the model can function as a reliable measurement device, but only under conditions where its numerous and restrictive structural assumptions are perfectly met. When benchmarked against conventional methods, its superior performance in tracking dynamic signals was quantitatively demonstrated. This outperformance is an expected consequence of its design, which replaces the crude filtering of windowing with a formal, continuous model of the underlying process. However, the apparent sophistication of this approach belies a series of deep-seated assumptions and conceptual challenges that demand scrupulous consideration.</p>
+<p>The quantitative analysis of HRV has long been a principal method for the non-invasive study of the autonomic nervous system <span class="citation" data-cites="malik1990heart shaffer2017overview">(<a href="#ref-malik1990heart" role="doc-biblioref">Malik and Camm 1990</a>; <a href="#ref-shaffer2017overview" role="doc-biblioref">Shaffer and Ginsberg 2017</a>)</span>. A persistent and fundamental challenge in this field is the inherent non-stationarity of physiological signals, which directly conflicts with the foundational assumptions of traditional analytical techniques <span class="citation" data-cites="voss2009methods shaffer2020critical kim2021ultra">(<a href="#ref-voss2009methods" role="doc-biblioref">Voss et al. 2009</a>; <a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>, which were often adopted due to the computational constraints of their era. This discrepancy necessitates the use of methodological compromises, most notably time-windowing, that can introduce significant analytical artifacts and obscure the very dynamics they seek to quantify <span class="citation" data-cites="rajendra2006heart lu2023uncertainties">(<a href="#ref-rajendra2006heart" role="doc-biblioref">Rajendra Acharya et al. 2006</a>; <a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>)</span>. The present study was undertaken to develop and evaluate a generative probabilistic model for RRi time series, explicitly designed to represent and infer the parameters of transient physiological events. Our findings, based on a comprehensive suite of simulations and an empirical application, suggest that this inferential paradigm offers a more accurate and granular characterization of autonomic dynamics than is achievable with conventional windowed approaches. This discussion aims to critically interrogate these findings, situate the model within the broader landscape of computational biosignal analysis, conduct an exhaustive examination of its limitations and foundational assumptions, and propose a disciplined path forward for future inquiry.</p>
+<p>The primary contribution of this research is not the invention of a fundamentally new class of statistical algorithm, but rather the novel synthesis and application of established principles from modern Bayesian inference to construct a purpose-built, physiologically-oriented measurement instrument <span class="citation" data-cites="ghahramani2013bayesian">(<a href="#ref-ghahramani2013bayesian" role="doc-biblioref">Ghahramani 2013</a>)</span>. The model formalizes a specific, falsifiable hypothesis about the data-generating process underlying dynamic RRi signals. We employ the term <em>generative</em> to signify this complete probabilistic specification, which enables a coherent inferential procedure regarding the model’s latent parameters. The internal validity and statistical integrity of this inferential process were interrogated through extensive simulation studies. In these controlled in-silico experiments, where the ground truth was known, the model consistently recovered the generative parameters, and its posterior credible intervals were well-calibrated <span class="citation" data-cites="cook2006validation talts2018validating">(<a href="#ref-cook2006validation" role="doc-biblioref">Cook, Gelman, and Rubin 2006</a>; <a href="#ref-talts2018validating" role="doc-biblioref">Talts et al. 2018</a>)</span>. This provides baseline confidence that the model can function as a reliable measurement device, but only under conditions where its numerous and restrictive structural assumptions are perfectly met. When benchmarked against conventional methods, its superior performance in tracking dynamic signals was quantitatively demonstrated. This outperformance is an expected consequence of its design, which replaces the crude filtering of windowing with a formal, continuous model of the underlying process. However, the apparent sophistication of this approach belies a series of deep-seated assumptions and conceptual challenges that demand scrupulous consideration.</p>
 <section id="methodological-superiority-and-the-abandonment-of-stationarity" class="level2">
 <h2 class="anchored" data-anchor-id="methodological-superiority-and-the-abandonment-of-stationarity">Methodological superiority and the abandonment of stationarity</h2>
-<p>A core assertion of this work is that the analytical shortcomings of traditional HRV analysis are conceptual, not merely technical. Windowed methods are, in essence, digital filters. As such, they inevitably distort the signal they are intended to measure, introducing lag, attenuating amplitudes, and enforcing a false dichotomy between temporal and spectral resolution as dictated by the Heisenberg-Gabor uncertainty principle. The inferential approach adopted here avoids these specific artifacts by modeling the entire time-course of an event holistically. Information from every data point is leveraged to inform the estimate at every other data point, conditioned on the assumed model structure.</p>
-<p>However, this approach introduces its own set of profound abstractions. A crucial, and potentially problematic, assumption is the model’s imposition of orthogonality on a non-orthogonal system. The model specifies the observed RRi signal as a linear, additive combination of a baseline trend, several sinusoidal components, and a residual noise term. This mathematical decomposition is convenient and ensures parameter identifiability, but it is a gross simplification of cardiovascular physiology. This is akin to analyzing a symphonic recording by perfectly isolating the audio tracks for the violins, cellos, and woodwinds. While one obtains a clean signal for each section, the essential musical information contained within their harmonic interplay and dynamic interaction is irrevocably lost.</p>
-<p>Similarly, in physiology, the systems underlying these model components are deeply and non-linearly coupled. Baroreflex activity (a major contributor to the low-frequency component) and respiratory sinus arrhythmia (the high-frequency component) are not independent processes that simply sum together; they are neurologically intertwined within the brainstem and are engaged in a constant, dynamic feedback loop. By construction, the model is forced to assign variance to its clean, orthogonal components in a way that may not map cleanly onto the underlying biology. The estimate for the amplitude of the high-frequency component, for instance, should be interpreted not as a pure measure of respiratory sinus arrhythmia, but as the magnitude of the best-fitting sinusoidal component in that band, assuming it can be linearly and additively separated from all other ongoing dynamics. This is a critical caveat for the physiological interpretation of every parameter yielded by the model.</p>
+<p>A core assertion of this work is that the analytical shortcomings of traditional HRV analysis are conceptual, not merely technical. Windowed methods are, in essence, digital filters <span class="citation" data-cites="sassi2015advances">(<a href="#ref-sassi2015advances" role="doc-biblioref">Sassi et al. 2015</a>)</span>. As such, they inevitably distort the signal they are intended to measure, introducing lag, attenuating amplitudes, and enforcing a false dichotomy between temporal and spectral resolution as dictated by the Heisenberg-Gabor uncertainty principle <span class="citation" data-cites="deka2023detection">(<a href="#ref-deka2023detection" role="doc-biblioref">Deka and Deka 2023</a>)</span>. The inferential approach adopted here avoids these specific artifacts by modeling the entire time-course of an event holistically. Information from every data point is leveraged to inform the estimate at every other data point, conditioned on the assumed model structure <span class="citation" data-cites="shashikant2021gaussian">(<a href="#ref-shashikant2021gaussian" role="doc-biblioref">Shashikant et al. 2021</a>)</span>.</p>
+<p>However, this approach introduces its own set of profound abstractions. A crucial, and potentially problematic, assumption is the model’s imposition of orthogonality on a non-orthogonal system. The model specifies the observed RRi signal as a linear, additive combination of a baseline trend, several sinusoidal components, and a residual noise term. This mathematical decomposition is convenient and ensures parameter identifiability <span class="citation" data-cites="hines2014determination hyvarinen2024identifiability">(<a href="#ref-hines2014determination" role="doc-biblioref">Hines, Middendorf, and Aldrich 2014</a>; <a href="#ref-hyvarinen2024identifiability" role="doc-biblioref">Hyvärinen, Khemakhem, and Monti 2024</a>)</span>, but it is a gross simplification of cardiovascular physiology <span class="citation" data-cites="colebank2024guidelines">(<a href="#ref-colebank2024guidelines" role="doc-biblioref">Colebank et al. 2024</a>)</span>. This is akin to analyzing a symphonic recording by perfectly isolating the audio tracks for the violins, cellos, and woodwinds. While one obtains a clean signal for each section, the essential musical information contained within their harmonic interplay and dynamic interaction is irrevocably lost.</p>
+<p>Similarly, in physiology, the systems underlying these model components are deeply and non-linearly coupled. Baroreflex activity (a major contributor to the low-frequency component) and respiratory sinus arrhythmia (the high-frequency component) are not independent processes that simply sum together; they are neurologically intertwined within the brainstem and are engaged in a constant, dynamic feedback loop <span class="citation" data-cites="polanczyk1998sympathetic gregoire2023autonomic">(<a href="#ref-polanczyk1998sympathetic" role="doc-biblioref">Polanczyk et al. 1998</a>; <a href="#ref-gregoire2023autonomic" role="doc-biblioref">Grégoire et al. 2023</a>)</span>. By construction, the model is forced to assign variance to its clean, orthogonal components in a way that may not map cleanly onto the underlying biology. The estimate for the amplitude of the high-frequency component, for instance, should be interpreted not as a pure measure of respiratory sinus arrhythmia, but as the magnitude of the best-fitting sinusoidal component in that band, assuming it can be linearly and additively separated from all other ongoing dynamics. This is a critical caveat for the physiological interpretation of every parameter yielded by the model <span class="citation" data-cites="lundberg2017unified">(<a href="#ref-lundberg2017unified" role="doc-biblioref">Lundberg and Lee 2017</a>)</span>.</p>
 </section>
 <section id="from-statistical-constructs-to-biological-reality" class="level2">
 <h2 class="anchored" data-anchor-id="from-statistical-constructs-to-biological-reality">From statistical constructs to biological reality</h2>
-<p>The purported value of this framework is its ability to distill a complex signal into a set of “interpretable” parameters. This claimed interpretability, however, occupies a precarious position between useful abstraction and misleading reification. The risk of reification (i.e., confusing a model’s abstract construct for a concrete entity), is acute. The very act of assigning a label like “recovery rate” to a parameter (<span class="math inline">\(\phi\)</span>) cognitively biases the researcher to perceive it as a distinct, tangible biological process. While the parameter perfectly describes a feature of the fitted mathematical curve, it is an unsubstantiated inferential leap to equate it with a singular neurophysiological mechanism. The observed recovery trajectory is the net result of an immensely complex cascade of interacting neural, endocrine, and humoral processes. The model’s elegant parameterization of this trajectory is a descriptive summary, not an elucidation of its constituent parts.</p>
-<p>This interpretive discipline must be rigorously applied to all of the model’s outputs. The concept of “dissonant autonomic recovery”, for example, is a statistically identifiable pattern where heart rate returns to baseline far more quickly than measures of heart rate variability. Yet, its proposed link to “lingering sympathetic activation” remains a speculative hypothesis requiring external validation. Could this pattern alternatively reflect differential downregulation rates of adrenergic and cholinergic receptors, or a mismatch in the resetting of central autonomic command versus peripheral feedback? These are precisely the kinds of sophisticated hypotheses the model allows one to formulate, but it possesses no inherent capacity to adjudicate between them. It provides the tool to quantify the phenomenon with precision, thereby rendering such hypotheses testable, but it cannot, on its own, provide the causal evidence.</p>
-<p>Nowhere is this interpretive caution more warranted than with the structured variance fraction, <span class="math inline">\(w\)</span>. Its proposed role as an index of “autonomic coherence” is a compelling narrative, but one that rests on a fragile evidentiary foundation. At its core, <span class="math inline">\(w\)</span> is simply the proportion of signal variance captured by a fixed set of sinusoids. A reduction in <span class="math inline">\(w\)</span> could plausibly reflect a pathological dysregulation of autonomic rhythms. It could equally reflect a host of mundane confounders: an increase in movement artifact, the presence of uncorrected ectopic beats, a change in breathing frequency outside the canonical high-frequency band, or activation of other physiological processes that contribute to RRi variance but are not sinusoidal. To label this parameter with a term as specific as “autonomic coherence” is premature and risks imbuing it with a degree of physiological certainty it does not currently warrant. It is more accurately described as an “index of rhythmic regularity”, a term that is less evocative but more intellectually honest.</p>
+<p>The purported value of this framework is its ability to distill a complex signal into a set of “interpretable” parameters. This claimed interpretability, however, occupies a position between useful abstraction and misleading reification <span class="citation" data-cites="ramstead2022generative thiele2024choosing">(<a href="#ref-ramstead2022generative" role="doc-biblioref">Ramstead et al. 2022</a>; <a href="#ref-thiele2024choosing" role="doc-biblioref">Thiele et al. 2024</a>)</span>. The very act of assigning a label like “recovery rate” to a parameter (<span class="math inline">\(\phi\)</span>) cognitively biases the researcher to perceive it as a distinct, tangible biological process <span class="citation" data-cites="navarro2021risk">(<a href="#ref-navarro2021risk" role="doc-biblioref">Navarro et al. 2021</a>)</span>. While the parameter perfectly describes a feature of the fitted mathematical curve, it is an unsubstantiated inferential leap to equate it with a singular neurophysiological mechanism <span class="citation" data-cites="rosenberg2018prediction thiele2024choosing">(<a href="#ref-rosenberg2018prediction" role="doc-biblioref">Rosenberg, Casey, and Holmes 2018</a>; <a href="#ref-thiele2024choosing" role="doc-biblioref">Thiele et al. 2024</a>)</span>. The observed recovery trajectory is the net result of an immensely complex cascade of interacting neural, endocrine, and humoral processes <span class="citation" data-cites="lu2023uncertainties gregoire2023autonomic colebank2024guidelines">(<a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>; <a href="#ref-gregoire2023autonomic" role="doc-biblioref">Grégoire et al. 2023</a>; <a href="#ref-colebank2024guidelines" role="doc-biblioref">Colebank et al. 2024</a>)</span>. The model’s elegant parameterization of this trajectory is a descriptive summary, not an elucidation of its constituent parts.</p>
+<p>This interpretive discipline must be rigorously applied to all of the model’s outputs. The concept of “dissonant autonomic recovery”, for example, is a statistically identifiable pattern where heart rate returns to baseline far more quickly than measures of heart rate variability <span class="citation" data-cites="lee2012dissociation">(<a href="#ref-lee2012dissociation" role="doc-biblioref">Lee and Mendoza 2012</a>)</span>. Yet, its proposed link to “lingering sympathetic activation” remains a speculative hypothesis requiring external validation. Could this pattern alternatively reflect differential downregulation rates of adrenergic and cholinergic receptors, or a mismatch in the resetting of central autonomic command versus peripheral feedback? These are precisely the kinds of sophisticated hypotheses the model allows one to formulate, but it possesses no inherent capacity to adjudicate between them. It provides the tool to quantify the phenomenon with precision, thereby rendering such hypotheses testable <span class="citation" data-cites="sankaran2023generative">(<a href="#ref-sankaran2023generative" role="doc-biblioref">Sankaran and Holmes 2023</a>)</span>, but it cannot, on its own, provide the causal evidence.</p>
+<p>Nowhere is this interpretive caution more warranted than with the structured variance fraction, <span class="math inline">\(w\)</span>. Its proposed role as an index of “autonomic coherence” is a compelling narrative, but one that rests on a fragile evidentiary foundation. At its core, <span class="math inline">\(w\)</span> is simply the proportion of signal variance captured by a fixed set of sinusoids. A reduction in <span class="math inline">\(w\)</span> could plausibly reflect a pathological dysregulation of autonomic rhythms <span class="citation" data-cites="solis2020entropy">(<a href="#ref-solis2020entropy" role="doc-biblioref">Solı́s-Montufar, Gálvez-Coyt, and Muñoz-Diosdado 2020</a>)</span>. It could equally reflect a host of mundane confounders: an increase in movement artifact, the presence of uncorrected ectopic beats, a change in breathing frequency outside the canonical high-frequency band, or activation of other physiological processes that contribute to RRi variance but are not sinusoidal <span class="citation" data-cites="kim2021ultra tiwari2021analysis lu2023uncertainties">(<a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>; <a href="#ref-tiwari2021analysis" role="doc-biblioref">Tiwari et al. 2021</a>; <a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>)</span>. To label this parameter with a term as specific as “autonomic coherence” is premature and risks imbuing it with a degree of physiological certainty it does not currently warrant. It is more accurately described as an “index of rhythmic regularity”, a term that is less evocative but more intellectually honest.</p>
 </section>
 <section id="limitations" class="level2">
 <h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
 <p>The credibility of this work demands a comprehensive inventory of its limitations, which span from the foundational to the practical.</p>
-<p>The model’s architecture is built upon a series of rigid and potentially invalid assumptions. The choice of a symmetric double-logistic function is a matter of mathematical convenience, not physiological imperative; asymmetric biological recovery processes are common and would be poorly approximated by this functional form. More fundamentally, the model is a specialist instrument designed for a single, isolated perturbation-recovery event. This renders it highly effective for analyzing clean, stimulus-response experimental paradigms but makes it fundamentally unsuited for the exploratory analysis of complex, naturalistic data containing multiple, overlapping events of unknown form. It is a tool for confirmatory, not exploratory, science.</p>
-<p>The adoption of a Bayesian framework, while providing intuitive probabilistic outputs, comes with its own philosophical baggage. The posterior credible interval for a parameter is a statement of subjective belief about its value, conditional on the data, the chosen model structure, and the specified prior distributions. It is not equivalent to a frequentist confidence interval and does not account for structural uncertainty, the profound possibility that the model itself is misspecified. This leads to what might be termed the “Rashomon effect” in modeling, where multiple, structurally different models can provide equally good fits to the data while telling fundamentally different and contradictory stories about the underlying process. Without a systematic exploration of this “model space”, the conclusions drawn from this single, handcrafted model must be regarded as highly provisional.</p>
-<p>The model’s reliance on Hamiltonian Monte Carlo sampling makes it computationally expensive. The required runtime may not only be a practical barrier for large datasets but could also create an “analytical divide”, where such advanced methods are only accessible to research groups with substantial computational resources. This effectively sidelines the method from deployment in real-time or near-real-time clinical settings, such as intensive care monitoring, where rapid feedback is paramount. Furthermore, the model’s performance is inextricably linked to upstream data fidelity. Its sophisticated inference engine is being applied to RRi data that has already undergone pre-processing to remove artifacts. Uncorrected premature ventricular contractions, for instance, can drastically alter the local mean and variance. While the model may be robust to small deviations, its behavior in the face of such gross, non-stationary artifacts is unknown and could lead to biased inference on the entire recovery curve. Finally, the treatment of the residual term as unstructured “noise” is a convenient fiction. In biology, true randomness is rare; the residuals likely contain unmodeled, structured biological processes or deterministic chaos. The assumption of a simple, stationary Gaussian noise process is a strong one that requires, but has not yet received, rigorous justification through posterior predictive checks and deep residual analysis.</p>
+<p>The model’s architecture is built upon a series of rigid assumptions. The choice of a symmetric double-logistic function is a matter of mathematical convenience <span class="citation" data-cites="castillo2025enhancing">(<a href="#ref-castillo2025enhancing" role="doc-biblioref">Castillo-Aguilar et al. 2025</a>)</span>, not physiological imperative; asymmetric biological recovery processes are common and would be poorly approximated by this functional form. More fundamentally, the model is a specialist instrument designed for a single, isolated perturbation-recovery event <span class="citation" data-cites="castillo2025enhancing">(<a href="#ref-castillo2025enhancing" role="doc-biblioref">Castillo-Aguilar et al. 2025</a>)</span>. This renders it highly effective for analyzing clean, stimulus-response experimental paradigms but makes it fundamentally unsuited for the exploratory analysis of complex, naturalistic data containing multiple, overlapping events of unknown form <span class="citation" data-cites="voss2009methods kim2021ultra">(<a href="#ref-voss2009methods" role="doc-biblioref">Voss et al. 2009</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. It is a tool for confirmatory, not exploratory, science.</p>
+<p>Furthermore, we acknowledge that the empirical validation of this framework is presently confined to a single-subject case study. This was a deliberate choice reflecting the manuscript’s primary aim: to introduce and validate a new methodological framework, not to make a generalizable empirical claim. The N-of-1 analysis serves as a crucial proof-of-concept, demonstrating the model’s ability to perform a deep phenotyping of an individual’s response and, most importantly, to generate precise, falsifiable hypotheses. We contend that establishing this hypothesis-generating capacity is a necessary prerequisite to the much larger, and computationally demanding, task of applying the model hierarchically to a full cohort. This foundational work is offered to empower the broader research community to test these newly generated hypotheses on larger, more diverse datasets.</p>
+<p>The adoption of a Bayesian framework, while providing intuitive probabilistic outputs, comes with its own philosophical baggage. The posterior credible interval for a parameter is a statement of subjective belief about its value, conditional on the data, the chosen model structure, and the specified prior distributions <span class="citation" data-cites="ghahramani2013bayesian">(<a href="#ref-ghahramani2013bayesian" role="doc-biblioref">Ghahramani 2013</a>)</span>. It is not equivalent to a frequentist confidence interval and does not account for structural uncertainty, the profound possibility that the model itself is misspecified. This leads to what might be termed the “Rashomon effect” in modeling, where multiple, structurally different models can provide equally good fits to the data while telling fundamentally different and contradictory stories about the underlying process <span class="citation" data-cites="kalinin2022atomically">(<a href="#ref-kalinin2022atomically" role="doc-biblioref">Kalinin et al. 2022</a>)</span>. Without a systematic exploration of this “model space”, the conclusions drawn from this single, handcrafted model must be regarded as highly provisional.</p>
+<p>The model’s reliance on Hamiltonian Monte Carlo sampling makes it computationally expensive. The required runtime may not only be a practical barrier for large datasets but could also create an “analytical divide”, where such advanced methods are only accessible to research groups with substantial computational resources. This effectively sidelines the method from deployment in real-time or near-real-time clinical settings, such as intensive care monitoring, where rapid feedback is paramount. Furthermore, the model’s performance is inextricably linked to upstream data fidelity. Its sophisticated inference engine is being applied to RRi data that has already undergone pre-processing to remove artifacts. Uncorrected premature ventricular contractions, for instance, can drastically alter the local mean and variance. While the model may be robust to small deviations, its behavior in the face of such gross, non-stationary artifacts is unknown and could lead to biased inference on the entire recovery curve. Finally, the treatment of the residual term as unstructured “noise” is a convenient assumption. In biology, true randomness is rare; the residuals likely contain unmodeled, structured biological processes or deterministic chaos. The assumption of a simple, stationary Gaussian noise process is a strong one that requires, but has not yet received, rigorous justification through posterior predictive checks and deep residual analysis.</p>
 </section>
 <section id="future-directions" class="level2">
 <h2 class="anchored" data-anchor-id="future-directions">Future directions</h2>
-<p>The extensive limitations catalogued above do not invalidate the approach but rather define a rigorous and necessary line for future research. This line of research should move beyond incremental model refinement and toward the systematic characterization of the model as a scientific instrument.</p>
+<p>The extensive limitations catalogued above do not invalidate the approach, but rather define a rigorous and necessary line for future research. This line of research should move beyond incremental model refinement and toward the systematic characterization of the model as a scientific instrument.</p>
 <p>The most urgent task is to begin the process of instrument calibration. Just as a new telescope must have its optical aberrations mapped and its resolution quantified, this model requires a comprehensive characterization of its operational properties. An ideal future study would involve establishing a formal calibration protocol: creating a standardized open-source library of synthetic RRi signals with known complexities, asymmetric responses, overlapping events, various artifact types, and non-Gaussian noise, and then systematically testing the model against this library. The results, published as a detailed “specification sheet”, would delineate the model’s biases, sensitivities, and failure modes, defining its safe operating envelope for future users.</p>
-<p>Furthermore, future work must focus on using the model for quantitative hypothesis falsification. The framework should be applied in experimental contexts where specific interventions are known to target certain physiological pathways. For instance, testing the effect of beta-blockade on the response amplitude and recovery rate parameters following a cold pressor test would provide crucial external validation, linking the model’s abstract parameters to tangible pharmacological effects. This shifts the focus from “fitting a model” to “using a model to test a theory”.</p>
+<p>Furthermore, future work must focus on using the model for quantitative hypothesis falsification. The framework should be applied in experimental contexts where specific interventions are known to target certain physiological pathways. For instance, testing the effect of beta-blockade on the response amplitude and recovery rate parameters following a cold pressor or exercise-based test would provide crucial external validation, linking the model’s abstract parameters to tangible pharmacological effects. This shifts the focus from “fitting a model” to “using a model to test a theory” <span class="citation" data-cites="kalinin2022atomically sankaran2023generative">(<a href="#ref-kalinin2022atomically" role="doc-biblioref">Kalinin et al. 2022</a>; <a href="#ref-sankaran2023generative" role="doc-biblioref">Sankaran and Holmes 2023</a>)</span>.</p>
 <p>In conclusion, the generative framework presented here represents a conceptually powerful alternative to conventional methods for analyzing dynamic HRV. Its true contribution, however, must be framed with profound intellectual humility. This model is not a window into reality; it is an epistemic instrument, a purpose-built lens for viewing complex physiological data through a particular, highly structured, and simplified mathematical frame. Its value lies not in its verisimilitude, but in its ability to translate a noisy, high-dimensional signal into a sparse set of quantitative parameters about which precise, falsifiable scientific arguments can be constructed. The difficult, painstaking work of calibrating this instrument, understanding its distortions, and cautiously deploying it to test concrete physiological hypotheses will ultimately determine its lasting contribution to the science of autonomic control.</p>
 </section>
 </section>
@@ -2281,7 +2285,7 @@ window.Quarto = {
 <section id="baseline-heart-period-and-total-variability-trajectories" class="level3">
 <h3 class="anchored" data-anchor-id="baseline-heart-period-and-total-variability-trajectories">Baseline Heart Period and Total Variability Trajectories</h3>
 <p>The model posits that the primary trends in both the mean heart period and its total variability are driven by a common underlying physiological response to a stimulus. To capture this, both the <span class="math inline">\(\mathrm{RR_{base}}(t_i)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span> trajectories are parameterized using the same flexible double-logistic functional form.</p>
-<p>The baseline heart period, <span class="math inline">\(\mathrm{RR_{base}}(t_i)\)</span>, which quantifies the gross, underlying variations in the mean R–R interval, is defined in <a href="#eq-rri-baseline-model" class="quarto-xref">Equation&nbsp;4</a>.</p>
+<p>The baseline heart period, <span class="math inline">\(\mathrm{RR_{base}}(t_i)\)</span>, which quantifies the gross, underlying variations in the mean RRi, is defined in <a href="#eq-rri-baseline-model" class="quarto-xref">Equation&nbsp;4</a>.</p>
 <p><span id="eq-rri-baseline-model"><span class="math display">\[
 \mathrm{RR_{base}}(t_i) =
 \underbrace{\alpha_r}_{\substack{\text{Resting RRi}}}
@@ -2407,17 +2411,44 @@ Castillo-Aguilar, Matı́as, Diego Mabe-Castro, David Medina, and Cristian Núñ
 <div id="ref-cheng2022heart" class="csl-entry" role="listitem">
 Cheng, Ying-Chih, Min-I Su, Cheng-Wei Liu, Yu-Chen Huang, and Wei-Lieh Huang. 2022. <span>“Heart Rate Variability in Patients with Anxiety Disorders: A Systematic Review and Meta-Analysis.”</span> <em>Psychiatry and Clinical Neurosciences</em> 76 (7): 292–302.
 </div>
+<div id="ref-colebank2024guidelines" class="csl-entry" role="listitem">
+Colebank, Mitchel J, Pim A Oomen, Colleen M Witzenburg, Anna Grosberg, Daniel A Beard, Dirk Husmeier, Mette S Olufsen, and Naomi C Chesler. 2024. <span>“Guidelines for Mechanistic Modeling and Analysis in Cardiovascular Research.”</span> <em>American Journal of Physiology-Heart and Circulatory Physiology</em> 327 (2): H473–503.
+</div>
+<div id="ref-cook2006validation" class="csl-entry" role="listitem">
+Cook, Samantha R, Andrew Gelman, and Donald B Rubin. 2006. <span>“Validation of Software for Bayesian Models Using Posterior Quantiles.”</span> <em>Journal of Computational and Graphical Statistics</em> 15 (3): 675–92.
+</div>
+<div id="ref-deka2023detection" class="csl-entry" role="listitem">
+Deka, Dipen, and Bhabesh Deka. 2023. <span>“Detection of Meditation-Induced HRV Dynamics Using Averaging Technique-Based Oversampled Feature Set and Machine Learning Classifiers.”</span> <em>IEEE Access</em> 11: 29576–90.
+</div>
 <div id="ref-german2014wavelet" class="csl-entry" role="listitem">
 German-Sallo, Zoltan. 2014. <span>“Wavelet Transform Based HRV Analysis.”</span> <em>Procedia Technology</em> 12: 105–11.
+</div>
+<div id="ref-ghahramani2013bayesian" class="csl-entry" role="listitem">
+Ghahramani, Zoubin. 2013. <span>“Bayesian Non-Parametrics and the Probabilistic Approach to Modelling.”</span> <em>Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering Sciences</em> 371 (1984): 20110553.
+</div>
+<div id="ref-gregoire2023autonomic" class="csl-entry" role="listitem">
+Grégoire, Jean-Marie, Cédric Gilon, Stéphane Carlier, and Hugues Bersini. 2023. <span>“Autonomic Nervous System Assessment Using Heart Rate Variability.”</span> <em>Acta Cardiologica</em> 78 (6): 648–62.
 </div>
 <div id="ref-guo2022review" class="csl-entry" role="listitem">
 Guo, Tiantian, Tongpo Zhang, Enggee Lim, Miguel Lopez-Benitez, Fei Ma, and Limin Yu. 2022. <span>“A Review of Wavelet Analysis and Its Applications: Challenges and Opportunities.”</span> <em>IEEe Access</em> 10: 58869–903.
 </div>
+<div id="ref-hines2014determination" class="csl-entry" role="listitem">
+Hines, Keegan E, Thomas R Middendorf, and Richard W Aldrich. 2014. <span>“Determination of Parameter Identifiability in Nonlinear Biophysical Models: A Bayesian Approach.”</span> <em>Journal of General Physiology</em> 143 (3): 401–16.
+</div>
 <div id="ref-huber2025brain" class="csl-entry" role="listitem">
 Huber, Annika, Julian Koenig, Bastian Bruns, Martin Bendszus, Hans-Christoph Friederich, and Joe J Simon. 2025. <span>“Brain Activation and Heart Rate Variability as Markers of Autonomic Function Under Stress.”</span> <em>Scientific Reports</em> 15 (1): 28114.
 </div>
+<div id="ref-hyvarinen2024identifiability" class="csl-entry" role="listitem">
+Hyvärinen, Aapo, Ilyes Khemakhem, and Ricardo Monti. 2024. <span>“Identifiability of Latent-Variable and Structural-Equation Models: From Linear to Nonlinear.”</span> <em>Annals of the Institute of Statistical Mathematics</em> 76 (1): 1–33.
+</div>
+<div id="ref-kalinin2022atomically" class="csl-entry" role="listitem">
+Kalinin, Sergei V, Ayana Ghosh, Rama Vasudevan, and Maxim Ziatdinov. 2022. <span>“From Atomically Resolved Imaging to Generative and Causal Models.”</span> <em>Nature Physics</em> 18 (10): 1152–60.
+</div>
 <div id="ref-kim2021ultra" class="csl-entry" role="listitem">
 Kim, Jin Woong, Hyeon Seok Seok, and Hangsik Shin. 2021. <span>“Is Ultra-Short-Term Heart Rate Variability Valid in Non-Static Conditions?”</span> <em>Frontiers in Physiology</em> 12: 596060.
+</div>
+<div id="ref-lee2012dissociation" class="csl-entry" role="listitem">
+Lee, C Matthew, and Albert Mendoza. 2012. <span>“Dissociation of Heart Rate Variability and Heart Rate Recovery in Well-Trained Athletes.”</span> <em>European Journal of Applied Physiology</em> 112 (7): 2757–66.
 </div>
 <div id="ref-liu2024efficient" class="csl-entry" role="listitem">
 Liu, Sabrina, Andrew S Perley, and Todd P Coleman. 2024. <span>“An Efficient Framework for Solving a Convex, State-Space Heartbeat Dynamics Model.”</span> In <em>2024 46th Annual International Conference of the IEEE Engineering in Medicine and Biology Society (EMBC)</em>, 1–4. IEEE.
@@ -2425,17 +2456,47 @@ Liu, Sabrina, Andrew S Perley, and Todd P Coleman. 2024. <span>“An Efficient F
 <div id="ref-lu2023uncertainties" class="csl-entry" role="listitem">
 Lu, Lei, Tingting Zhu, Davide Morelli, Andrew Creagh, Zhangdaihong Liu, Jenny Yang, Fenglin Liu, Yuan-Ting Zhang, and David A Clifton. 2023. <span>“Uncertainties in the Analysis of Heart Rate Variability: A Systematic Review.”</span> <em>IEEE Reviews in Biomedical Engineering</em> 17: 180–96.
 </div>
+<div id="ref-lundberg2017unified" class="csl-entry" role="listitem">
+Lundberg, Scott M, and Su-In Lee. 2017. <span>“A Unified Approach to Interpreting Model Predictions.”</span> <em>Advances in Neural Information Processing Systems</em> 30.
+</div>
+<div id="ref-malik1990heart" class="csl-entry" role="listitem">
+Malik, Marek, and A John Camm. 1990. <span>“Heart Rate Variability.”</span> <em>Clinical Cardiology</em> 13 (8): 570–76.
+</div>
 <div id="ref-martin2018improving" class="csl-entry" role="listitem">
 Martı́n-González, Sofı́a, Juan L Navarro-Mesa, Gabriel Juliá-Serdá, G Marcelo Ramı́rez-Ávila, and Antonio G Ravelo-Garcı́a. 2018. <span>“Improving the Understanding of Sleep Apnea Characterization Using Recurrence Quantification Analysis by Defining Overall Acceptable Values for the Dimensionality of the System, the Delay, and the Distance Threshold.”</span> <em>PLoS One</em> 13 (4): e0194462.
+</div>
+<div id="ref-navarro2021risk" class="csl-entry" role="listitem">
+Navarro, Constanza L Andaur, Johanna AA Damen, Toshihiko Takada, Steven WJ Nijman, Paula Dhiman, Jie Ma, Gary S Collins, et al. 2021. <span>“Risk of Bias in Studies on Prediction Models Developed Using Supervised Machine Learning Techniques: Systematic Review.”</span> <em>Bmj</em> 375.
 </div>
 <div id="ref-orini2023long" class="csl-entry" role="listitem">
 Orini, Michele, Stefan van Duijvenboden, William J Young, Julia Ramı́rez, Aled R Jones, Alun D Hughes, Andrew Tinker, Patricia B Munroe, and Pier D Lambiase. 2023. <span>“Long-Term Association of Ultra-Short Heart Rate Variability with Cardiovascular Events.”</span> <em>Scientific Reports</em> 13 (1): 18966.
 </div>
+<div id="ref-polanczyk1998sympathetic" class="csl-entry" role="listitem">
+Polanczyk, Carisi A, Luis EP Rohde, Ruy S Moraes, Elton L Ferlin, Cristina Leite, and Jorge P Ribeiro. 1998. <span>“Sympathetic Nervous System Representation in Time and Frequency Domain Indices of Heart Rate Variability.”</span> <em>European Journal of Applied Physiology and Occupational Physiology</em> 79 (1): 69–73.
+</div>
+<div id="ref-rajendra2006heart" class="csl-entry" role="listitem">
+Rajendra Acharya, U, K Paul Joseph, Natarajan Kannathal, Choo Min Lim, and Jasjit S Suri. 2006. <span>“Heart Rate Variability: A Review.”</span> <em>Medical and Biological Engineering and Computing</em> 44 (12): 1031–51.
+</div>
+<div id="ref-ramstead2022generative" class="csl-entry" role="listitem">
+Ramstead, Maxwell JD, Anil K Seth, Casper Hesp, Lars Sandved-Smith, Jonas Mago, Michael Lifshitz, Giuseppe Pagnoni, et al. 2022. <span>“From Generative Models to Generative Passages: A Computational Approach to (Neuro) Phenomenology.”</span> <em>Review of Philosophy and Psychology</em> 13 (4): 829–57.
+</div>
 <div id="ref-rosas2024bayesian" class="csl-entry" role="listitem">
 Rosas, Fernando E, Diego Candia-Rivera, Andrea I Luppi, Yike Guo, and Pedro AM Mediano. 2024. <span>“Bayesian at Heart: Towards Autonomic Outflow Estimation via Generative State-Space Modelling of Heart Rate Dynamics.”</span> <em>Computers in Biology and Medicine</em> 170: 107857.
 </div>
+<div id="ref-rosenberg2018prediction" class="csl-entry" role="listitem">
+Rosenberg, Monica D, BJ Casey, and Avram J Holmes. 2018. <span>“Prediction Complements Explanation in Understanding the Developing Brain.”</span> <em>Nature Communications</em> 9 (1): 589.
+</div>
+<div id="ref-sankaran2023generative" class="csl-entry" role="listitem">
+Sankaran, Kris, and Susan P Holmes. 2023. <span>“Generative Models: An Interdisciplinary Perspective.”</span> <em>Annual Review of Statistics and Its Application</em> 10 (1): 325–52.
+</div>
+<div id="ref-sassi2015advances" class="csl-entry" role="listitem">
+Sassi, Roberto, Sergio Cerutti, Federico Lombardi, Marek Malik, Heikki V Huikuri, Chung-Kang Peng, Georg Schmidt, et al. 2015. <span>“Advances in Heart Rate Variability Signal Analysis: Joint Position Statement by the e-Cardiology ESC Working Group and the European Heart Rhythm Association Co-Endorsed by the Asia Pacific Heart Rhythm Society.”</span> <em>Ep Europace</em> 17 (9): 1341–53.
+</div>
 <div id="ref-schneider2020autonomic" class="csl-entry" role="listitem">
 Schneider, Martha, and Andreas Schwerdtfeger. 2020. <span>“Autonomic Dysfunction in Posttraumatic Stress Disorder Indexed by Heart Rate Variability: A Meta-Analysis.”</span> <em>Psychological Medicine</em> 50 (12): 1937–48.
+</div>
+<div id="ref-serhiyenko2024post" class="csl-entry" role="listitem">
+Serhiyenko, Alexandr, Myroslav Baitsar, Volodymyr Sehin, Ludmila Serhiyenko, Vitaliy Kuznets, and Victoria Serhiyenko. 2024. <span>“Post-Traumatic Stress Disorder, Insomnia, Heart Rate Variability and Metabolic Syndrome (Narrative Review).”</span> <em>Proceeding of the Shevchenko Scientific Society. Medical Sciences</em> 73 (1).
 </div>
 <div id="ref-shaffer2017overview" class="csl-entry" role="listitem">
 Shaffer, Fred, and Jay P Ginsberg. 2017. <span>“An Overview of Heart Rate Variability Metrics and Norms.”</span> <em>Frontiers in Public Health</em> 5: 258.
@@ -2443,11 +2504,26 @@ Shaffer, Fred, and Jay P Ginsberg. 2017. <span>“An Overview of Heart Rate Vari
 <div id="ref-shaffer2020critical" class="csl-entry" role="listitem">
 Shaffer, Fred, Zachary M Meehan, and Christopher L Zerr. 2020. <span>“A Critical Review of Ultra-Short-Term Heart Rate Variability Norms Research.”</span> <em>Frontiers in Neuroscience</em> 14: 594880.
 </div>
+<div id="ref-shashikant2021gaussian" class="csl-entry" role="listitem">
+Shashikant, R, Uttam Chaskar, Leena Phadke, and Chetankumar Patil. 2021. <span>“Gaussian Process-Based Kernel as a Diagnostic Model for Prediction of Type 2 Diabetes Mellitus Risk Using Non-Linear Heart Rate Variability Features.”</span> <em>Biomedical Engineering Letters</em> 11 (3): 273–86.
+</div>
+<div id="ref-solis2020entropy" class="csl-entry" role="listitem">
+Solı́s-Montufar, Eric E, Gonzalo Gálvez-Coyt, and Alejandro Muñoz-Diosdado. 2020. <span>“Entropy Analysis of RR-Time Series from Stress Tests.”</span> <em>Frontiers in Physiology</em> 11: 981.
+</div>
+<div id="ref-talts2018validating" class="csl-entry" role="listitem">
+Talts, Sean, Michael Betancourt, Daniel Simpson, Aki Vehtari, and Andrew Gelman. 2018. <span>“Validating Bayesian Inference Algorithms with Simulation-Based Calibration.”</span> <em>arXiv Preprint arXiv:1804.06788</em>.
+</div>
+<div id="ref-thiele2024choosing" class="csl-entry" role="listitem">
+Thiele, Jonas A, Joshua Faskowitz, Olaf Sporns, and Kirsten Hilger. 2024. <span>“Choosing Explanation over Performance: Insights from Machine Learning-Based Prediction of Human Intelligence from Brain Connectivity.”</span> <em>PNAS Nexus</em> 3 (12): pgae519.
+</div>
 <div id="ref-tiwari2021analysis" class="csl-entry" role="listitem">
 Tiwari, Reena, Ravindra Kumar, Sujata Malik, Tilak Raj, and Punit Kumar. 2021. <span>“Analysis of Heart Rate Variability and Implication of Different Factors on Heart Rate Variability.”</span> <em>Current Cardiology Reviews</em> 17 (5): 74–83.
 </div>
 <div id="ref-tomasi2024heart" class="csl-entry" role="listitem">
 Tomasi, Julia, Clement C Zai, Jennie G Pouget, Arun K Tiwari, and James L Kennedy. 2024. <span>“Heart Rate Variability: Evaluating a Potential Biomarker of Anxiety Disorders.”</span> <em>Psychophysiology</em> 61 (2): e14481.
+</div>
+<div id="ref-voss2009methods" class="csl-entry" role="listitem">
+Voss, Andreas, Steffen Schulz, Rico Schroeder, Mathias Baumert, and Pere Caminal. 2009. <span>“Methods Derived from Nonlinear Dynamics for Analysing Heart Rate Variability.”</span> <em>Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering Sciences</em> 367 (1887): 277–96.
 </div>
 </div>
 </section>
@@ -2461,7 +2537,7 @@ Tomasi, Julia, Clement C Zai, Jennie G Pouget, Arun K Tiwari, and James L Kenned
 </section>
 <section id="data-availability-statement" class="level1">
 <h1>Data availability statement</h1>
-<p>The raw data supporting the conclusions of this article will be made available by the authors without undue reservation.</p>
+<p>The Stan code implementing the complete generative model is available as a supplementary material. The raw data supporting the conclusions of this article will be made available by the authors without undue reservation.</p>
 </section>
 <section id="conflicts-of-interests" class="level1">
 <h1>Conflicts of interests</h1>

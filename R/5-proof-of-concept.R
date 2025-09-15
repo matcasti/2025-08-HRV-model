@@ -133,12 +133,12 @@ sd_hat <- transpose(sd_hat, keep.names = "time") |>
   melt.data.table(id.vars = "time",
                   variable.name = "draw")
 
-sd_hat[, time := gsub("mu.V", "", time) |> as.numeric()]
+sd_hat[, time := gsub("SDNN_t.V", "", time) |> as.numeric()]
 sd_hat[, draw := gsub("V", "", draw) |> as.numeric()]
 
 sd_hat <- sd_hat[, list(mu = median(value), hdi = diff(ggdist::hdi(value)[1,])), keyby = time]
 
-# SDNN extraction ---------------------------------------------------------
+# RR extraction ---------------------------------------------------------
 
 rr_base_hat <- extract(model_fit, pars = "RR_baseline") |>
   as.data.table()
@@ -147,7 +147,7 @@ rr_base_hat <- transpose(rr_base_hat, keep.names = "time") |>
   melt.data.table(id.vars = "time",
                   variable.name = "draw")
 
-rr_base_hat[, time := gsub("mu.V", "", time) |> as.numeric()]
+rr_base_hat[, time := gsub("RR_baseline.V", "", time) |> as.numeric()]
 rr_base_hat[, draw := gsub("V", "", draw) |> as.numeric()]
 
 rr_base_hat <- rr_base_hat[, list(mu = median(value), hdi = diff(ggdist::hdi(value)[1,])), keyby = time]
@@ -157,7 +157,7 @@ rr_base_hat <- rr_base_hat[, list(mu = median(value), hdi = diff(ggdist::hdi(val
 
 fig_obs <- ggplot(poc_data, aes(time, RRi)) +
   geom_line(linetype = 1) +
-  labs(subtitle = "Observed RRi data", tag = "(A)",
+  labs(subtitle = "Observed RRi data",
        x = "Time (minutes)", y = "ms") +
   scale_x_continuous(expand = c(0,0)) +
   theme_classic(base_size = 12)
@@ -174,7 +174,7 @@ fig_mu <- ggplot() +
                                 "Estimated µ(t)" = "firebrick"),
                      aesthetics = c("fill", "color")) +
   labs(fill = "Line", col = "Line", subtitle = "Observed and reconstructed signal",
-       x = "Time (minutes)", y = "ms", tag = "(B)") +
+       x = "Time (minutes)", y = "ms") +
   scale_x_continuous(expand = c(0,0)) +
   theme_classic(base_size = 12) +
   theme(legend.position = "bottom")
@@ -189,7 +189,7 @@ fig_rr <- ggplot() +
   scale_color_manual(values = c("Baseline RR(t)" = "dodgerblue"),
                      aesthetics = c("fill", "color")) +
   labs(fill = "Line", col = "Line", subtitle = "Baseline heart period",
-       x = "Time (minutes)", y = "ms", tag = "(C)") +
+       x = "Time (minutes)", y = "ms") +
   scale_x_continuous(expand = c(0,0)) +
   theme_classic(base_size = 12) +
   theme(legend.position = "bottom")
@@ -204,7 +204,7 @@ fig_sdnn <- ggplot() +
   scale_color_manual(values = c("SDNN(t)" = "darkorange"),
                      aesthetics = c("fill", "color")) +
   labs(fill = "Line", col = "Line", subtitle = "Instantaneous signal variability",
-       x = "Time (minutes)", y = "ms", tag = "(D)") +
+       x = "Time (minutes)", y = "ms") +
   scale_x_continuous(expand = c(0,0)) +
   theme_classic(base_size = 12) +
   theme(legend.position = "bottom")
@@ -232,14 +232,16 @@ fig_spectral <- ggplot() +
   scale_y_continuous(expand = c(0,0), n.breaks = 5) +
   labs(subtitle = "Spectral signature",
        x = "Time (minutes)", y = "Proportion of Power",
-       color = "Color", fill = "Color", tag = "(E)") +
+       color = "Color", fill = "Color") +
   theme_classic(base_size = 12) +
   theme(legend.position = "bottom")
 
-plots <- cowplot::plot_grid(fig_mu, fig_rr, fig_sdnn, fig_spectral,
-                            ncol = 2, nrow = 2, align = "hv", axis = "l")
+plots <- cowplot::plot_grid(fig_rr, fig_sdnn, fig_spectral,
+                            labels = c("(B)","(C)","(D)"),
+                            ncol = 3, nrow = 1, align = "hv", axis = "l")
 
-fig <- cowplot::plot_grid(fig_obs, plots, nrow = 2, rel_heights = c(0.3, 0.6))
+fig <- cowplot::plot_grid(fig_mu, plots, nrow = 2, rel_heights = c(0.5, 0.5),
+                          labels = c("(A)",""))
 
 ggsave(filename = "figures/fig-poc.svg", fig,
        device = "svg", width = 9, height = 9)
@@ -254,18 +256,20 @@ posterior[, chain := rep(1:4, each = 5000)]
 posterior[, row := 1:5000, by = chain]
 
 fig <- melt.data.table(posterior, id.vars = c("chain", "row_id", "row")) |>
-  ggplot(aes(x = row, value, colour = as.ordered(chain))) +
-  facet_wrap(~variable, ncol = 3, scales = "free_y", labeller = label_parsed) +
-  geom_line(linewidth = 1/10) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
-  scale_color_viridis_d(option = "A") +
-  labs(x = "Iterations", y = "Parameter value", color = "Chain",
-       subtitle = "Stationary distribution of model parameters") +
+  ggplot(aes(value)) +
+  facet_wrap(~variable, ncol = 3, scales = "free",
+             labeller = label_parsed, strip.position = "top") +
+  ggdist::stat_halfeye(aes(fill = variable), normalize = "panels", show.legend = FALSE) +
+  scale_x_continuous(expand = c(0.05,0)) +
+  scale_y_continuous(expand = c(0.15,0,0,0), breaks = scales::breaks_extended(n = 4)) +
+  scale_fill_viridis_d(option = "B",begin = 0.1, end = 0.9, alpha = 0.8) +
+  labs(x = "Parameter value", y = "Density\n", color = "Chain",
+       subtitle = "Posterior distribution of model parameters") +
   theme_classic(base_size = 12) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        strip.background = element_blank())
 
-ggsave(filename = "figures/fig-poc-trace.svg", fig,
+ggsave(filename = "figures/fig-poc-posterior.svg", fig,
        device = "svg", width = 9, height = 9)
-ggsave(filename = "figures/fig-poc-trace.pdf", fig,
+ggsave(filename = "figures/fig-poc-posterior.pdf", fig,
        device = "pdf", width = 9, height = 9)
