@@ -19,7 +19,8 @@ poc_data <- import_RRi_txt(file = "data-raw/rri-jabf.txt",
   as.data.table()
 
 ## Visualize the data
-plot(poc_data, type = "l")
+plot(poc_data, type = "l", col = "gray")
+points(poc_data, pch = 16, cex = 0.5)
 
 
 # -------------------------------------------------------------------------
@@ -32,15 +33,16 @@ if (!file.exists("models/model_fit_poc.RDS")) {
 
   prior_params <- with(poc_data, estimate_RRi_curve(time, RRi))$parameters |> abs()
 
+  N_sin <- 30
   stan_data <- list(
     N = length(poc_data$time),
     t = poc_data$time,
     RR = poc_data$RRi,
-    N_sin = 20,
+    N_sin = N_sin,
     freqs = list(
-      seq(0.003, 0.039, length.out = 20), # VLF
-      seq(0.040, 0.149, length.out = 20), # LF
-      seq(0.150, 0.400, length.out = 20)  # HD
+      seq(0.003, 0.039, length.out = N_sin), # VLF
+      seq(0.040, 0.149, length.out = N_sin), # LF
+      seq(0.150, 0.400, length.out = N_sin)  # HF
     ),
     lambda_mu = prior_params[["lambda"]],
     phi_mu = prior_params[["phi"]],
@@ -87,7 +89,7 @@ posterior[, row_id := seq_len(length.out = .N)]
 ## Posterior predictive checks with 1000 random draws
 spectral_data <- posterior[j = generate_rri_simulation(N = 1800,
   t_max = max(poc_data$time),
-  N_sin = 20,
+  N_sin = N_sin,
   seed = row_id,
   params = list(
     lambda = lambda, phi = phi, tau = tau, delta = delta,
@@ -260,14 +262,15 @@ fig <- melt.data.table(posterior, id.vars = c("chain", "row_id", "row")) |>
   facet_wrap(~variable, ncol = 3, scales = "free",
              labeller = label_parsed, strip.position = "top") +
   ggdist::stat_halfeye(aes(fill = variable), normalize = "panels", show.legend = FALSE) +
-  scale_x_continuous(expand = c(0.05,0)) +
-  scale_y_continuous(expand = c(0.15,0,0,0), breaks = scales::breaks_extended(n = 4)) +
+  scale_x_continuous(expand = c(0.05,0), breaks = scales::breaks_extended(n = 5)) +
+  scale_y_continuous(expand = c(0.15,0,0,0), breaks = NULL, name = NULL) +
   scale_fill_viridis_d(option = "B",begin = 0.1, end = 0.9, alpha = 0.8) +
-  labs(x = "Parameter value", y = "Density\n", color = "Chain",
+  labs(x = "Parameter value", color = "Chain",
        subtitle = "Posterior distribution of model parameters") +
   theme_classic(base_size = 12) +
   theme(legend.position = "bottom",
-        strip.background = element_blank())
+        strip.background = element_blank(),
+        panel.spacing.x = unit(5, "mm"))
 
 ggsave(filename = "figures/fig-poc-posterior.svg", fig,
        device = "svg", width = 9, height = 9)

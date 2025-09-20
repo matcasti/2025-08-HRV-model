@@ -53,11 +53,11 @@ params <- vector("list", length = 3)
 # from high-frequency (HF) to low-frequency (LF) power and back.
 params[[1]] <- list(
   # Double-logistic timing
-  lambda = 3, phi = 2, tau = 6, delta = 3,
+  lambda = 2, phi = 3, tau = 6, delta = 3,
   # RR(t) params
-  alpha_r = 800, beta_r = 300, c_r = 1.0,
+  alpha_r = 800, beta_r = 400, c_r = 1.0,
   # SDNN(t) params
-  alpha_s = 60, beta_s = 40, c_s = 1.0,
+  alpha_s = 50, beta_s = 40, c_s = 1.0,
   # Spectral & Noise params
   c_c = 0.8, w = 0.90, # 90% structured variance
   # p(t) params
@@ -71,16 +71,16 @@ params[[1]] <- list(
 # spectral signature of the perturbation.
 params[[2]] <- list(
   # Double-logistic timing
-  lambda = 3, phi = 2, tau = 6, delta = 3,
+  lambda = 2, phi = 1, tau = 6, delta = 3,
   # RR(t) params - c_r < 1 means incomplete mean recovery
-  alpha_r = 1000, beta_r = 500, c_r = 0.5,
+  alpha_r = 700, beta_r = 300, c_r = 0.6,
   # SDNN(t) params - c_s < 1 means incomplete variability recovery
-  alpha_s = 60, beta_s = 40, c_s = 0.6,
+  alpha_s = 40, beta_s = 30, c_s = 0.6,
   # Spectral & Noise params
   c_c = 0.4, w = 0.90,
   # p(t) params - c_c < 1 means spectral signature persists
-  pi_base = c(0.1, 0.3, 0.6), # VLF, LF, HF - Rest
-  pi_pert = c(0.3, 0.5, 0.2), # VLF, LF, HF - Stress
+  pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest
+  pi_pert = c(0.5, 0.4, 0.1), # VLF, LF, HF - Stress
   alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
 )
 
@@ -94,11 +94,11 @@ params[[3]] <- list(
   # RR(t) params
   alpha_r = 900, beta_r = 400, c_r = 1.0,
   # SDNN(t) params - High baseline variability
-  alpha_s = 100, beta_s = 20, c_s = 1.0,
+  alpha_s = 50, beta_s = 30, c_s = 1.0,
   # p(t) params - Stable spectrum (base and pert are similar)
   c_c = 0.4, w = 0.60, # 60% structured variance
-  pi_base = c(0.1, 0.1, 0.8), # VLF, LF, HF - Rest
-  pi_pert = c(0.45, 0.45, 0.1), # VLF, LF, HF - Stress
+  pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest
+  pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress
   # Spectral & Noise params
   alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
 )
@@ -242,6 +242,8 @@ if (interactive()) {
                            widths = c(2,2,3),
                            align = "hv",
                            labels = c("(A)","(B)","(C)"))
+
+  plot(fig)
 
   ggsave(filename = "figures/fig-generated-data.svg", fig,
          device = "svg", width = 9, height = 9)

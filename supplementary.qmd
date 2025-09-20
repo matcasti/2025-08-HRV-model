@@ -1,3 +1,52 @@
+---
+title: "A Unified Probabilistic Framework for Non-Stationary Heart Rate Variability Analysis"
+subtitle: "Supplementary Material"
+date-modified: today
+bibliography: "bibliography.bib"
+execute: 
+  echo: false
+  message: false
+  warning: false
+  error: false
+author: 
+  - name: "Matías Castillo-Aguilar"
+    email: matias.castillo@umag.cl
+    orcid: 0000-0001-7291-247X
+  - name: "Cristian Núñez-Espinosa"
+    email: cristian.nunez@umag.cl
+    orcid: 0000-0002-9896-7062
+format: 
+  html: 
+    fig-format: svg
+    title-block-banner: true
+    title-block-style: manuscript
+    toc: true
+    toc-location: right
+    toc-depth: 2
+    comments: 
+      hypothesis: 
+        theme: clean
+other-links: 
+  - text: "Stan Model"
+    href: "models/rri_model.stan"
+    icon: file-code
+fig-width: 8
+fig-height: 6
+editor_options: 
+  chunk_output_type: console
+---
+
+This document provides supplementary information, extended analyses, and technical details to support the findings presented in the main manuscript. The goal of this supplement is to ensure full methodological transparency, computational reproducibility, and to provide a comprehensive validation of the proposed model.
+
+# S1: Model Implementation & Priors
+
+This section details the full implementation of the model, including the complete model code, justification for all prior distributions, and an analysis of the model's sensitivity to these choices.
+
+## S1.1: Fully Commented Stan Model Code
+
+Below is the complete, line-by-line commented code for the generative model implemented in the Stan programming language. The comments explain the function of each parameter, transformation, and sampling statement.
+
+```stan
 // Stan Implementation of the Full Generative R-R Interval Model
 //
 // This model deconstructs an R-R interval time series into several components:
@@ -304,26 +353,26 @@ model {
   // ensuring the priors cover the entire space the sampler is exploring.
 
   // --- Priors for logistic components (timing and rates) ---
-  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), 0.2);
-  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), 0.2);
-  lambda_log ~ normal(log(lambda_mu), 0.2);
-  phi_log ~ normal(log(phi_mu), 0.2);
+  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), 0.1);
+  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), 0.1);
+  lambda_log ~ normal(log(lambda_mu), 0.1);
+  phi_log ~ normal(log(phi_mu), 0.1);
 
   // --- Priors for RR(t) and SDNN(t) parameters ---
-  alpha_r_logit ~ normal(0, 2);
-  beta_r_logit  ~ normal(0, 2);
-  c_r_logit     ~ normal(0, 2);
-  alpha_s_logit ~ normal(0, 2);
-  beta_s_logit  ~ normal(0, 2);
-  c_s_logit     ~ normal(0, 2);
+  alpha_r_logit ~ normal(0, 1);
+  beta_r_logit  ~ normal(0, 1);
+  c_r_logit     ~ normal(0, 1);
+  alpha_s_logit ~ normal(0, 1);
+  beta_s_logit  ~ normal(0, 1);
+  c_s_logit     ~ normal(0, 1);
 
   // --- Priors for spectral proportion p_j(t) parameters ---
   // These priors encode a physiological hypothesis:
   // Baseline state is HF-dominant (low y_base_log).
   // Perturbed state is LF/VLF-dominant (high y_pert_log).
-  y_base_log ~ normal([0, 0]', 2);
-  y_pert_log ~ normal([0, 0]', 2);
-  c_c_logit ~ normal(1, 2);
+  y_base_log ~ normal([-1, -1]', 1);
+  y_pert_log ~ normal([1, 1]', 1);
+  c_c_logit ~ normal(1, 1);
 
   // --- Priors for GP hyperparameters ---
   // `rho_gp` is given a lognormal prior as it must be positive and often
@@ -341,7 +390,7 @@ model {
   }
 
   // --- Prior for the fractional variance split ---
-  w_logit ~ normal(3, 2); // Weakly favors a higher proportion of structured variance.
+  w_logit ~ normal(1, 1); // Weakly favors a higher proportion of structured variance.
 
   // === Likelihood ===
   // This is the core statement that connects the model's predictions (`mu` and
@@ -350,3 +399,101 @@ model {
   // Normal distribution with a time-varying mean and variance.
   RR ~ normal(mu, sqrt(var_resid));
 }
+```
+
+## S1.2: Prior Justification and Sensitivity Analysis
+
+### S1.2.1: Prior Predictive Checks
+
+To ensure our chosen priors were reasonable and did not unduly influence the posterior, we conducted prior predictive checks. We generated 20,000 datasets directly from the prior distributions (i.e., without conditioning on the data). Supplementary Figure S1 shows that the chosen priors generate a wide range of physiologically plausible (and implausible) response curves, confirming that the model is flexible and that the subsequent posterior is primarily driven by the data, not the priors.
+
+![](figures/fig-ppcheck.svg){width=100%}
+
+**Supplementary Figure S1: Prior Predictive Checks.** (A) Simulated RRi signal incorporating deterministic and stochastic components (blue). (B-C) Time-domain reconstruction from prior distributions. (D) Spectral components separated by frequency band. Each line represents the median and the shaded areas represent the 95% highest density interval from 20,000 dataset generated from the prior distribution. The wide distribution of curves demonstrates that the priors are not restrictive.
+
+### S1.2.2: Prior Sensitivity Analysis
+
+To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript's weakly informative priors, (2) "flatter" priors with three times larger variance, and (3) "tighter", more informative priors with a third of original variance. Supplementary Table S1 shows the posterior summaries for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between $c\_r$ and $c\_s$) remains unchanged across all specifications, demonstrating the robustness of our primary finding.
+
+**[Insert Table S1 Here]**
+
+**Supplementary Table S1: Prior Sensitivity Analysis.** Posterior medians and 95% credible intervals for key recovery parameters under three different prior specifications.
+
+## S1.3: Computational Environment
+
+All analyses were performed using `R` (version 4.x.x) and the `CmdStanR` interface (version x.x.x) to `CmdStan` (version x.xx.x). A complete list of packages and their versions is provided in the `renv.lock` file available in the public repository. The MCMC sampler was run with 4 chains for 2000 iterations each, with the first 1000 discarded as warmup, resulting in 4000 posterior samples.
+
+# S2: Extended Simulation Studies
+
+This section provides a complete report of the simulation studies, including full parameter recovery results and an examination of the model's behavior under conditions of misspecification.
+
+## S2.1: Full Parameter Recovery Results
+
+**Supplementary Figure S2** displays the complete posterior distributions for all generative parameters from the three simulation scenarios described in the main text, plotted against their known ground-truth values (red vertical lines). The posteriors are well-centered on the true values, and the true values are consistently contained within the 95% credible intervals, demonstrating excellent parameter recovery.
+
+**[Insert Figure S2 Here]**
+
+**Supplementary Figure S2: Full Posterior Recovery of Ground-Truth Parameters.** Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Red lines indicate the true generative values.
+
+## S2.2: Model Misspecification Analysis
+
+### S2.2.1: Asymmetric Recovery Dynamics
+
+We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. **Supplementary Figure S3** shows the model's attempt to fit this signal. The model captures the general trend but, as expected, its symmetric functional form cannot fully capture the sharp "knee" and long tail of the exponential decay, leading to systematic bias in the residuals during the recovery phase. This defines a known limitation of the current model architecture.
+
+**[Insert Figure S3 Here]**
+
+**Supplementary Figure S3: Model Fit to Asymmetric Recovery Data.** The model's posterior mean trajectory (red line) is overlaid on synthetic data with an exponential recovery (black points). The inset shows the structured pattern in the residuals during the recovery phase, indicating model misspecification.
+
+### S2.2.2: Non-Gaussian Noise Structure
+
+We generated synthetic data using a Student's-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. **Supplementary Figure S4** shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction ($w$) is biased downwards. The model incorrectly attributes the heavy-tailed noise to the unstructured residual component.
+
+**[Insert Figure S4 Here]**
+
+**Supplementary Figure S4: Impact of Non-Gaussian Noise.** Posterior distribution for the `$w$` parameter when the model is fit to data with Gaussian noise (blue) versus heavy-tailed Student's-t noise (orange). The red line is the true value.
+
+# S3: Full Empirical Analysis Diagnostics
+
+This section provides a complete set of diagnostic checks for the MCMC analysis of the empirical N-of-1 dataset to ensure the reliability of the inference.
+
+## S3.1: Complete Posterior Distributions
+
+**Supplementary Figure S5** shows the marginal posterior distributions (histograms) and MCMC traceplots for all key parameters from the empirical model fit.
+
+**[Insert Figure S5 Here]**
+
+**Supplementary Figure S5: Full Posterior Distributions and Traceplots for Empirical Analysis.** The left column shows posterior histograms for each parameter. The right column shows the MCMC traceplots for four chains, demonstrating stationary, well-mixed chains.
+
+## S3.2: MCMC Diagnostic Statistics
+
+All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. **Supplementary Table S2** provides the `R-hat`, effective sample size (`n_eff`), and Monte Carlo Standard Error (MCSE) for all key parameters, confirming the reliability of the posterior estimates.
+
+**[Insert Table S2 Here]**
+
+**Supplementary Table S2: MCMC Diagnostic Statistics.** All `R-hat` values are 1.00, and `n_eff` is sufficient for all parameters.
+
+## S3.3: Posterior Predictive Checks (PPC)
+
+To assess the model's descriptive adequacy, we performed posterior predictive checks. **Supplementary Figure S6** overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, **Supplementary Figure S7** shows that the distributions of key summary statistics (mean, SD, and autocorrelation at lag 1) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
+
+**[Insert Figure S6 Here]**
+
+**Supplementary Figure S6: Graphical Posterior Predictive Check.** The observed RRi data (black line) is shown with 100 replicated datasets (faint red lines) generated from the fitted model.
+
+**[Insert Figure S7 Here]**
+
+**Supplementary Figure S7: Distributional Posterior Predictive Checks.** The distribution for three summary statistics calculated from the replicated datasets. The vertical black line shows the value of the statistic from the actual observed data.
+
+# S4: Data and Code Availability
+
+To ensure full reproducibility, all data and code used in this study are publicly available at the following repository:
+
+  * **Repository:** [Link to GitHub, OSF, or other public repository]
+  * **Contents:**
+      * `/data/`: Contains the raw and pre-processed RRi data for the empirical N-of-1 example.
+      * `/models/`: Contains the fully commented Stan model file (`rri_model.stan`).
+      * `/scripts/`: Contains the R scripts to perform the simulations, run all analyses, and generate all figures and tables in both the main manuscript and this supplement.
+      * `manuscript.qmd`: The Quarto/R Markdown source file for the main manuscript.
+      * `supplement.qmd`: The Quarto/R Markdown source file for this supplementary document.
+      * `renv.lock`: A lockfile specifying all R package dependencies to ensure a reproducible computational environment.

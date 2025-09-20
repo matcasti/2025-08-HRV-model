@@ -57,6 +57,8 @@ data {
   real<lower=0> delta_mu;      // Expected delay between perturbation and recovery.
   real<lower=0> lambda_mu;     // Expected rate of the perturbation.
   real<lower=0> phi_mu;        // Expected rate of the recovery.
+
+  real<lower=0> prior_mult;
 }
 
 // =====================================================================
@@ -304,32 +306,32 @@ model {
   // ensuring the priors cover the entire space the sampler is exploring.
 
   // --- Priors for logistic components (timing and rates) ---
-  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), 0.2);
-  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), 0.2);
-  lambda_log ~ normal(log(lambda_mu), 0.2);
-  phi_log ~ normal(log(phi_mu), 0.2);
+  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), 0.2 * prior_mult);
+  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), 0.2 * prior_mult);
+  lambda_log ~ normal(log(lambda_mu), 0.2 * prior_mult);
+  phi_log ~ normal(log(phi_mu), 0.2 * prior_mult);
 
   // --- Priors for RR(t) and SDNN(t) parameters ---
-  alpha_r_logit ~ normal(0, 2);
-  beta_r_logit  ~ normal(0, 2);
-  c_r_logit     ~ normal(0, 2);
-  alpha_s_logit ~ normal(0, 2);
-  beta_s_logit  ~ normal(0, 2);
-  c_s_logit     ~ normal(0, 2);
+  alpha_r_logit ~ normal(0, 2 * prior_mult);
+  beta_r_logit  ~ normal(0, 2 * prior_mult);
+  c_r_logit     ~ normal(0, 2 * prior_mult);
+  alpha_s_logit ~ normal(0, 2 * prior_mult);
+  beta_s_logit  ~ normal(0, 2 * prior_mult);
+  c_s_logit     ~ normal(0, 2 * prior_mult);
 
   // --- Priors for spectral proportion p_j(t) parameters ---
   // These priors encode a physiological hypothesis:
   // Baseline state is HF-dominant (low y_base_log).
   // Perturbed state is LF/VLF-dominant (high y_pert_log).
-  y_base_log ~ normal([0, 0]', 2);
-  y_pert_log ~ normal([0, 0]', 2);
-  c_c_logit ~ normal(1, 2);
+  y_base_log ~ normal([0, 0]', 2 * prior_mult);
+  y_pert_log ~ normal([0, 0]', 2 * prior_mult);
+  c_c_logit ~ normal(1, 2 * prior_mult);
 
   // --- Priors for GP hyperparameters ---
   // `rho_gp` is given a lognormal prior as it must be positive and often
   // spans orders of magnitude, making its log a natural scale to work on.
-  alpha_gp ~ normal(0, 0.5) T[0, ];   // half-normal, favors modest envelope
-  rho_gp   ~ lognormal(0, 0.5);
+  alpha_gp ~ normal(0, 0.5 * prior_mult) T[0, ];   // half-normal, favors modest envelope
+  rho_gp   ~ lognormal(0, 0.5 * prior_mult);
 
   // --- Priors for Non-Centered Parameters ---
   // As part of the NCP pattern, the "raw" parameters are given standard normal
@@ -341,7 +343,7 @@ model {
   }
 
   // --- Prior for the fractional variance split ---
-  w_logit ~ normal(3, 2); // Weakly favors a higher proportion of structured variance.
+  w_logit ~ normal(3, 2 * prior_mult); // Weakly favors a higher proportion of structured variance.
 
   // === Likelihood ===
   // This is the core statement that connects the model's predictions (`mu` and

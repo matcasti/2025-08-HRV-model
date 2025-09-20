@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.29">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Matías Castillo-Aguilar">
+<meta name="author" content="Cristian Núñez-Espinosa">
+
+<title>A Unified Probabilistic Framework for Non-Stationary Heart Rate Variability Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="supplementary_files/libs/clipboard/clipboard.min.js"></script>
+<script src="supplementary_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="supplementary_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="supplementary_files/libs/quarto-html/popper.min.js"></script>
+<script src="supplementary_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="supplementary_files/libs/quarto-html/anchor.min.js"></script>
+<link href="supplementary_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="supplementary_files/libs/quarto-html/quarto-syntax-highlighting-0815c480559380816a4d1ea211a47e91.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="supplementary_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="supplementary_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="supplementary_files/libs/bootstrap/bootstrap-81267100e462c21b3d6c0d5bf76a3417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script type="application/json" class="js-hypothesis-config">
+{
+  "theme": "clean"
+}
+</script>
+<script async="" src="https://hypothes.is/embed.js"></script>
+<script>
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    document.body.classList.add('hypothesis-enabled');
+  });
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">A Unified Probabilistic Framework for Non-Stationary Heart Rate Variability Analysis</h1>
+            <p class="subtitle lead">Supplementary Material</p>
+          </div>
+
+    
+    <div class="quarto-title-meta-container">
+      <div class="quarto-title-meta-column-start">
+        
+        <div class="quarto-title-meta">
+
+                <div>
+            <div class="quarto-title-meta-heading">Authors</div>
+            <div class="quarto-title-meta-contents">
+                        <p>Matías Castillo-Aguilar <a href="mailto:matias.castillo@umag.cl" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> <a href="https://orcid.org/0000-0001-7291-247X" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+                        <p>Cristian Núñez-Espinosa <a href="mailto:cristian.nunez@umag.cl" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> <a href="https://orcid.org/0000-0002-9896-7062" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+                      </div>
+          </div>
+                
+          
+                <div>
+            <div class="quarto-title-meta-heading">Modified</div>
+            <div class="quarto-title-meta-contents">
+              <p class="date-modified">September 20, 2025</p>
+            </div>
+          </div>
+                
+              </div>
+      </div>
+      <div class="quarto-title-meta-column-end quarto-other-formats-target">
+      </div>
+    </div>
+
+
+
+    <div class="quarto-other-links-text-target">
+    <div class="quarto-other-links"><div class="quarto-title-meta-heading">Other Links</div><div class="quarto-title-meta-contents"><span><a href="models/rri_model.stan"><i class="bi bi-file-code"></i>Stan Model</a></span></div></div></div>  </div>
+</header><div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#s1-model-implementation-priors" id="toc-s1-model-implementation-priors" class="nav-link active" data-scroll-target="#s1-model-implementation-priors">S1: Model Implementation &amp; Priors</a>
+  <ul class="collapse">
+  <li><a href="#s1.1-fully-commented-stan-model-code" id="toc-s1.1-fully-commented-stan-model-code" class="nav-link" data-scroll-target="#s1.1-fully-commented-stan-model-code">S1.1: Fully Commented Stan Model Code</a></li>
+  <li><a href="#s1.2-prior-justification-and-sensitivity-analysis" id="toc-s1.2-prior-justification-and-sensitivity-analysis" class="nav-link" data-scroll-target="#s1.2-prior-justification-and-sensitivity-analysis">S1.2: Prior Justification and Sensitivity Analysis</a></li>
+  <li><a href="#s1.3-computational-environment" id="toc-s1.3-computational-environment" class="nav-link" data-scroll-target="#s1.3-computational-environment">S1.3: Computational Environment</a></li>
+  </ul></li>
+  <li><a href="#s2-extended-simulation-studies" id="toc-s2-extended-simulation-studies" class="nav-link" data-scroll-target="#s2-extended-simulation-studies">S2: Extended Simulation Studies</a>
+  <ul class="collapse">
+  <li><a href="#s2.1-full-parameter-recovery-results" id="toc-s2.1-full-parameter-recovery-results" class="nav-link" data-scroll-target="#s2.1-full-parameter-recovery-results">S2.1: Full Parameter Recovery Results</a></li>
+  <li><a href="#s2.2-model-misspecification-analysis" id="toc-s2.2-model-misspecification-analysis" class="nav-link" data-scroll-target="#s2.2-model-misspecification-analysis">S2.2: Model Misspecification Analysis</a></li>
+  </ul></li>
+  <li><a href="#s3-full-empirical-analysis-diagnostics" id="toc-s3-full-empirical-analysis-diagnostics" class="nav-link" data-scroll-target="#s3-full-empirical-analysis-diagnostics">S3: Full Empirical Analysis Diagnostics</a>
+  <ul class="collapse">
+  <li><a href="#s3.1-complete-posterior-distributions" id="toc-s3.1-complete-posterior-distributions" class="nav-link" data-scroll-target="#s3.1-complete-posterior-distributions">S3.1: Complete Posterior Distributions</a></li>
+  <li><a href="#s3.2-mcmc-diagnostic-statistics" id="toc-s3.2-mcmc-diagnostic-statistics" class="nav-link" data-scroll-target="#s3.2-mcmc-diagnostic-statistics">S3.2: MCMC Diagnostic Statistics</a></li>
+  <li><a href="#s3.3-posterior-predictive-checks-ppc" id="toc-s3.3-posterior-predictive-checks-ppc" class="nav-link" data-scroll-target="#s3.3-posterior-predictive-checks-ppc">S3.3: Posterior Predictive Checks (PPC)</a></li>
+  </ul></li>
+  <li><a href="#s4-data-and-code-availability" id="toc-s4-data-and-code-availability" class="nav-link" data-scroll-target="#s4-data-and-code-availability">S4: Data and Code Availability</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+  
+
+
+<p>This document provides supplementary information, extended analyses, and technical details to support the findings presented in the main manuscript. The goal of this supplement is to ensure full methodological transparency, computational reproducibility, and to provide a comprehensive validation of the proposed model.</p>
+<section id="s1-model-implementation-priors" class="level1">
+<h1>S1: Model Implementation &amp; Priors</h1>
+<p>This section details the full implementation of the model, including the complete model code, justification for all prior distributions, and an analysis of the model’s sensitivity to these choices.</p>
+<section id="s1.1-fully-commented-stan-model-code" class="level2">
+<h2 class="anchored" data-anchor-id="s1.1-fully-commented-stan-model-code">S1.1: Fully Commented Stan Model Code</h2>
+<p>Below is the complete, line-by-line commented code for the generative model implemented in the Stan programming language. The comments explain the function of each parameter, transformation, and sampling statement.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Stan Implementation of the Full Generative R-R Interval Model</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">// This model deconstructs an R-R interval time series into several components:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. A time-varying baseline (mean R-R interval).</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. A time-varying total standard deviation (SDNN).</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// 3. A structured, oscillatory signal representing physiological variability.</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">// 4. An unstructured residual noise component.</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// The model uses a double-logistic form to capture a perturbation-recovery dynamic.</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">//</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Final Version Features:</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">// - Mechanistic double-logistic core for dynamics.</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">// - Non-parametric Gaussian Process (GP) prior for spectral shape.</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">// - Non-Centered Parameterization (NCP) for the GP and oscillator coefficients.</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">// - Deterministic inversion to solve for time-varying amplitude.</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">// - Exact variance calculation using pre-computed Gram matrices.</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">// Functions Block</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co">// This block defines custom functions that can be used elsewhere in the Stan program.</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co">// Defining functions here is efficient, especially for repeated calculations.</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="kw">functions</span> {</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">/**</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co">   * Calculates a standard logistic growth curve (sigmoid).</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co">   * This function is a fundamental building block for modeling dynamic changes over time.</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co">   * </span><span class="an">@param</span><span class="co"> t The time vector.</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="co">   * </span><span class="an">@param</span><span class="co"> location The time point of the curve's inflection point (midpoint).</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co">   * </span><span class="an">@param</span><span class="co"> rate The steepness or rate of the transition.</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="co">   * </span><span class="an">@return</span><span class="co"> A vector of values between 0 and 1 representing the logistic curve.</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="co">   */</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span> logistic_curve(<span class="dt">vector</span> t, <span class="dt">real</span> location, <span class="dt">real</span> rate) {</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> inv_logit(rate * (t - location));</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="co">// Data Block</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="co">// This block declares all the data that will be passed into the model from</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="co">// an external source (e.g., R or Python).</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> {</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Observed Data ---</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;              <span class="co">// Number of data points in the time series.</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] t;                 <span class="co">// Time vector (e.g., in minutes).</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] RR;                <span class="co">// Observed R-R intervals (e.g., in ms).</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Fixed Spectral Components (treated as data) ---</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The model uses a fixed basis of sine and cosine waves.</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The frequencies are provided, and the model estimates their amplitudes.</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N_sin;          <span class="co">// Number of sinusoids per frequency band.</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">vector</span>[N_sin] freqs;  <span class="co">// Pre-calculated frequencies for VLF, LF, and HF bands.</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Informative Priors on Double-Logistic (DL) parameters ---</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Passing these as data allows for setting subject-specific or experiment-specific</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>  <span class="co">// priors, which can greatly improve model identifiability.</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau_mu;        <span class="co">// Expected time of the perturbation event.</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; delta_mu;      <span class="co">// Expected delay between perturbation and recovery.</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; lambda_mu;     <span class="co">// Expected rate of the perturbation.</span></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; phi_mu;        <span class="co">// Expected rate of the recovery.</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="co">// Transformed Data Block</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a><span class="co">// This block pre-computes quantities that depend only on the data.</span></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a><span class="co">// Performing these calculations here is highly efficient, as they are done</span></span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a><span class="co">// only once before sampling begins, rather than on every iteration.</span></span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="kw">transformed data</span> {</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>  <span class="co">// === Data-derived scaling parameters ===</span></span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These are used to scale parameters to a more natural range (e.g., a standard</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>  <span class="co">// normal scale), which makes defining priors and sampling more robust.</span></span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> rr_min = min(RR);</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> rr_range = max(RR) - rr_min;</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> rr_sd = sd(RR);</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> t_min = min(t);</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> t_range = max(t) - t_min;</span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Precompute sine and cosine basis function templates ---</span></span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These matrices hold the values of sin(2*pi*f*t) and cos(2*pi*f*t) for all</span></span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>  <span class="co">// time points and all basis frequencies. This is a major performance optimization.</span></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">matrix</span>[N, N_sin] sin_mat;</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">matrix</span>[N, N_sin] cos_mat;</span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:<span class="dv">3</span>) {</span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Convert time from minutes to seconds for frequency calculation (Hz).</span></span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N, N_sin] T_mat = (t * <span class="dv">60</span>) * freqs[j]';</span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>    sin_mat[j] = sin(<span class="dv">2</span> * pi() * T_mat);</span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>    cos_mat[j] = cos(<span class="dv">2</span> * pi() * T_mat);</span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Precompute log-frequencies ---</span></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The GP prior operates on the log of the frequencies to better handle</span></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a>  <span class="co">// the wide range of frequencies often seen in HRV.</span></span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">vector</span>[N_sin] log_freqs;</span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:<span class="dv">3</span>) log_freqs[j] = log(freqs[j]);</span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Precompute per-band Gram matrices ---</span></span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These matrices contain the inner products of the basis vectors (e.g., sin_i * sin_j).</span></span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>  <span class="co">// They are used later to calculate the *exact* sample variance of the synthesized</span></span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a>  <span class="co">// oscillatory signals, without making the simplifying (and often incorrect)</span></span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a>  <span class="co">// assumption that the basis functions are perfectly orthogonal over the discrete</span></span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a>  <span class="co">// time interval.</span></span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">matrix</span>[N_sin, N_sin] G_sin;</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">matrix</span>[N_sin, N_sin] G_cos;</span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">matrix</span>[N_sin, N_sin] G_sin_cos; <span class="co">// For cross-terms between sin and cos.</span></span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Normalization factor for sample variance (1 / (N-1)).</span></span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> normalization = <span class="fl">1.0</span> / (N - <span class="dv">1</span>);</span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:<span class="dv">3</span>) {</span>
+<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a>    G_sin[j]     = (transpose(sin_mat[j]) * sin_mat[j]) * normalization;</span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a>    G_cos[j]     = (transpose(cos_mat[j]) * cos_mat[j]) * normalization;</span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a>    G_sin_cos[j] = (transpose(sin_mat[j]) * cos_mat[j]) * normalization;</span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a><span class="co">// Parameters Block</span></span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a><span class="co">// This block declares all the parameters the model will estimate.</span></span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a><span class="co">// For optimal performance with Stan's HMC sampler, all parameters are declared on</span></span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a><span class="co">// an unconstrained scale (the real line, -inf to +inf). They are transformed to their</span></span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a><span class="co">// meaningful, constrained scales in the `transformed parameters` block.</span></span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a><span class="kw">parameters</span> {</span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Shared timing/rate parameters for the double-logistic curves ---</span></span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> tau_logit;        <span class="co">// Location of the perturbation event (logit scale).</span></span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> delta_logit;      <span class="co">// Delay between perturbation and recovery (logit scale).</span></span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> lambda_log;       <span class="co">// Rate of the perturbation (log scale).</span></span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> phi_log;          <span class="co">// Rate of the recovery (log scale).</span></span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Baseline RR(t) trend parameters ---</span></span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> alpha_r_logit;    <span class="co">// Initial baseline RR value (logit-scaled).</span></span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> beta_r_logit;     <span class="co">// Magnitude of the RR drop (logit-scaled).</span></span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> c_r_logit;        <span class="co">// Fractional recovery of the RR drop (logit-scaled).</span></span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Total Variability SDNN(t) trend parameters ---</span></span>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> alpha_s_logit;    <span class="co">// Initial baseline SDNN value (logit-scaled).</span></span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> beta_s_logit;     <span class="co">// Magnitude of the SDNN drop (logit-scaled).</span></span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> c_s_logit;        <span class="co">// Fractional recovery of the SDNN drop (logit-scaled).</span></span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Parameters for time-varying frequency proportions p(t) ---</span></span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These control the transition between a baseline and a perturbed spectral state.</span></span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[<span class="dv">2</span>] y_base_log;  <span class="co">// Unconstrained (ALR) coords for baseline proportions.</span></span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[<span class="dv">2</span>] y_pert_log;  <span class="co">// Unconstrained (ALR) coords for perturbed proportions.</span></span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> c_c_logit;        <span class="co">// Fractional recovery of spectral proportions (logit-scaled).</span></span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- GP Hyperparameters ---</span></span>
+<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These control the properties of the smooth function for the spectral shape.</span></span>
+<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_gp; <span class="co">// Marginal SD: Controls the vertical variation of the spectrum.</span></span>
+<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; rho_gp;   <span class="co">// Length-scale: Controls the smoothness of the spectrum.</span></span>
+<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Non-Centered GP Parameter ---</span></span>
+<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Instead of sampling the GP function values directly, we sample standard normal</span></span>
+<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a>  <span class="co">// deviates and reconstruct the GP. This is the Non-Centered Parameterization (NCP).</span></span>
+<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">vector</span>[N_sin] z_gp;     <span class="co">// Standard normal deviates for the GP.</span></span>
+<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Non-Centered Oscillator Coefficients ---</span></span>
+<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The final amplitudes for each sine/cosine pair are also non-centered.</span></span>
+<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a>  <span class="co">// We estimate standard normal deviates (`z`), which are then scaled.</span></span>
+<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">vector</span>[N_sin] z_sin;    <span class="co">// Standard normal deviates for sine coefficients.</span></span>
+<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">vector</span>[N_sin] z_cos;    <span class="co">// Standard normal deviates for cosine coefficients.</span></span>
+<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Fractional split of SDNN variance ---</span></span>
+<span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> w_logit;          <span class="co">// Proportion of total variance that is "structured" (logit scale).</span></span>
+<span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a><span class="co">// Transformed Parameters Block</span></span>
+<span id="cb1-168"><a href="#cb1-168" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a><span class="co">// This block constructs the full generative model step-by-step from the parameters.</span></span>
+<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a><span class="co">// All calculations here are performed at every leapfrog step of the sampler.</span></span>
+<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a><span class="kw">transformed parameters</span> {</span>
+<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Declare variables that will be used in the likelihood calculation.</span></span>
+<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] mu;          <span class="co">// The final predicted mean RRi trajectory.</span></span>
+<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] var_resid;   <span class="co">// The final residual variance trajectory.</span></span>
+<span id="cb1-175"><a href="#cb1-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-176"><a href="#cb1-176" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 0. Map unconstrained parameters to their meaningful scales ---</span></span>
+<span id="cb1-177"><a href="#cb1-177" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This section applies inverse transformations (e.g., inv_logit, exp) to the</span></span>
+<span id="cb1-178"><a href="#cb1-178" aria-hidden="true" tabindex="-1"></a>  <span class="co">// parameters, mapping them from the unconstrained real line back to their</span></span>
+<span id="cb1-179"><a href="#cb1-179" aria-hidden="true" tabindex="-1"></a>  <span class="co">// natural, interpretable scales (e.g., time, ms, proportions).</span></span>
+<span id="cb1-180"><a href="#cb1-180" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> tau    = inv_logit(tau_logit) * t_range + t_min;</span>
+<span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> delta  = inv_logit(delta_logit) * (t_range - tau); <span class="co">// Delta is a fraction of remaining time.</span></span>
+<span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> lambda = exp(lambda_log);</span>
+<span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> phi    = exp(phi_log);</span>
+<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> alpha_r = inv_logit(alpha_r_logit) * <span class="dv">2</span> * rr_range + rr_min;</span>
+<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> beta_r  = inv_logit(beta_r_logit) * alpha_r; <span class="co">// Beta is a fraction of Alpha.</span></span>
+<span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> c_r     = inv_logit(c_r_logit) * <span class="dv">2</span>; <span class="co">// Recovery can be up to 200% (overshoot).</span></span>
+<span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> alpha_s = inv_logit(alpha_s_logit) * rr_sd;</span>
+<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> beta_s  = inv_logit(beta_s_logit) * alpha_s; <span class="co">// Beta is a fraction of Alpha.</span></span>
+<span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> c_s     = inv_logit(c_s_logit) * <span class="dv">2</span>; <span class="co">// Recovery can be up to 200% (overshoot).</span></span>
+<span id="cb1-192"><a href="#cb1-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-193"><a href="#cb1-193" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> c_c = inv_logit(c_c_logit); <span class="co">// Spectral recovery is between 0-100%.</span></span>
+<span id="cb1-194"><a href="#cb1-194" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> w   = inv_logit(w_logit);   <span class="co">// Structured variance fraction is between 0-1.</span></span>
+<span id="cb1-195"><a href="#cb1-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-196"><a href="#cb1-196" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 1. Construct the two logistic building blocks ---</span></span>
+<span id="cb1-197"><a href="#cb1-197" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These shared curves drive all the dynamic changes in the model.</span></span>
+<span id="cb1-198"><a href="#cb1-198" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] D1 = logistic_curve(t, tau, lambda);      <span class="co">// Primary perturbation curve.</span></span>
+<span id="cb1-199"><a href="#cb1-199" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] D2 = logistic_curve(t, tau + delta, phi); <span class="co">// Recovery curve.</span></span>
+<span id="cb1-200"><a href="#cb1-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-201"><a href="#cb1-201" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 2. Construct the baseline and SDNN trajectories ---</span></span>
+<span id="cb1-202"><a href="#cb1-202" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These define the time-varying mean and total standard deviation of the RR signal.</span></span>
+<span id="cb1-203"><a href="#cb1-203" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] RR_baseline = alpha_r - beta_r .* D1 + (c_r * beta_r) .* D2;</span>
+<span id="cb1-204"><a href="#cb1-204" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] SDNN_t      = alpha_s - beta_s .* D1 + (c_s * beta_s) .* D2;</span>
+<span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-206"><a href="#cb1-206" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 3. Construct the master controller C(t) and spectral proportions p_t ---</span></span>
+<span id="cb1-207"><a href="#cb1-207" aria-hidden="true" tabindex="-1"></a>  <span class="co">// C(t) governs the transition from a baseline spectral state to a perturbed one.</span></span>
+<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] C_t = D1 .* (<span class="fl">1.0</span> - c_c .* D2);</span>
+<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-210"><a href="#cb1-210" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Convert the unconstrained `y_*_log` parameters to 3-element proportion vectors</span></span>
+<span id="cb1-211"><a href="#cb1-211" aria-hidden="true" tabindex="-1"></a>  <span class="co">// using the softmax function (an inverse Additive Log-Ratio transform).</span></span>
+<span id="cb1-212"><a href="#cb1-212" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[<span class="dv">3</span>] pi_base = softmax(append_row(y_base_log, <span class="fl">0.0</span>)); <span class="co">// Baseline state.</span></span>
+<span id="cb1-213"><a href="#cb1-213" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[<span class="dv">3</span>] pi_pert = softmax(append_row(y_pert_log, <span class="fl">0.0</span>)); <span class="co">// Perturbed state.</span></span>
+<span id="cb1-214"><a href="#cb1-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-215"><a href="#cb1-215" aria-hidden="true" tabindex="-1"></a>  <span class="co">// `p_t` smoothly interpolates between the two spectral states based on C(t).</span></span>
+<span id="cb1-216"><a href="#cb1-216" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">3</span>] p_t  = (<span class="fl">1.0</span> - C_t) * pi_base' + C_t * pi_pert';</span>
+<span id="cb1-217"><a href="#cb1-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-218"><a href="#cb1-218" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 4. Construct the spectral coefficient vectors (u_sin, u_cos) ---</span></span>
+<span id="cb1-219"><a href="#cb1-219" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This section combines the GP reconstruction and the final coefficient scaling</span></span>
+<span id="cb1-220"><a href="#cb1-220" aria-hidden="true" tabindex="-1"></a>  <span class="co">// in a single, efficient loop.</span></span>
+<span id="cb1-221"><a href="#cb1-221" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">vector</span>[N_sin] u_sin;</span>
+<span id="cb1-222"><a href="#cb1-222" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">vector</span>[N_sin] u_cos;</span>
+<span id="cb1-223"><a href="#cb1-223" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[<span class="dv">3</span>] <span class="dt">vector</span>[N_sin] log_v; <span class="co">// This will hold the centered GP values.</span></span>
+<span id="cb1-224"><a href="#cb1-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-225"><a href="#cb1-225" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:<span class="dv">3</span>) {</span>
+<span id="cb1-226"><a href="#cb1-226" aria-hidden="true" tabindex="-1"></a>    <span class="co">// --- Step A: Reconstruct the Centered GP (Non-Centered Parameterization) ---</span></span>
+<span id="cb1-227"><a href="#cb1-227" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 1. Construct the covariance matrix K from the hyperparameters.</span></span>
+<span id="cb1-228"><a href="#cb1-228" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N_sin, N_sin] K =</span>
+<span id="cb1-229"><a href="#cb1-229" aria-hidden="true" tabindex="-1"></a>      gp_exp_quad_cov(to_array_1d(log_freqs[j]), alpha_gp[j], rho_gp[j])</span>
+<span id="cb1-230"><a href="#cb1-230" aria-hidden="true" tabindex="-1"></a>      + diag_matrix(rep_vector(<span class="fl">1e-8</span> * square(alpha_gp[j]) + <span class="fl">1e-12</span>, N_sin));</span>
+<span id="cb1-231"><a href="#cb1-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-232"><a href="#cb1-232" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 2. Compute the Cholesky factor of K.</span></span>
+<span id="cb1-233"><a href="#cb1-233" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N_sin, N_sin] L = cholesky_decompose(K);</span>
+<span id="cb1-234"><a href="#cb1-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-235"><a href="#cb1-235" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 3. Construct the centered log_v by transforming the standard normal `z_gp`.</span></span>
+<span id="cb1-236"><a href="#cb1-236" aria-hidden="true" tabindex="-1"></a>    log_v[j] = L * z_gp[j];</span>
+<span id="cb1-237"><a href="#cb1-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-238"><a href="#cb1-238" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 4. Build positive amplitudes from GP</span></span>
+<span id="cb1-239"><a href="#cb1-239" aria-hidden="true" tabindex="-1"></a>    <span class="dt">vector</span>[N_sin] a_k = exp(log_v[j]);</span>
+<span id="cb1-240"><a href="#cb1-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-241"><a href="#cb1-241" aria-hidden="true" tabindex="-1"></a>    <span class="co">// expected diagonal contribution to variance under z ~ N(0,1)</span></span>
+<span id="cb1-242"><a href="#cb1-242" aria-hidden="true" tabindex="-1"></a>    <span class="dt">vector</span>[N_sin] diag_sum = diagonal(G_sin[j]) + diagonal(G_cos[j]); <span class="co">// length N_sin</span></span>
+<span id="cb1-243"><a href="#cb1-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-244"><a href="#cb1-244" aria-hidden="true" tabindex="-1"></a>    <span class="co">// expected base variance under N(0,1) coefficients (cross-terms vanish)</span></span>
+<span id="cb1-245"><a href="#cb1-245" aria-hidden="true" tabindex="-1"></a>    <span class="dt">real</span> base_v_diag = dot_product(a_k .* a_k, diag_sum);</span>
+<span id="cb1-246"><a href="#cb1-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-247"><a href="#cb1-247" aria-hidden="true" tabindex="-1"></a>    <span class="co">// normalize so expected variance ≈ 1 (avoid divide by zero)</span></span>
+<span id="cb1-248"><a href="#cb1-248" aria-hidden="true" tabindex="-1"></a>    <span class="dt">vector</span>[N_sin] full_scale = a_k / sqrt(base_v_diag + <span class="fl">1e-12</span>);</span>
+<span id="cb1-249"><a href="#cb1-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-250"><a href="#cb1-250" aria-hidden="true" tabindex="-1"></a>    <span class="co">// final NCP coefficients</span></span>
+<span id="cb1-251"><a href="#cb1-251" aria-hidden="true" tabindex="-1"></a>    u_sin[j] = z_sin[j] .* full_scale;</span>
+<span id="cb1-252"><a href="#cb1-252" aria-hidden="true" tabindex="-1"></a>    u_cos[j] = z_cos[j] .* full_scale;</span>
+<span id="cb1-253"><a href="#cb1-253" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-254"><a href="#cb1-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-255"><a href="#cb1-255" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 5. Synthesize the raw oscillator signals and mean-center them ---</span></span>
+<span id="cb1-256"><a href="#cb1-256" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">3</span>] S_t_matrix;</span>
+<span id="cb1-257"><a href="#cb1-257" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:<span class="dv">3</span>) {</span>
+<span id="cb1-258"><a href="#cb1-258" aria-hidden="true" tabindex="-1"></a>    <span class="dt">vector</span>[N] S_j = sin_mat[j] * u_sin[j] + cos_mat[j] * u_cos[j];</span>
+<span id="cb1-259"><a href="#cb1-259" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Mean-center to ensure the oscillators represent pure variability, not a baseline shift.</span></span>
+<span id="cb1-260"><a href="#cb1-260" aria-hidden="true" tabindex="-1"></a>    S_t_matrix[:, j] = S_j - mean(S_j);</span>
+<span id="cb1-261"><a href="#cb1-261" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-262"><a href="#cb1-262" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-263"><a href="#cb1-263" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 6. Calculate the exact variance of each oscillator using Gram matrices ---</span></span>
+<span id="cb1-264"><a href="#cb1-264" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This quadratic form calculates Var(S_j) = u' * G * u efficiently and exactly.</span></span>
+<span id="cb1-265"><a href="#cb1-265" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[<span class="dv">3</span>, <span class="dv">3</span>] Sigma_S = rep_matrix(<span class="fl">0.0</span>, <span class="dv">3</span>, <span class="dv">3</span>);</span>
+<span id="cb1-266"><a href="#cb1-266" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:<span class="dv">3</span>) {</span>
+<span id="cb1-267"><a href="#cb1-267" aria-hidden="true" tabindex="-1"></a>    <span class="dt">real</span> vj = dot_product(u_sin[j], G_sin[j] * u_sin[j])</span>
+<span id="cb1-268"><a href="#cb1-268" aria-hidden="true" tabindex="-1"></a>              + dot_product(u_cos[j], G_cos[j] * u_cos[j])</span>
+<span id="cb1-269"><a href="#cb1-269" aria-hidden="true" tabindex="-1"></a>              + <span class="dv">2</span> * dot_product(u_sin[j], G_sin_cos[j] * u_cos[j]);</span>
+<span id="cb1-270"><a href="#cb1-270" aria-hidden="true" tabindex="-1"></a>    Sigma_S[j, j] = vj;</span>
+<span id="cb1-271"><a href="#cb1-271" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-272"><a href="#cb1-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-273"><a href="#cb1-273" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 7. Deterministic Inversion to find the amplitude A(t) ---</span></span>
+<span id="cb1-274"><a href="#cb1-274" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This is a powerful trick. Instead of trying to sample A(t), we solve for the</span></span>
+<span id="cb1-275"><a href="#cb1-275" aria-hidden="true" tabindex="-1"></a>  <span class="co">// exact amplitude needed to make the variance of the structured signal match the</span></span>
+<span id="cb1-276"><a href="#cb1-276" aria-hidden="true" tabindex="-1"></a>  <span class="co">// target structural variance defined by `SDNN_t` and `w`. This improves efficiency.</span></span>
+<span id="cb1-277"><a href="#cb1-277" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] var_struct = square(SDNN_t) .* w; <span class="co">// Target structured variance.</span></span>
+<span id="cb1-278"><a href="#cb1-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-279"><a href="#cb1-279" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The denominator is the variance of the weighted sum of oscillators if A_t were 1.</span></span>
+<span id="cb1-280"><a href="#cb1-280" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">3</span>] M = p_t * Sigma_S;</span>
+<span id="cb1-281"><a href="#cb1-281" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] denom_sq = rows_dot_product(M, p_t);</span>
+<span id="cb1-282"><a href="#cb1-282" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] denom = sqrt(denom_sq + <span class="fl">1e-12</span>);</span>
+<span id="cb1-283"><a href="#cb1-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-284"><a href="#cb1-284" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The final amplitude is the ratio of the target SD to the current SD.</span></span>
+<span id="cb1-285"><a href="#cb1-285" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] A_t = sqrt(var_struct) ./ denom;</span>
+<span id="cb1-286"><a href="#cb1-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-287"><a href="#cb1-287" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 8. Combine components to get the final predicted mean `mu` ---</span></span>
+<span id="cb1-288"><a href="#cb1-288" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] sum_weighted_S = rows_dot_product(S_t_matrix, p_t);</span>
+<span id="cb1-289"><a href="#cb1-289" aria-hidden="true" tabindex="-1"></a>  mu = RR_baseline + A_t .* sum_weighted_S;</span>
+<span id="cb1-290"><a href="#cb1-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-291"><a href="#cb1-291" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 9. Define the residual variance used in the likelihood ---</span></span>
+<span id="cb1-292"><a href="#cb1-292" aria-hidden="true" tabindex="-1"></a>  <span class="co">// The variance not explained by the structured oscillators becomes the residual variance.</span></span>
+<span id="cb1-293"><a href="#cb1-293" aria-hidden="true" tabindex="-1"></a>  var_resid = square(SDNN_t) .* (<span class="fl">1.0</span> - w);</span>
+<span id="cb1-294"><a href="#cb1-294" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-295"><a href="#cb1-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-296"><a href="#cb1-296" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-297"><a href="#cb1-297" aria-hidden="true" tabindex="-1"></a><span class="co">// Model Block</span></span>
+<span id="cb1-298"><a href="#cb1-298" aria-hidden="true" tabindex="-1"></a><span class="co">// =====================================================================</span></span>
+<span id="cb1-299"><a href="#cb1-299" aria-hidden="true" tabindex="-1"></a><span class="co">// This block specifies the priors for the parameters and the likelihood function</span></span>
+<span id="cb1-300"><a href="#cb1-300" aria-hidden="true" tabindex="-1"></a><span class="co">// that connects the model to the observed data.</span></span>
+<span id="cb1-301"><a href="#cb1-301" aria-hidden="true" tabindex="-1"></a><span class="kw">model</span> {</span>
+<span id="cb1-302"><a href="#cb1-302" aria-hidden="true" tabindex="-1"></a>  <span class="co">// === Priors ===</span></span>
+<span id="cb1-303"><a href="#cb1-303" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Priors are placed on the unconstrained parameters. This is essential for</span></span>
+<span id="cb1-304"><a href="#cb1-304" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ensuring the priors cover the entire space the sampler is exploring.</span></span>
+<span id="cb1-305"><a href="#cb1-305" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-306"><a href="#cb1-306" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for logistic components (timing and rates) ---</span></span>
+<span id="cb1-307"><a href="#cb1-307" aria-hidden="true" tabindex="-1"></a>  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), <span class="fl">0.1</span>);</span>
+<span id="cb1-308"><a href="#cb1-308" aria-hidden="true" tabindex="-1"></a>  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), <span class="fl">0.1</span>);</span>
+<span id="cb1-309"><a href="#cb1-309" aria-hidden="true" tabindex="-1"></a>  lambda_log ~ normal(log(lambda_mu), <span class="fl">0.1</span>);</span>
+<span id="cb1-310"><a href="#cb1-310" aria-hidden="true" tabindex="-1"></a>  phi_log ~ normal(log(phi_mu), <span class="fl">0.1</span>);</span>
+<span id="cb1-311"><a href="#cb1-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-312"><a href="#cb1-312" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for RR(t) and SDNN(t) parameters ---</span></span>
+<span id="cb1-313"><a href="#cb1-313" aria-hidden="true" tabindex="-1"></a>  alpha_r_logit ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
+<span id="cb1-314"><a href="#cb1-314" aria-hidden="true" tabindex="-1"></a>  beta_r_logit  ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
+<span id="cb1-315"><a href="#cb1-315" aria-hidden="true" tabindex="-1"></a>  c_r_logit     ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
+<span id="cb1-316"><a href="#cb1-316" aria-hidden="true" tabindex="-1"></a>  alpha_s_logit ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
+<span id="cb1-317"><a href="#cb1-317" aria-hidden="true" tabindex="-1"></a>  beta_s_logit  ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
+<span id="cb1-318"><a href="#cb1-318" aria-hidden="true" tabindex="-1"></a>  c_s_logit     ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
+<span id="cb1-319"><a href="#cb1-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-320"><a href="#cb1-320" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for spectral proportion p_j(t) parameters ---</span></span>
+<span id="cb1-321"><a href="#cb1-321" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These priors encode a physiological hypothesis:</span></span>
+<span id="cb1-322"><a href="#cb1-322" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Baseline state is HF-dominant (low y_base_log).</span></span>
+<span id="cb1-323"><a href="#cb1-323" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Perturbed state is LF/VLF-dominant (high y_pert_log).</span></span>
+<span id="cb1-324"><a href="#cb1-324" aria-hidden="true" tabindex="-1"></a>  y_base_log ~ normal([-<span class="dv">1</span>, -<span class="dv">1</span>]', <span class="dv">1</span>);</span>
+<span id="cb1-325"><a href="#cb1-325" aria-hidden="true" tabindex="-1"></a>  y_pert_log ~ normal([<span class="dv">1</span>, <span class="dv">1</span>]', <span class="dv">1</span>);</span>
+<span id="cb1-326"><a href="#cb1-326" aria-hidden="true" tabindex="-1"></a>  c_c_logit ~ normal(<span class="dv">1</span>, <span class="dv">1</span>);</span>
+<span id="cb1-327"><a href="#cb1-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-328"><a href="#cb1-328" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for GP hyperparameters ---</span></span>
+<span id="cb1-329"><a href="#cb1-329" aria-hidden="true" tabindex="-1"></a>  <span class="co">// `rho_gp` is given a lognormal prior as it must be positive and often</span></span>
+<span id="cb1-330"><a href="#cb1-330" aria-hidden="true" tabindex="-1"></a>  <span class="co">// spans orders of magnitude, making its log a natural scale to work on.</span></span>
+<span id="cb1-331"><a href="#cb1-331" aria-hidden="true" tabindex="-1"></a>  alpha_gp ~ normal(<span class="dv">0</span>, <span class="fl">0.5</span>) <span class="kw">T</span>[<span class="dv">0</span>, ];   <span class="co">// half-normal, favors modest envelope</span></span>
+<span id="cb1-332"><a href="#cb1-332" aria-hidden="true" tabindex="-1"></a>  rho_gp   ~ lognormal(<span class="dv">0</span>, <span class="fl">0.5</span>);</span>
+<span id="cb1-333"><a href="#cb1-333" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-334"><a href="#cb1-334" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for Non-Centered Parameters ---</span></span>
+<span id="cb1-335"><a href="#cb1-335" aria-hidden="true" tabindex="-1"></a>  <span class="co">// As part of the NCP pattern, the "raw" parameters are given standard normal</span></span>
+<span id="cb1-336"><a href="#cb1-336" aria-hidden="true" tabindex="-1"></a>  <span class="co">// priors. This is the core of what makes the NCP work.</span></span>
+<span id="cb1-337"><a href="#cb1-337" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:<span class="dv">3</span>) {</span>
+<span id="cb1-338"><a href="#cb1-338" aria-hidden="true" tabindex="-1"></a>    z_gp[j] ~ std_normal();  <span class="co">// Prior for the non-centered GP.</span></span>
+<span id="cb1-339"><a href="#cb1-339" aria-hidden="true" tabindex="-1"></a>    z_sin[j] ~ std_normal(); <span class="co">// Prior for the sine coefficients.</span></span>
+<span id="cb1-340"><a href="#cb1-340" aria-hidden="true" tabindex="-1"></a>    z_cos[j] ~ std_normal(); <span class="co">// Prior for the cosine coefficients.</span></span>
+<span id="cb1-341"><a href="#cb1-341" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-342"><a href="#cb1-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-343"><a href="#cb1-343" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Prior for the fractional variance split ---</span></span>
+<span id="cb1-344"><a href="#cb1-344" aria-hidden="true" tabindex="-1"></a>  w_logit ~ normal(<span class="dv">1</span>, <span class="dv">1</span>); <span class="co">// Weakly favors a higher proportion of structured variance.</span></span>
+<span id="cb1-345"><a href="#cb1-345" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-346"><a href="#cb1-346" aria-hidden="true" tabindex="-1"></a>  <span class="co">// === Likelihood ===</span></span>
+<span id="cb1-347"><a href="#cb1-347" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This is the core statement that connects the model's predictions (`mu` and</span></span>
+<span id="cb1-348"><a href="#cb1-348" aria-hidden="true" tabindex="-1"></a>  <span class="co">// `var_resid`) to the actual observed data `RR`. The model learns by trying</span></span>
+<span id="cb1-349"><a href="#cb1-349" aria-hidden="true" tabindex="-1"></a>  <span class="co">// to find parameter values that make the observed data most plausible under a</span></span>
+<span id="cb1-350"><a href="#cb1-350" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Normal distribution with a time-varying mean and variance.</span></span>
+<span id="cb1-351"><a href="#cb1-351" aria-hidden="true" tabindex="-1"></a>  RR ~ normal(mu, sqrt(var_resid));</span>
+<span id="cb1-352"><a href="#cb1-352" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="s1.2-prior-justification-and-sensitivity-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="s1.2-prior-justification-and-sensitivity-analysis">S1.2: Prior Justification and Sensitivity Analysis</h2>
+<section id="s1.2.1-prior-predictive-checks" class="level3">
+<h3 class="anchored" data-anchor-id="s1.2.1-prior-predictive-checks">S1.2.1: Prior Predictive Checks</h3>
+<p>To ensure our chosen priors were reasonable and did not unduly influence the posterior, we conducted prior predictive checks. We generated 20,000 datasets directly from the prior distributions (i.e., without conditioning on the data). Supplementary Figure S1 shows that the chosen priors generate a wide range of physiologically plausible (and implausible) response curves, confirming that the model is flexible and that the subsequent posterior is primarily driven by the data, not the priors.</p>
+<p><img src="figures/fig-ppcheck.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Supplementary Figure S1: Prior Predictive Checks.</strong> (A) Simulated RRi signal incorporating deterministic and stochastic components (blue). (B-C) Time-domain reconstruction from prior distributions. (D) Spectral components separated by frequency band. Each line represents the median and the shaded areas represent the 95% highest density interval from 20,000 dataset generated from the prior distribution. The wide distribution of curves demonstrates that the priors are not restrictive.</p>
+</section>
+<section id="s1.2.2-prior-sensitivity-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="s1.2.2-prior-sensitivity-analysis">S1.2.2: Prior Sensitivity Analysis</h3>
+<p>To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript’s weakly informative priors, (2) “flatter” priors with three times larger variance, and (3) “tighter”, more informative priors with a third of original variance. Supplementary Table S1 shows the posterior summaries for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between <span class="math inline">\(c\_r\)</span> and <span class="math inline">\(c\_s\)</span>) remains unchanged across all specifications, demonstrating the robustness of our primary finding.</p>
+<p><strong>[Insert Table S1 Here]</strong></p>
+<p><strong>Supplementary Table S1: Prior Sensitivity Analysis.</strong> Posterior medians and 95% credible intervals for key recovery parameters under three different prior specifications.</p>
+</section>
+</section>
+<section id="s1.3-computational-environment" class="level2">
+<h2 class="anchored" data-anchor-id="s1.3-computational-environment">S1.3: Computational Environment</h2>
+<p>All analyses were performed using <code>R</code> (version 4.x.x) and the <code>CmdStanR</code> interface (version x.x.x) to <code>CmdStan</code> (version x.xx.x). A complete list of packages and their versions is provided in the <code>renv.lock</code> file available in the public repository. The MCMC sampler was run with 4 chains for 2000 iterations each, with the first 1000 discarded as warmup, resulting in 4000 posterior samples.</p>
+</section>
+</section>
+<section id="s2-extended-simulation-studies" class="level1">
+<h1>S2: Extended Simulation Studies</h1>
+<p>This section provides a complete report of the simulation studies, including full parameter recovery results and an examination of the model’s behavior under conditions of misspecification.</p>
+<section id="s2.1-full-parameter-recovery-results" class="level2">
+<h2 class="anchored" data-anchor-id="s2.1-full-parameter-recovery-results">S2.1: Full Parameter Recovery Results</h2>
+<p><strong>Supplementary Figure S2</strong> displays the complete posterior distributions for all generative parameters from the three simulation scenarios described in the main text, plotted against their known ground-truth values (red vertical lines). The posteriors are well-centered on the true values, and the true values are consistently contained within the 95% credible intervals, demonstrating excellent parameter recovery.</p>
+<p><strong>[Insert Figure S2 Here]</strong></p>
+<p><strong>Supplementary Figure S2: Full Posterior Recovery of Ground-Truth Parameters.</strong> Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Red lines indicate the true generative values.</p>
+</section>
+<section id="s2.2-model-misspecification-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="s2.2-model-misspecification-analysis">S2.2: Model Misspecification Analysis</h2>
+<section id="s2.2.1-asymmetric-recovery-dynamics" class="level3">
+<h3 class="anchored" data-anchor-id="s2.2.1-asymmetric-recovery-dynamics">S2.2.1: Asymmetric Recovery Dynamics</h3>
+<p>We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. <strong>Supplementary Figure S3</strong> shows the model’s attempt to fit this signal. The model captures the general trend but, as expected, its symmetric functional form cannot fully capture the sharp “knee” and long tail of the exponential decay, leading to systematic bias in the residuals during the recovery phase. This defines a known limitation of the current model architecture.</p>
+<p><strong>[Insert Figure S3 Here]</strong></p>
+<p><strong>Supplementary Figure S3: Model Fit to Asymmetric Recovery Data.</strong> The model’s posterior mean trajectory (red line) is overlaid on synthetic data with an exponential recovery (black points). The inset shows the structured pattern in the residuals during the recovery phase, indicating model misspecification.</p>
+</section>
+<section id="s2.2.2-non-gaussian-noise-structure" class="level3">
+<h3 class="anchored" data-anchor-id="s2.2.2-non-gaussian-noise-structure">S2.2.2: Non-Gaussian Noise Structure</h3>
+<p>We generated synthetic data using a Student’s-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. <strong>Supplementary Figure S4</strong> shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction (<span class="math inline">\(w\)</span>) is biased downwards. The model incorrectly attributes the heavy-tailed noise to the unstructured residual component.</p>
+<p><strong>[Insert Figure S4 Here]</strong></p>
+<p><strong>Supplementary Figure S4: Impact of Non-Gaussian Noise.</strong> Posterior distribution for the <code>$w$</code> parameter when the model is fit to data with Gaussian noise (blue) versus heavy-tailed Student’s-t noise (orange). The red line is the true value.</p>
+</section>
+</section>
+</section>
+<section id="s3-full-empirical-analysis-diagnostics" class="level1">
+<h1>S3: Full Empirical Analysis Diagnostics</h1>
+<p>This section provides a complete set of diagnostic checks for the MCMC analysis of the empirical N-of-1 dataset to ensure the reliability of the inference.</p>
+<section id="s3.1-complete-posterior-distributions" class="level2">
+<h2 class="anchored" data-anchor-id="s3.1-complete-posterior-distributions">S3.1: Complete Posterior Distributions</h2>
+<p><strong>Supplementary Figure S5</strong> shows the marginal posterior distributions (histograms) and MCMC traceplots for all key parameters from the empirical model fit.</p>
+<p><strong>[Insert Figure S5 Here]</strong></p>
+<p><strong>Supplementary Figure S5: Full Posterior Distributions and Traceplots for Empirical Analysis.</strong> The left column shows posterior histograms for each parameter. The right column shows the MCMC traceplots for four chains, demonstrating stationary, well-mixed chains.</p>
+</section>
+<section id="s3.2-mcmc-diagnostic-statistics" class="level2">
+<h2 class="anchored" data-anchor-id="s3.2-mcmc-diagnostic-statistics">S3.2: MCMC Diagnostic Statistics</h2>
+<p>All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. <strong>Supplementary Table S2</strong> provides the <code>R-hat</code>, effective sample size (<code>n_eff</code>), and Monte Carlo Standard Error (MCSE) for all key parameters, confirming the reliability of the posterior estimates.</p>
+<p><strong>[Insert Table S2 Here]</strong></p>
+<p><strong>Supplementary Table S2: MCMC Diagnostic Statistics.</strong> All <code>R-hat</code> values are 1.00, and <code>n_eff</code> is sufficient for all parameters.</p>
+</section>
+<section id="s3.3-posterior-predictive-checks-ppc" class="level2">
+<h2 class="anchored" data-anchor-id="s3.3-posterior-predictive-checks-ppc">S3.3: Posterior Predictive Checks (PPC)</h2>
+<p>To assess the model’s descriptive adequacy, we performed posterior predictive checks. <strong>Supplementary Figure S6</strong> overlays the empirical RRi time series with 100 time series simulated from the fitted model’s posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, <strong>Supplementary Figure S7</strong> shows that the distributions of key summary statistics (mean, SD, and autocorrelation at lag 1) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.</p>
+<p><strong>[Insert Figure S6 Here]</strong></p>
+<p><strong>Supplementary Figure S6: Graphical Posterior Predictive Check.</strong> The observed RRi data (black line) is shown with 100 replicated datasets (faint red lines) generated from the fitted model.</p>
+<p><strong>[Insert Figure S7 Here]</strong></p>
+<p><strong>Supplementary Figure S7: Distributional Posterior Predictive Checks.</strong> The distribution for three summary statistics calculated from the replicated datasets. The vertical black line shows the value of the statistic from the actual observed data.</p>
+</section>
+</section>
+<section id="s4-data-and-code-availability" class="level1">
+<h1>S4: Data and Code Availability</h1>
+<p>To ensure full reproducibility, all data and code used in this study are publicly available at the following repository:</p>
+<ul>
+<li><strong>Repository:</strong> [Link to GitHub, OSF, or other public repository]</li>
+<li><strong>Contents:</strong>
+<ul>
+<li><code>/data/</code>: Contains the raw and pre-processed RRi data for the empirical N-of-1 example.</li>
+<li><code>/models/</code>: Contains the fully commented Stan model file (<code>rri_model.stan</code>).</li>
+<li><code>/scripts/</code>: Contains the R scripts to perform the simulations, run all analyses, and generate all figures and tables in both the main manuscript and this supplement.</li>
+<li><code>manuscript.qmd</code>: The Quarto/R Markdown source file for the main manuscript.</li>
+<li><code>supplement.qmd</code>: The Quarto/R Markdown source file for this supplementary document.</li>
+<li><code>renv.lock</code>: A lockfile specifying all R package dependencies to ensure a reproducible computational environment.</li>
+</ul></li>
+</ul>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

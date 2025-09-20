@@ -29,9 +29,9 @@ library(data.table)
 library(ggplot2)
 library(cowplot)
 library(signal)
-source("R/1-generate_data.R")
 source("R/_functions.R")
 
+simulated_data <- readRDS("data/simulated_data.RDS")
 
 # 4. --- Main Analysis and Visualization Pipeline ---
 metrics <- vector("list", 3)
@@ -40,17 +40,12 @@ plots <- vector("list", 3)
 # Define parameters for the conventional analysis
 WINDOW_SECONDS <- 60 # 2-minute window is common
 OVERLAP_PERC <- 0.99  # 99% overlap for smoother estimates
+SAMPLING_RATE_HZ <- 2
 
 for (i in 1:3) {
 
   # Generate the ground-truth data
-  sim_data <- generate_rri_simulation(
-    N = N_points,
-    t_max = SIM_DURATION_MIN,
-    params = params[[i]],
-    N_sin = N_SINUSOIDS,
-    seed = 123
-  )$data
+  sim_data <- simulated_data[[i]]$data
 
   # --- B. Run Conventional Analyses ---
 
