@@ -22,9 +22,9 @@ format:
     toc: true
     toc-location: right
     toc-depth: 2
-    comments: 
-      hypothesis: 
-        theme: clean
+  # comments: 
+  #   hypothesis: 
+  #     theme: clean
 other-links: 
   - text: "Supplementary Material"
     href: "supplementary.html"
