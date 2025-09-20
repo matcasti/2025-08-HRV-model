@@ -25,7 +25,7 @@ format:
     comments: 
       hypothesis: 
         theme: clean
-        usernameUrl: "https://hypothes.is/users/matcasti"
+    include-in-header: "includes/hypothesis-config.html"
 other-links: 
   - text: "Supplementary Material"
     href: "supplementary.html"

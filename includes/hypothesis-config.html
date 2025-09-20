@@ -1,0 +1,15 @@
+<script>
+window.hypothesisConfig = function () {
+  return {
+    openSidebar: false,
+    showHighlights: true,
+    // default group (use the group's id part from the group URL)
+    group: "g4JPqbk5",
+    // optional: custom login flow (client should call your site's auth)
+    onLoginRequest: function () {
+      // redirect to your site's login endpoint
+      window.location = "/login?next=" + encodeURIComponent(window.location);
+    }
+  };
+};
+</script>
