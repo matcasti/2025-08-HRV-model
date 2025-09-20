@@ -25,7 +25,7 @@ format:
     comments: 
       hypothesis: 
         theme: clean
-        usernameUrl: matcasti
+        usernameUrl: "https://hypothes.is/users/matcasti"
 other-links: 
   - text: "Supplementary Material"
     href: "supplementary.html"
