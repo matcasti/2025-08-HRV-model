@@ -178,21 +178,13 @@ The generative framework presented here represents a conceptually powerful alter
 
 ## Model formulation
 
-We presented a comprehensive generative model for the RRi signal, observed at a discrete set of time points $\{t_i\}_{i=1}^N$. The model's architecture is designed to deconstruct the signal into its constituent physiological components, providing a mechanistic account of the processes that shape heart rate dynamics. This is achieved by conceptualizing the signal as a probabilistic process controlled by a time-varying mean, $\mu(t_i)$, and a partitioned, time-varying standard deviation. This approach moves beyond simple curve-fitting to formalize a theory of autonomic control and its temporal evolution within a fully Bayesian framework.
+We presented a comprehensive generative model for the RRi signal, observed at a discrete set of time points $\{t_i\}_{i=1}^N$. The model's architecture is designed to deconstruct the signal into its constituent physiological components, providing a mechanistic account of the processes that shape heart rate dynamics. This is achieved by conceptualizing the signal as a probabilistic process controlled by a time-varying mean, $\mu(t_i)$, and a partitioned, time-varying standard deviation. This sophisticated approach moves beyond simple curve-fitting to formalize a theory of autonomic control and its temporal evolution within a fully Bayesian framework. 
 
-A central component of the model is the partitioning of the total signal variance into two distinct, time-dependent components: a structured variance, $\sigma^2_{\text{struct}}(t_i)$, which captures the physiologically meaningful, oscillatory patterns of HRV, and a residual variance, $\sigma^2_{\text{resid}}(t_i)$, which accounts for unstructured, moment-to-moment fluctuations. However, physiological recordings are frequently contaminated by artifacts or ectopic beats that are not well-described by a simple Gaussian noise process. To ensure the model is robust to such outliers, we depart from a unimodal likelihood. Instead, we specify the observation model as a two-component finite mixture model, which conceptualizes each data point as arising from one of two states: a primary "inlier" state, or a rare "outlier" state.
-
-The inlier state assumes the data follows the core physiological model, with residuals distributed normally. The outlier state is captured by a heavy-tailed Cauchy distribution, which can account for extreme, aberrant observations without influencing the estimation of the core dynamic parameters. The complete likelihood is a mixture of these two distributions, as defined in @eq-full-likelihood.
+A central component of the model is the partitioning of the total signal variance into two distinct, time-dependent components: a structured variance, $\sigma^2_{\text{struct}}(t_i)$, which captures the physiologically meaningful, oscillatory patterns of HRV, and a residual variance, $\sigma^2_{\text{resid}}(t_i)$, which accounts for unstructured, moment-to-moment fluctuations or measurement noise. The complete observation model, which integrates these components, is defined by the Normal likelihood in @eq-full-likelihood.
 
 $$
-\begin{aligned}
-z_i &\sim \text{Bernoulli}(p_{\text{out}}) \\
-\mathrm{RRi}(t_i) | z_i=0 &\sim \mathcal{N}\left(\mu(t_i), \sigma_{\text{resid}}(t_i)\right) \\
-\mathrm{RRi}(t_i) | z_i=1 &\sim \text{Cauchy}\left(\mu(t_i), \sigma_{\text{resid}}(t_i)\right)
-\end{aligned}
+\mathrm{RRi}(t_i) \sim \mathcal{N}\left(\mu(t_i), \sigma_{\text{resid}}(t_i)\right)
 $${#eq-full-likelihood}
-
-Here, a latent binary variable $z_i$ determines if an observation is an inlier ($z_i=0$) or an outlier ($z_i=1$) with probability $p_{\text{out}}$. Inliers follow a Normal distribution centered on the model's dynamic prediction $\mu(t_i)$, while outliers follow a heavy-tailed Cauchy distribution, sharing the scale $\sigma_{\text{resid}}(t_i)$.
 
 The core of the model lies in the construction of the mean and variance components from a shared set of underlying dynamic functions. The mean trajectory, $\mu(t_i)$, is a superposition of a smoothly varying baseline trend and the synthesized structured signal itself, as shown in @eq-mean-model.
 
@@ -203,9 +195,9 @@ $$
 \underbrace{A(t_i) \cdot \sum_{j=1}^{J} p_j(t_i) \cdot S_j(t_i)}_{\substack{\text{Structured Variability Signal}}}
 $${#eq-mean-model}
 
-Here, $\mathrm{RR_{base}}(t_i)$ represents the gross, underlying heart period trajectory. The structured variability signal is synthesized from a set of dynamically evolving spectral oscillators, $S_j(t_i)$, which represent activity in different physiological frequency bands ($j=1,2,3$ for VLF, LF, and HF, respectively). These oscillators are weighted by time-varying proportions, $p_j(t_i)$, and their overall magnitude is controlled by a scaling amplitude, $A(t_i)$. This amplitude is deterministically calculated to ensure the signal's variance matches the target structured variance, $\sigma^2_{\text{struct}}(t_i)$.
+Here, $\mathrm{RR_{base}}(t_i)$ represents the gross, underlying heart period trajectory. The structured variability signal is synthesized from a set of dynamically evolving spectral oscillators, $S_j(t_i)$, which represent activity in different physiological frequency bands ($j=1,2,3$ for VLF, LF, and HF, respectively). These oscillators are weighted by time-varying proportions, $p_j(t_i)$, and their overall magnitude is controlled by a scaling amplitude, $A(t_i)$. This amplitude is deterministically calculated to ensure the signal's variance exactly matches the target structured variance, $\sigma^2_{\text{struct}}(t_i)$.
 
-A key feature is a dynamic trajectory for the total signal variability, denoted $\mathrm{SDNN}(t_i)$, which is then partitioned into its structured and residual components. This partition is controlled by a parameter, $w \in [0, 1]$, which represents the fraction of total variance attributable to the structured component, as defined in @eq-var-structure.
+A pivotal feature is a dynamic trajectory for the total signal variability, denoted $\mathrm{SDNN}(t_i)$, which is then partitioned into its structured and residual components. This partition is controlled by a parameter, $w \in [0, 1]$, which represents the fraction of total variance attributable to the structured component, as defined in @eq-var-structure.
 
 $$
 \begin{aligned}
@@ -257,7 +249,7 @@ The shared timing parameters enforce physiological coupling: $\tau$ is the infle
 
 ### Generative model for the structured signal
 
-The structured component of the signal is where the model's spectral properties are defined. Its construction involves three key elements: the dynamic spectral proportions, the latent spectral oscillators (whose amplitudes are controlled by a Gaussian Process), and a deterministic amplitude inversion that ties them to the target variance.
+The structured component of the signal is where the model's spectral properties are defined. Its construction involves three key elements: the dynamic spectral proportions, the latent spectral oscillators (whose amplitudes are governed by a Gaussian Process), and a deterministic amplitude inversion that ties them to the target variance.
 
 #### Dynamic frequency band proportions
 
@@ -279,7 +271,7 @@ This function naturally transitions from 0 towards 1, with the parameter $c_c \i
 
 A central task of the model is to infer the power of oscillations across a range of frequencies from the observed data. A simple approach might impose a rigid mathematical structure on the spectrum (e.g., a $1/f^b$ power law) or treat the power at each frequency as independent. However, physiological spectra are rarely so simple; they typically exhibit smooth, continuous shapes with broad peaks.
 
-To capture this structure, we employ a non-parametric Gaussian Process (GP) prior. A GP is a statistical tool that allows us to place a prior on an unknown function, enforcing the assumption that it is smooth [@binois2022survey]. In this context, it formalizes the intuition that the amplitudes of nearby frequencies should be similar, allowing the model to learn the characteristic shape of the spectrum within each band directly from the data.
+To capture this realistic structure, we employ a flexible, non-parametric Gaussian Process (GP) prior. A GP is a statistical tool that allows us to place a prior on an unknown function, enforcing the assumption that it is smooth [@binois2022survey]. In this context, it formalizes the intuition that the amplitudes of nearby frequencies should be similar, allowing the model to learn the characteristic shape of the spectrum within each band directly from the data.
 
 Each underlying oscillator, $S_j(t_i)$, which contributes to the structured variability, is modeled as a sum of simple sine and cosine waves with pre-specified frequencies ($f_{j,k}$) but unknown amplitudes ($u_{j,k}$), as shown in @eq-multi-sine-fun.
 
@@ -329,7 +321,7 @@ $$
 A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathbf{\Sigma}_S \; \vec{p}(t_i)}}
 $${#eq-amplitude-inversion}
 
-This inversion dynamically adjusts the amplitude of the synthesized spectral signal to ensure its contribution to the total variance is exactly as prescribed by the model's parameters ($\mathrm{SDNN}(t_i)$ and $w$), thereby connecting the time-domain and frequency-domain components of the model.
+This inversion is essential. It dynamically adjusts the amplitude of the synthesized spectral signal to ensure its contribution to the total variance is exactly as prescribed by the model's high-level parameters ($\mathrm{SDNN}(t_i)$ and $w$), thereby connecting the time-domain and frequency-domain components of the model.
 
 ### Model Parameterization and Priors
 
@@ -339,7 +331,7 @@ To ensure numerical stability and efficient sampling, all model parameters are e
 
 Parameters constrained to a specific interval are parameterized on the logit scale, while positive parameters are on the log scale. For instance, the timing parameters $\tau$ and $\delta$ are mapped to the observed time interval ($t_\text{range}$) and the remaining time, respectively, using the inverse logit transformation, such that $\tau = \text{logit}^{-1}(\tau_\text{logit}) \cdot t_\text{range} + t_\text{min}$ and $\delta = \text{logit}^{-1}(\delta_\text{logit}) \cdot (t_\text{range} - \tau)$.
 
-The positive rate parameters $\lambda$ and $\phi$ are simply log-transformed, i.e., $\lambda = \exp(\lambda_\text{log})$. The recovery coefficients for the time-domain components ($c_r,c_s$) are mapped to the interval $[0, 2]$, while the recovery parameter for spectral components ($c_c$) is mapped to the $[0, 1]$ interval, using a scaled logit function. Similarly, the fraction of structured variance, $w$, is constrained between 0 and 1 via $w = \text{logit}^{-1}(w_{\text{logit}})$. The probability of an observation being an outlier, $p_{\text{out}}$, is likewise mapped from the logit scale, $p_{\text{out}} = \text{logit}^{-1}(p_{\text{out,logit}})$. We place a weakly informative prior on this parameter, $p_{\text{out,logit}} \sim \mathcal{N}(\text{logit}(0.01), 0.5)$, which centers our prior belief on a 1% outlier rate but allows the data to update this belief.
+The positive rate parameters $\lambda$ and $\phi$ are simply log-transformed, i.e., $\lambda = \exp(\lambda_\text{log})$. The recovery coefficients for the time-domain components ($c_r,c_s$) are mapped to the interval $[0, 2]$, while the recovery parameter for spectral components ($c_c$) is mapped to the $[0, 1]$ interval, using a scaled logit function. Similarly, the fraction of structured variance, $w$, is constrained between 0 and 1 via $w = \text{logit}^{-1}(w_{\text{logit}})$.
 
 The magnitude parameters ($\alpha_r, \beta_r, \alpha_s, \beta_s$) are scaled relative to data-derived quantities to create dimensionless parameters whose priors are easier to specify. These transformations ensure the sampler explores a valid and well-behaved parameter space.
 
