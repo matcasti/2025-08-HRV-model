@@ -26,6 +26,7 @@ format:
     comments: 
       hypothesis: 
         theme: clean
+    include-in-header: "includes/hypothesis-config.html"
 other-links: 
   - text: "Stan Model"
     href: "models/rri_model.stan"
@@ -353,26 +354,26 @@ model {
   // ensuring the priors cover the entire space the sampler is exploring.
 
   // --- Priors for logistic components (timing and rates) ---
-  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), 0.1);
-  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), 0.1);
-  lambda_log ~ normal(log(lambda_mu), 0.1);
-  phi_log ~ normal(log(phi_mu), 0.1);
+  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), 0.2);
+  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), 0.2);
+  lambda_log ~ normal(log(lambda_mu), 0.2);
+  phi_log ~ normal(log(phi_mu), 0.2);
 
   // --- Priors for RR(t) and SDNN(t) parameters ---
-  alpha_r_logit ~ normal(0, 1);
-  beta_r_logit  ~ normal(0, 1);
-  c_r_logit     ~ normal(0, 1);
-  alpha_s_logit ~ normal(0, 1);
-  beta_s_logit  ~ normal(0, 1);
-  c_s_logit     ~ normal(0, 1);
+  alpha_r_logit ~ normal(0, 2);
+  beta_r_logit  ~ normal(0, 2);
+  c_r_logit     ~ normal(0, 2);
+  alpha_s_logit ~ normal(0, 2);
+  beta_s_logit  ~ normal(0, 2);
+  c_s_logit     ~ normal(0, 2);
 
   // --- Priors for spectral proportion p_j(t) parameters ---
   // These priors encode a physiological hypothesis:
   // Baseline state is HF-dominant (low y_base_log).
   // Perturbed state is LF/VLF-dominant (high y_pert_log).
-  y_base_log ~ normal([-1, -1]', 1);
-  y_pert_log ~ normal([1, 1]', 1);
-  c_c_logit ~ normal(1, 1);
+  y_base_log ~ normal([0, 0]', 2);
+  y_pert_log ~ normal([0, 0]', 2);
+  c_c_logit ~ normal(1, 2);
 
   // --- Priors for GP hyperparameters ---
   // `rho_gp` is given a lognormal prior as it must be positive and often
@@ -390,7 +391,7 @@ model {
   }
 
   // --- Prior for the fractional variance split ---
-  w_logit ~ normal(1, 1); // Weakly favors a higher proportion of structured variance.
+  w_logit ~ normal(3, 2); // Weakly favors a higher proportion of structured variance.
 
   // === Likelihood ===
   // This is the core statement that connects the model's predictions (`mu` and
@@ -413,15 +414,15 @@ To ensure our chosen priors were reasonable and did not unduly influence the pos
 
 ### S1.2.2: Prior Sensitivity Analysis
 
-To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript's weakly informative priors, (2) "flatter" priors with three times larger variance, and (3) "tighter", more informative priors with a third of original variance. Supplementary Table S1 shows the posterior summaries for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between $c\_r$ and $c\_s$) remains unchanged across all specifications, demonstrating the robustness of our primary finding.
+To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript's weakly informative priors, (2) "flatter" priors with two times larger variance, and (3) "tighter", more informative priors with half of original variance. Supplementary Figure S2 shows the posterior distribution for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between $c\_r$ and $c\_s$) remains unchanged across all specifications, with consistent overlapping credible intervals for all model parameters demonstrating the robustness of our primary finding.
 
-**[Insert Table S1 Here]**
+![](figures/fig-prior-sensitivity.svg){width=100%}
 
-**Supplementary Table S1: Prior Sensitivity Analysis.** Posterior medians and 95% credible intervals for key recovery parameters under three different prior specifications.
+**Supplementary Figure S2: Prior Sensitivity Analysis.** Posterior distributions and 95% credible intervals for all model parameters under three different prior specifications. The overlapping credible intervals provide compelling evidence of robustness in parameter estimation.
 
 ## S1.3: Computational Environment
 
-All analyses were performed using `R` (version 4.x.x) and the `CmdStanR` interface (version x.x.x) to `CmdStan` (version x.xx.x). A complete list of packages and their versions is provided in the `renv.lock` file available in the public repository. The MCMC sampler was run with 4 chains for 2000 iterations each, with the first 1000 discarded as warmup, resulting in 4000 posterior samples.
+All analyses were performed using `R` (version 4.5.0) and the `rstan` interface (version 2.32.7) to `Stan` (version 2.32.2). A complete list of packages and their versions is provided in the `renv.lock` file available in the public repository. The MCMC sampler was run with 4 chains for 10000 iterations each, with the first 5000 discarded as warmup, resulting in 20000 posterior samples.
 
 # S2: Extended Simulation Studies
 
@@ -429,29 +430,91 @@ This section provides a complete report of the simulation studies, including ful
 
 ## S2.1: Full Parameter Recovery Results
 
-**Supplementary Figure S2** displays the complete posterior distributions for all generative parameters from the three simulation scenarios described in the main text, plotted against their known ground-truth values (red vertical lines). The posteriors are well-centered on the true values, and the true values are consistently contained within the 95% credible intervals, demonstrating excellent parameter recovery.
+Supplementary Figure S3 displays the complete posterior distributions for all generative parameters from the three simulation scenarios described in the main text, plotted against their known ground-truth values (red vertical lines). The posteriors are well-centered on the true values, and the true values are consistently contained within the 95% credible intervals, demonstrating parameter recovery.
 
-**[Insert Figure S2 Here]**
+![](figures/fig-full-recovery.svg){width=100%}
 
-**Supplementary Figure S2: Full Posterior Recovery of Ground-Truth Parameters.** Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Red lines indicate the true generative values.
+**Supplementary Figure S3: Full Posterior Recovery of Ground-Truth Parameters.** Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Vertical black lines indicate the true generative values.
 
 ## S2.2: Model Misspecification Analysis
 
 ### S2.2.1: Asymmetric Recovery Dynamics
 
-We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. **Supplementary Figure S3** shows the model's attempt to fit this signal. The model captures the general trend but, as expected, its symmetric functional form cannot fully capture the sharp "knee" and long tail of the exponential decay, leading to systematic bias in the residuals during the recovery phase. This defines a known limitation of the current model architecture.
+We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. Supplementary Figure S4 shows the model's attempt to fit this signal. Contrary to first expected, the model captures the general trend and its functional form fully captures the sharp "knee" and long tail of the exponential decay, managing to adapt to this type of model misspecification during the recovery phase, even in the face of a different data generating processes. This provides additional evidence of the current model architecture's flexibility.
 
-**[Insert Figure S3 Here]**
+![](figures/fig-asymetric.svg){width=100%}
 
-**Supplementary Figure S3: Model Fit to Asymmetric Recovery Data.** The model's posterior mean trajectory (red line) is overlaid on synthetic data with an exponential recovery (black points). The inset shows the structured pattern in the residuals during the recovery phase, indicating model misspecification.
+**Supplementary Figure S4: Model Fit to Asymmetric Recovery Data.** The left panel shows the true underlying heart trajectory (blue line). Right panel shows the model's posterior trajectory (red line) and 95% highest density interval (shaded area in red) is overlaid on synthetic data with an exponential recovery with gaussian noise (grey line). 
+
+The R code and model parameters used to generate the data can be seen in the following code block:
+
+```R
+# --- 1. Define Helper Functions ---
+
+# Standard logistic (sigmoid) function
+logistic_curve <- function(t, location, rate) {
+  1 / (1 + exp(-rate * (t - location)))
+}
+
+# Asymmetric exponential recovery curve (shaped like a CDF)
+exponential_recovery <- function(t, start_time, rate) {
+  # Time since the recovery event started
+  time_since_start <- pmax(0, t - start_time)
+  # Cumulative exponential function, scaled from 0 to 1
+  1 - exp(-rate * time_since_start)
+}
+
+
+# --- 2. Set Simulation Parameters ---
+
+# Time parameters
+N      <- 1200   # Number of data points (e.g., 20 minutes at 1 Hz)
+t      <- seq(from = 0, to = 15, length.out = N) # Time vector in minutes
+tau    <- 5      # Time of perturbation event (minutes)
+delta  <- 1      # Delay between perturbation and recovery onset (minutes)
+lambda <- 5      # Rate/steepness of the logistic perturbation
+phi    <- 0.8    # Rate of the exponential recovery (lower = slower recovery)
+
+# RRi amplitude parameters
+alpha  <- 1000   # Initial baseline RRi (ms)
+beta   <- 300    # Magnitude of the RRi drop (ms)
+c_r    <- 0.90   # Fractional recovery (0.9 = 90% recovery of the drop)
+
+# Noise parameter
+sigma  <- 15     # Standard deviation of the residual noise (ms)
+
+
+# --- 3. Generate the Time Series ---
+
+# Create the perturbation and recovery building blocks
+perturbation <- logistic_curve(t, location = tau, rate = lambda)
+recovery     <- exponential_recovery(t, start_time = tau + delta, rate = phi)
+
+# Combine the components to create the true mean RRi trajectory
+# The logic follows the manuscript's model: Baseline - Drop + Recovery
+mean_rri <- alpha - (beta * perturbation) + (c_r * beta * recovery)
+
+# Add Gaussian noise to create the final observed signal
+set.seed(42) # for reproducibility
+observed_rri <- rnorm(n = N, mean = mean_rri, sd = sigma)
+
+# --- 4. Package and Save Data ---
+
+# Store the results in a data frame
+sim_data <- data.frame(
+  time = t,
+  true_mean_rri = mean_rri,
+  observed_rri = observed_rri
+)
+```
 
 ### S2.2.2: Non-Gaussian Noise Structure
 
-We generated synthetic data using a Student's-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. **Supplementary Figure S4** shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction ($w$) is biased downwards. The model incorrectly attributes the heavy-tailed noise to the unstructured residual component.
+We generated synthetic data using a Student's-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S4 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction ($w$) is biased downwards, meanwhile the SDNN magnitude parameters ($\alpha_s,\beta_s$) compensate the added noise by scaling up in response. The model incorrectly attributes the heavy-tailed noise to the unstructured residual component, which is expected given the model design to model residual variance coming from a Normal distribution.
 
-**[Insert Figure S4 Here]**
+![](figures/fig-student-t.svg){width=100%}
 
-**Supplementary Figure S4: Impact of Non-Gaussian Noise.** Posterior distribution for the `$w$` parameter when the model is fit to data with Gaussian noise (blue) versus heavy-tailed Student's-t noise (orange). The red line is the true value.
+**Supplementary Figure S4: Impact of Non-Gaussian Noise.** In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student's-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student's-t noise. The ground truth parameters are well recovered except for structured variance fraction $w$ and total signal variability magnitude parameters $\alpha_s,\beta_s$.
 
 # S3: Full Empirical Analysis Diagnostics
 
@@ -459,7 +522,7 @@ This section provides a complete set of diagnostic checks for the MCMC analysis 
 
 ## S3.1: Complete Posterior Distributions
 
-**Supplementary Figure S5** shows the marginal posterior distributions (histograms) and MCMC traceplots for all key parameters from the empirical model fit.
+Supplementary Figure S5 shows the marginal posterior distributions (histograms) and MCMC traceplots for all key parameters from the empirical model fit.
 
 **[Insert Figure S5 Here]**
 

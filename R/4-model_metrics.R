@@ -37,7 +37,7 @@ for (i in 1:3) {
     as.data.table()
 
   tables[[i]] <- tbl[
-    i = !Parameter %like% "_log|_logit|_gp",
+    i = !Parameter %like% "_log|_logit|_gp|_out",
     list(Parameter = if(i == 1) Parameter else NULL,
          Truth = NA,
          Estimate = round(Median, 2),

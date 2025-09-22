@@ -82,6 +82,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     document.body.classList.add('hypothesis-enabled');
   });
 </script>
+<script>
+window.hypothesisConfig = function () {
+  return {
+    openSidebar: false,
+    showHighlights: true,
+    // default group (use the group's id part from the group URL)
+    group: "g4JPqbk5",
+    // optional: custom login flow (client should call your site's auth)
+    onLoginRequest: function () {
+      // redirect to your site's login endpoint
+      window.location = "/login?next=" + encodeURIComponent(window.location);
+    }
+  };
+};
+</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -503,26 +518,26 @@ window.Quarto = {
 <span id="cb1-304"><a href="#cb1-304" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ensuring the priors cover the entire space the sampler is exploring.</span></span>
 <span id="cb1-305"><a href="#cb1-305" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-306"><a href="#cb1-306" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for logistic components (timing and rates) ---</span></span>
-<span id="cb1-307"><a href="#cb1-307" aria-hidden="true" tabindex="-1"></a>  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), <span class="fl">0.1</span>);</span>
-<span id="cb1-308"><a href="#cb1-308" aria-hidden="true" tabindex="-1"></a>  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), <span class="fl">0.1</span>);</span>
-<span id="cb1-309"><a href="#cb1-309" aria-hidden="true" tabindex="-1"></a>  lambda_log ~ normal(log(lambda_mu), <span class="fl">0.1</span>);</span>
-<span id="cb1-310"><a href="#cb1-310" aria-hidden="true" tabindex="-1"></a>  phi_log ~ normal(log(phi_mu), <span class="fl">0.1</span>);</span>
+<span id="cb1-307"><a href="#cb1-307" aria-hidden="true" tabindex="-1"></a>  tau_logit ~ normal(logit((tau_mu - t_min) / t_range), <span class="fl">0.2</span>);</span>
+<span id="cb1-308"><a href="#cb1-308" aria-hidden="true" tabindex="-1"></a>  delta_logit ~ normal(logit(delta_mu / (t_range - tau_mu)), <span class="fl">0.2</span>);</span>
+<span id="cb1-309"><a href="#cb1-309" aria-hidden="true" tabindex="-1"></a>  lambda_log ~ normal(log(lambda_mu), <span class="fl">0.2</span>);</span>
+<span id="cb1-310"><a href="#cb1-310" aria-hidden="true" tabindex="-1"></a>  phi_log ~ normal(log(phi_mu), <span class="fl">0.2</span>);</span>
 <span id="cb1-311"><a href="#cb1-311" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-312"><a href="#cb1-312" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for RR(t) and SDNN(t) parameters ---</span></span>
-<span id="cb1-313"><a href="#cb1-313" aria-hidden="true" tabindex="-1"></a>  alpha_r_logit ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
-<span id="cb1-314"><a href="#cb1-314" aria-hidden="true" tabindex="-1"></a>  beta_r_logit  ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
-<span id="cb1-315"><a href="#cb1-315" aria-hidden="true" tabindex="-1"></a>  c_r_logit     ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
-<span id="cb1-316"><a href="#cb1-316" aria-hidden="true" tabindex="-1"></a>  alpha_s_logit ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
-<span id="cb1-317"><a href="#cb1-317" aria-hidden="true" tabindex="-1"></a>  beta_s_logit  ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
-<span id="cb1-318"><a href="#cb1-318" aria-hidden="true" tabindex="-1"></a>  c_s_logit     ~ normal(<span class="dv">0</span>, <span class="dv">1</span>);</span>
+<span id="cb1-313"><a href="#cb1-313" aria-hidden="true" tabindex="-1"></a>  alpha_r_logit ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb1-314"><a href="#cb1-314" aria-hidden="true" tabindex="-1"></a>  beta_r_logit  ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb1-315"><a href="#cb1-315" aria-hidden="true" tabindex="-1"></a>  c_r_logit     ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb1-316"><a href="#cb1-316" aria-hidden="true" tabindex="-1"></a>  alpha_s_logit ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb1-317"><a href="#cb1-317" aria-hidden="true" tabindex="-1"></a>  beta_s_logit  ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb1-318"><a href="#cb1-318" aria-hidden="true" tabindex="-1"></a>  c_s_logit     ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
 <span id="cb1-319"><a href="#cb1-319" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-320"><a href="#cb1-320" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for spectral proportion p_j(t) parameters ---</span></span>
 <span id="cb1-321"><a href="#cb1-321" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These priors encode a physiological hypothesis:</span></span>
 <span id="cb1-322"><a href="#cb1-322" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Baseline state is HF-dominant (low y_base_log).</span></span>
 <span id="cb1-323"><a href="#cb1-323" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Perturbed state is LF/VLF-dominant (high y_pert_log).</span></span>
-<span id="cb1-324"><a href="#cb1-324" aria-hidden="true" tabindex="-1"></a>  y_base_log ~ normal([-<span class="dv">1</span>, -<span class="dv">1</span>]', <span class="dv">1</span>);</span>
-<span id="cb1-325"><a href="#cb1-325" aria-hidden="true" tabindex="-1"></a>  y_pert_log ~ normal([<span class="dv">1</span>, <span class="dv">1</span>]', <span class="dv">1</span>);</span>
-<span id="cb1-326"><a href="#cb1-326" aria-hidden="true" tabindex="-1"></a>  c_c_logit ~ normal(<span class="dv">1</span>, <span class="dv">1</span>);</span>
+<span id="cb1-324"><a href="#cb1-324" aria-hidden="true" tabindex="-1"></a>  y_base_log ~ normal([<span class="dv">0</span>, <span class="dv">0</span>]', <span class="dv">2</span>);</span>
+<span id="cb1-325"><a href="#cb1-325" aria-hidden="true" tabindex="-1"></a>  y_pert_log ~ normal([<span class="dv">0</span>, <span class="dv">0</span>]', <span class="dv">2</span>);</span>
+<span id="cb1-326"><a href="#cb1-326" aria-hidden="true" tabindex="-1"></a>  c_c_logit ~ normal(<span class="dv">1</span>, <span class="dv">2</span>);</span>
 <span id="cb1-327"><a href="#cb1-327" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-328"><a href="#cb1-328" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for GP hyperparameters ---</span></span>
 <span id="cb1-329"><a href="#cb1-329" aria-hidden="true" tabindex="-1"></a>  <span class="co">// `rho_gp` is given a lognormal prior as it must be positive and often</span></span>
@@ -540,7 +555,7 @@ window.Quarto = {
 <span id="cb1-341"><a href="#cb1-341" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb1-342"><a href="#cb1-342" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-343"><a href="#cb1-343" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Prior for the fractional variance split ---</span></span>
-<span id="cb1-344"><a href="#cb1-344" aria-hidden="true" tabindex="-1"></a>  w_logit ~ normal(<span class="dv">1</span>, <span class="dv">1</span>); <span class="co">// Weakly favors a higher proportion of structured variance.</span></span>
+<span id="cb1-344"><a href="#cb1-344" aria-hidden="true" tabindex="-1"></a>  w_logit ~ normal(<span class="dv">3</span>, <span class="dv">2</span>); <span class="co">// Weakly favors a higher proportion of structured variance.</span></span>
 <span id="cb1-345"><a href="#cb1-345" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-346"><a href="#cb1-346" aria-hidden="true" tabindex="-1"></a>  <span class="co">// === Likelihood ===</span></span>
 <span id="cb1-347"><a href="#cb1-347" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This is the core statement that connects the model's predictions (`mu` and</span></span>
@@ -560,14 +575,14 @@ window.Quarto = {
 </section>
 <section id="s1.2.2-prior-sensitivity-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="s1.2.2-prior-sensitivity-analysis">S1.2.2: Prior Sensitivity Analysis</h3>
-<p>To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript’s weakly informative priors, (2) “flatter” priors with three times larger variance, and (3) “tighter”, more informative priors with a third of original variance. Supplementary Table S1 shows the posterior summaries for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between <span class="math inline">\(c\_r\)</span> and <span class="math inline">\(c\_s\)</span>) remains unchanged across all specifications, demonstrating the robustness of our primary finding.</p>
-<p><strong>[Insert Table S1 Here]</strong></p>
-<p><strong>Supplementary Table S1: Prior Sensitivity Analysis.</strong> Posterior medians and 95% credible intervals for key recovery parameters under three different prior specifications.</p>
+<p>To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript’s weakly informative priors, (2) “flatter” priors with two times larger variance, and (3) “tighter”, more informative priors with half of original variance. Supplementary Figure S2 shows the posterior distribution for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between <span class="math inline">\(c\_r\)</span> and <span class="math inline">\(c\_s\)</span>) remains unchanged across all specifications, with consistent overlapping credible intervals for all model parameters demonstrating the robustness of our primary finding.</p>
+<p><img src="figures/fig-prior-sensitivity.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Supplementary Figure S2: Prior Sensitivity Analysis.</strong> Posterior distributions and 95% credible intervals for all model parameters under three different prior specifications. The overlapping credible intervals provide compelling evidence of robustness in parameter estimation.</p>
 </section>
 </section>
 <section id="s1.3-computational-environment" class="level2">
 <h2 class="anchored" data-anchor-id="s1.3-computational-environment">S1.3: Computational Environment</h2>
-<p>All analyses were performed using <code>R</code> (version 4.x.x) and the <code>CmdStanR</code> interface (version x.x.x) to <code>CmdStan</code> (version x.xx.x). A complete list of packages and their versions is provided in the <code>renv.lock</code> file available in the public repository. The MCMC sampler was run with 4 chains for 2000 iterations each, with the first 1000 discarded as warmup, resulting in 4000 posterior samples.</p>
+<p>All analyses were performed using <code>R</code> (version 4.5.0) and the <code>rstan</code> interface (version 2.32.7) to <code>Stan</code> (version 2.32.2). A complete list of packages and their versions is provided in the <code>renv.lock</code> file available in the public repository. The MCMC sampler was run with 4 chains for 10000 iterations each, with the first 5000 discarded as warmup, resulting in 20000 posterior samples.</p>
 </section>
 </section>
 <section id="s2-extended-simulation-studies" class="level1">
@@ -575,23 +590,81 @@ window.Quarto = {
 <p>This section provides a complete report of the simulation studies, including full parameter recovery results and an examination of the model’s behavior under conditions of misspecification.</p>
 <section id="s2.1-full-parameter-recovery-results" class="level2">
 <h2 class="anchored" data-anchor-id="s2.1-full-parameter-recovery-results">S2.1: Full Parameter Recovery Results</h2>
-<p><strong>Supplementary Figure S2</strong> displays the complete posterior distributions for all generative parameters from the three simulation scenarios described in the main text, plotted against their known ground-truth values (red vertical lines). The posteriors are well-centered on the true values, and the true values are consistently contained within the 95% credible intervals, demonstrating excellent parameter recovery.</p>
-<p><strong>[Insert Figure S2 Here]</strong></p>
-<p><strong>Supplementary Figure S2: Full Posterior Recovery of Ground-Truth Parameters.</strong> Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Red lines indicate the true generative values.</p>
+<p>Supplementary Figure S3 displays the complete posterior distributions for all generative parameters from the three simulation scenarios described in the main text, plotted against their known ground-truth values (red vertical lines). The posteriors are well-centered on the true values, and the true values are consistently contained within the 95% credible intervals, demonstrating parameter recovery.</p>
+<p><img src="figures/fig-full-recovery.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Supplementary Figure S3: Full Posterior Recovery of Ground-Truth Parameters.</strong> Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Vertical black lines indicate the true generative values.</p>
 </section>
 <section id="s2.2-model-misspecification-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="s2.2-model-misspecification-analysis">S2.2: Model Misspecification Analysis</h2>
 <section id="s2.2.1-asymmetric-recovery-dynamics" class="level3">
 <h3 class="anchored" data-anchor-id="s2.2.1-asymmetric-recovery-dynamics">S2.2.1: Asymmetric Recovery Dynamics</h3>
-<p>We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. <strong>Supplementary Figure S3</strong> shows the model’s attempt to fit this signal. The model captures the general trend but, as expected, its symmetric functional form cannot fully capture the sharp “knee” and long tail of the exponential decay, leading to systematic bias in the residuals during the recovery phase. This defines a known limitation of the current model architecture.</p>
-<p><strong>[Insert Figure S3 Here]</strong></p>
-<p><strong>Supplementary Figure S3: Model Fit to Asymmetric Recovery Data.</strong> The model’s posterior mean trajectory (red line) is overlaid on synthetic data with an exponential recovery (black points). The inset shows the structured pattern in the residuals during the recovery phase, indicating model misspecification.</p>
+<p>We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. Supplementary Figure S4 shows the model’s attempt to fit this signal. Contrary to first expected, the model captures the general trend and its functional form fully captures the sharp “knee” and long tail of the exponential decay, managing to adapt to this type of model misspecification during the recovery phase, even in the face of a different data generating processes. This provides additional evidence of the current model architecture’s flexibility.</p>
+<p><img src="figures/fig-asymetric.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Supplementary Figure S4: Model Fit to Asymmetric Recovery Data.</strong> The left panel shows the true underlying heart trajectory (blue line). Right panel shows the model’s posterior trajectory (red line) and 95% highest density interval (shaded area in red) is overlaid on synthetic data with an exponential recovery with gaussian noise (grey line).</p>
+<p>The R code and model parameters used to generate the data can be seen in the following code block:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- 1. Define Helper Functions ---</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard logistic (sigmoid) function</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>logistic_curve <span class="ot">&lt;-</span> <span class="cf">function</span>(t, location, rate) {</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>rate <span class="sc">*</span> (t <span class="sc">-</span> location)))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Asymmetric exponential recovery curve (shaped like a CDF)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>exponential_recovery <span class="ot">&lt;-</span> <span class="cf">function</span>(t, start_time, rate) {</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Time since the recovery event started</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  time_since_start <span class="ot">&lt;-</span> <span class="fu">pmax</span>(<span class="dv">0</span>, t <span class="sc">-</span> start_time)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Cumulative exponential function, scaled from 0 to 1</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>rate <span class="sc">*</span> time_since_start)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># --- 2. Set Simulation Parameters ---</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Time parameters</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>N      <span class="ot">&lt;-</span> <span class="dv">1200</span>   <span class="co"># Number of data points (e.g., 20 minutes at 1 Hz)</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>t      <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">15</span>, <span class="at">length.out =</span> N) <span class="co"># Time vector in minutes</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>tau    <span class="ot">&lt;-</span> <span class="dv">5</span>      <span class="co"># Time of perturbation event (minutes)</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>delta  <span class="ot">&lt;-</span> <span class="dv">1</span>      <span class="co"># Delay between perturbation and recovery onset (minutes)</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="dv">5</span>      <span class="co"># Rate/steepness of the logistic perturbation</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>phi    <span class="ot">&lt;-</span> <span class="fl">0.8</span>    <span class="co"># Rate of the exponential recovery (lower = slower recovery)</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co"># RRi amplitude parameters</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>alpha  <span class="ot">&lt;-</span> <span class="dv">1000</span>   <span class="co"># Initial baseline RRi (ms)</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>beta   <span class="ot">&lt;-</span> <span class="dv">300</span>    <span class="co"># Magnitude of the RRi drop (ms)</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>c_r    <span class="ot">&lt;-</span> <span class="fl">0.90</span>   <span class="co"># Fractional recovery (0.9 = 90% recovery of the drop)</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Noise parameter</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>sigma  <span class="ot">&lt;-</span> <span class="dv">15</span>     <span class="co"># Standard deviation of the residual noise (ms)</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co"># --- 3. Generate the Time Series ---</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the perturbation and recovery building blocks</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>perturbation <span class="ot">&lt;-</span> <span class="fu">logistic_curve</span>(t, <span class="at">location =</span> tau, <span class="at">rate =</span> lambda)</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>recovery     <span class="ot">&lt;-</span> <span class="fu">exponential_recovery</span>(t, <span class="at">start_time =</span> tau <span class="sc">+</span> delta, <span class="at">rate =</span> phi)</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine the components to create the true mean RRi trajectory</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co"># The logic follows the manuscript's model: Baseline - Drop + Recovery</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>mean_rri <span class="ot">&lt;-</span> alpha <span class="sc">-</span> (beta <span class="sc">*</span> perturbation) <span class="sc">+</span> (c_r <span class="sc">*</span> beta <span class="sc">*</span> recovery)</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co"># Add Gaussian noise to create the final observed signal</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>) <span class="co"># for reproducibility</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>observed_rri <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">n =</span> N, <span class="at">mean =</span> mean_rri, <span class="at">sd =</span> sigma)</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="co"># --- 4. Package and Save Data ---</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="co"># Store the results in a data frame</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>sim_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> t,</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>  <span class="at">true_mean_rri =</span> mean_rri,</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>  <span class="at">observed_rri =</span> observed_rri</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="s2.2.2-non-gaussian-noise-structure" class="level3">
 <h3 class="anchored" data-anchor-id="s2.2.2-non-gaussian-noise-structure">S2.2.2: Non-Gaussian Noise Structure</h3>
-<p>We generated synthetic data using a Student’s-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. <strong>Supplementary Figure S4</strong> shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction (<span class="math inline">\(w\)</span>) is biased downwards. The model incorrectly attributes the heavy-tailed noise to the unstructured residual component.</p>
-<p><strong>[Insert Figure S4 Here]</strong></p>
-<p><strong>Supplementary Figure S4: Impact of Non-Gaussian Noise.</strong> Posterior distribution for the <code>$w$</code> parameter when the model is fit to data with Gaussian noise (blue) versus heavy-tailed Student’s-t noise (orange). The red line is the true value.</p>
+<p>We generated synthetic data using a Student’s-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S4 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction (<span class="math inline">\(w\)</span>) is biased downwards, meanwhile the SDNN magnitude parameters (<span class="math inline">\(\alpha_s,\beta_s\)</span>) compensate the added noise by scaling up in response. The model incorrectly attributes the heavy-tailed noise to the unstructured residual component, which is expected given the model design to model residual variance coming from a Normal distribution.</p>
+<p><img src="figures/fig-student-t.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Supplementary Figure S4: Impact of Non-Gaussian Noise.</strong> In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student’s-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student’s-t noise. The ground truth parameters are well recovered except for structured variance fraction <span class="math inline">\(w\)</span> and total signal variability magnitude parameters <span class="math inline">\(\alpha_s,\beta_s\)</span>.</p>
 </section>
 </section>
 </section>
@@ -600,7 +673,7 @@ window.Quarto = {
 <p>This section provides a complete set of diagnostic checks for the MCMC analysis of the empirical N-of-1 dataset to ensure the reliability of the inference.</p>
 <section id="s3.1-complete-posterior-distributions" class="level2">
 <h2 class="anchored" data-anchor-id="s3.1-complete-posterior-distributions">S3.1: Complete Posterior Distributions</h2>
-<p><strong>Supplementary Figure S5</strong> shows the marginal posterior distributions (histograms) and MCMC traceplots for all key parameters from the empirical model fit.</p>
+<p>Supplementary Figure S5 shows the marginal posterior distributions (histograms) and MCMC traceplots for all key parameters from the empirical model fit.</p>
 <p><strong>[Insert Figure S5 Here]</strong></p>
 <p><strong>Supplementary Figure S5: Full Posterior Distributions and Traceplots for Empirical Analysis.</strong> The left column shows posterior histograms for each parameter. The right column shows the MCMC traceplots for four chains, demonstrating stationary, well-mixed chains.</p>
 </section>

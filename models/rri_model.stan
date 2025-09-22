@@ -162,8 +162,9 @@ parameters {
   // --- Fractional split of SDNN variance ---
   real w_logit;          // Proportion of total variance that is "structured" (logit scale).
 
-  // --- Student-t noise parameter in the unconstrained space
-  real nu_log;
+  // --- Probability of outliers ---
+  real p_out_logit;
+
 }
 
 // =====================================================================
@@ -175,7 +176,7 @@ transformed parameters {
   // Declare variables that will be used in the likelihood calculation.
   vector[N] mu;          // The final predicted mean RRi trajectory.
   vector[N] var_resid;   // The residual variance trajectory.
-  vector[N] sigma_t_scale;   // The final standard deviation trajectory.
+  vector[N] sigma_resid; // The final residual SD
 
   // --- 0. Map unconstrained parameters to their meaningful scales ---
   // This section applies inverse transformations (e.g., inv_logit, exp) to the
@@ -196,7 +197,8 @@ transformed parameters {
 
   real c_c = inv_logit(c_c_logit); // Spectral recovery is between 0-100%.
   real w   = inv_logit(w_logit);   // Structured variance fraction is between 0-1.
-  real nu  = 2 + exp(nu_log);
+
+  real p_out = inv_logit(p_out_logit); // Probability of outlier
 
   // --- 1. Construct the two logistic building blocks ---
   // These shared curves drive all the dynamic changes in the model.
@@ -296,7 +298,9 @@ transformed parameters {
   // --- 9. Define the residual variance used in the likelihood ---
   // The variance not explained by the structured oscillators becomes the residual variance.
   var_resid = square(SDNN_t) .* (1.0 - w);
-  sigma_t_scale = sqrt( (nu - 2) / nu) * sqrt(var_resid);
+
+  // Residual standard deviation
+  sigma_resid = sqrt(var_resid);
 }
 
 // =====================================================================
@@ -349,14 +353,29 @@ model {
   // --- Prior for the fractional variance split ---
   w_logit ~ normal(3, 2); // Weakly favors a higher proportion of structured variance.
 
-  // --- Prior for the Student-t noise term ---
-  nu_log ~ normal(3, 1);
+  p_out_logit ~ normal(logit(0.01), 0.5); // Probability of outlier
 
   // === Likelihood ===
-  // This is the core statement that connects the model's predictions (`mu` and
-  // `var_resid`) to the actual observed data `RR`. The model learns by trying
-  // to find parameter values that make the observed data most plausible under a
-  // Student-t distribution with a time-varying mean and variance and estimated
-  // noise nu for robust estimation.
-  target += student_t_lpdf(RR | nu, mu, sigma_t_scale);
+
+  // --- Vectorized Calculations (Fast) ---
+  // Calculate the per-observation log-densities for each component.
+  // This avoids using the `_lpdf` functions which sum the results.
+  vector[N] lp_good;
+  vector[N] lp_bad;
+  vector[N] dev = RR - mu; // Pre-calculate residuals
+
+  // The explicit formula for the normal log-density, vectorized.
+  lp_good = -0.5 * log(2 * pi()) - log(sigma_resid)
+            - 0.5 * square(dev ./ sigma_resid);
+
+  // The explicit formula for the cauchy log-density, vectorized.
+  vector[N] r = dev ./ sigma_resid;
+  lp_bad = -log(pi()) - log(sigma_resid) - log1p(square(r));
+
+  // --- Looped Mixing (Cheap) ---
+  // Now, loop through the pre-calculated vectors. This loop is very fast
+  // as it only contains a simple scalar operation.
+  for (n in 1:N) {
+    target += log_mix(p_out, lp_bad[n], lp_good[n]);
+  }
 }

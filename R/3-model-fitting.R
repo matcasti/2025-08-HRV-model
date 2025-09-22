@@ -19,16 +19,12 @@ model <- rstan::stan_model(file = "models/rri_model.stan")
 for(i in 1:3) {
   model_fit <- rstan::sampling(
     object = model,
+    init = 0,
     pars = c(
-      "lambda_log","phi_log","tau_logit","delta_logit",
-      "alpha_r_logit","beta_r_logit","c_r_logit",
-      "alpha_s_logit","beta_s_logit","c_s_logit",
-      "c_c_logit", "w_logit","alpha_gp","rho_gp",
-      "y_base_log", "y_pert_log",
       "lambda","phi","tau","delta",
       "alpha_r","beta_r","c_r",
       "alpha_s","beta_s","c_s",
-      "c_c", "w",
+      "c_c", "w", "p_out",
       "pi_base", "pi_pert"
     ),
     include = TRUE,

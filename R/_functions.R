@@ -9,6 +9,9 @@
 #' @param N_sin Number of sinusoids per frequency band.
 #' @param params Named list with model parameters.
 #' @param seed An integer for reproducibility.
+#' @param ... Currently not used.
+#' @param t_dist Logical. Use a t-distribution instead of a normal to generate the data. Default is FALSE.
+#' @param add_outliers Logical. Add outliers (1% of the samples). Default is FALSE.
 #'
 #' @return A data frame containing the time vector 't', the final generated
 #'   'RR' series, the underlying mean 'mu', and other key components.
@@ -16,7 +19,10 @@ generate_rri_simulation <- function(N,
                                     t_max,
                                     params, # Note: Expects GP params now (alpha_gp, rho_gp)
                                     N_sin,
-                                    seed = 123) {
+                                    seed = 123,
+                                    ...,
+                                    t_dist = FALSE,
+                                    add_outliers = FALSE) {
 
   # Helper function to compute the GP's squared exponential covariance kernel
   gp_exp_quad_cov <- function(x, alpha, rho) {
@@ -141,7 +147,21 @@ generate_rri_simulation <- function(N,
 
   # Generate the final noisy RRi signal
   var_noise <- SDNN_t^2 * (1 - params$w)
-  RRi_t <- rnorm(N, mean = mu, sd = sqrt(var_noise))
+
+  if (t_dist) {
+    sigma_t <- sqrt(var_noise * (nu - 2) / nu)
+    # Draw from standardized Student-t and scale/shift
+    RRi_t <- mu + sigma_t * rt(N, df = nu)
+  } else {
+    RRi_t <- rnorm(N, mean = mu, sd = sqrt(var_noise))
+  }
+
+  ## Add outliers
+  if (add_outliers) {
+    N_outliers <- floor(N * 0.01)
+    outliers <- sample.int(N, size = N_outliers)
+    RRi_t[outliers] <- RRi_t[outliers] * (runif(N_outliers, 0.5, 1.5))
+  }
 
   # --- 6. Format Output ---
   out <- data.table::data.table(

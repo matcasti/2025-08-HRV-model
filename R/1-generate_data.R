@@ -179,7 +179,8 @@ if (interactive()) {
         t_max = SIM_DURATION_MIN,
         params = params[[i]],
         N_sin = N_SINUSOIDS,
-        seed = 123
+        seed = 123,
+        add_outliers = TRUE
       )
 
     legend <- FALSE

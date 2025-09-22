@@ -22,6 +22,9 @@ source("R/5-proof-of-concept.R")
 
 source("R/S1-prior-predictive-checks.R")
 source("R/S2-prior-sensitivity.R")
+source("R/S3-full-parameter-recovery.R")
+source("R/S4-asymetric-dynamics.R")
+source("R/S5-asymetric-dynamics.R")
 
 quarto::quarto_render("index.qmd")
 quarto::quarto_render("supplementary.qmd")
