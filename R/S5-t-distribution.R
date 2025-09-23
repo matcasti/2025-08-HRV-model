@@ -33,7 +33,7 @@ source("R/_functions.R")
 
 # Define shared simulation parameters
 SIM_DURATION_MIN <- 15 # Total duration in minutes
-SAMPLING_RATE_HZ <- 2  # Sampling rate for RRi series (4 Hz is typical)
+SAMPLING_RATE_HZ <- 2  # Sampling rate for RRi series
 N_points <- SIM_DURATION_MIN * 60 * SAMPLING_RATE_HZ
 time_vector <- seq(0, SIM_DURATION_MIN, length.out = N_points)
 
@@ -61,7 +61,7 @@ params <- list(
   # p(t) params
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest (HF dominant)
   pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress (LF dominant)
-  alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
+  rho_gp = c(1, 1, 1) * 0.1
 )
 
 # -------------------------------------------------------------------------
@@ -77,8 +77,9 @@ sim_data <-
     t_max = SIM_DURATION_MIN,
     params = params,
     N_sin = N_SINUSOIDS,
-    seed = 123,
-    t_dist = TRUE
+    seed = 12345,
+    t_dist = TRUE,
+    nu = 3
   )
 
 legend <- NA

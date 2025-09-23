@@ -94,7 +94,7 @@ if(!file.exists("data/error_statistics.RDS")) {
       N = 1800,
       t_max = 15,
       N_sin = 20,
-      seed = 123,
+      seed = 12345,
       params = list(
         lambda = lambda, phi = phi, tau = tau, delta = delta,
         alpha_r = alpha_r, beta_r = beta_r, c_r = c_r,
@@ -102,7 +102,7 @@ if(!file.exists("data/error_statistics.RDS")) {
         w = w, c_c = c_c,
         pi_base = c(pi_base.V1, pi_base.V2, pi_base.V3),
         pi_pert = c(pi_pert.V1, pi_pert.V2, pi_pert.V3),
-        alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
+        rho_gp = c(1, 1, 1) * 0.1
       )
     )$data,
     keyby = row_id
@@ -183,7 +183,7 @@ if (!file.exists("data/model_predictions.RDS")) {
       N = 1800,
       t_max = 15,
       N_sin = 20,
-      seed = 123,
+      seed = 12345,
       params = list(
         lambda = lambda, phi = phi, tau = tau, delta = delta,
         alpha_r = alpha_r, beta_r = beta_r, c_r = c_r,
@@ -191,7 +191,7 @@ if (!file.exists("data/model_predictions.RDS")) {
         w = w, c_c = c_c,
         pi_base = c(pi_base.V1, pi_base.V2, pi_base.V3),
         pi_pert = c(pi_pert.V1, pi_pert.V2, pi_pert.V3),
-        alpha_gp = c(1,1,1), rho_gp = c(1,1,1)
+        rho_gp = c(1,1,1) * 0.1
       )
     )$data,
     keyby = row_id

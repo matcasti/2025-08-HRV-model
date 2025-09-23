@@ -24,7 +24,7 @@ for(i in 1:3) {
       "lambda","phi","tau","delta",
       "alpha_r","beta_r","c_r",
       "alpha_s","beta_s","c_s",
-      "c_c", "w", "p_out",
+      "c_c", "w",
       "pi_base", "pi_pert"
     ),
     include = TRUE,

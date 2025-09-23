@@ -11,26 +11,24 @@
 #' @param seed An integer for reproducibility.
 #' @param ... Currently not used.
 #' @param t_dist Logical. Use a t-distribution instead of a normal to generate the data. Default is FALSE.
-#' @param add_outliers Logical. Add outliers (1% of the samples). Default is FALSE.
 #'
 #' @return A data frame containing the time vector 't', the final generated
 #'   'RR' series, the underlying mean 'mu', and other key components.
 generate_rri_simulation <- function(N,
                                     t_max,
-                                    params, # Note: Expects GP params now (alpha_gp, rho_gp)
+                                    params,
                                     N_sin,
-                                    seed = 123,
-                                    ...,
-                                    t_dist = FALSE,
-                                    add_outliers = FALSE) {
+                                    seed = 12345,
+                                    nu = NULL,
+                                    t_dist = FALSE) {
 
   # Helper function to compute the GP's squared exponential covariance kernel
-  gp_exp_quad_cov <- function(x, alpha, rho) {
+  gp_exp_quad_cov <- function(x, rho) {
     N <- length(x)
     K <- matrix(0, N, N)
     for (i in 1:N) {
       for (j in 1:N) {
-        K[i, j] <- alpha^2 * exp(-0.5 * ((x[i] - x[j]) / rho)^2)
+        K[i, j] <- exp(-0.5 * ((x[i] - x[j]) / rho)^2)
       }
     }
     return(K)
@@ -67,6 +65,14 @@ generate_rri_simulation <- function(N,
   freqs_list <- lapply(band_defs, function(b) seq(b[1], b[2], length.out = N_sin))
   log_freqs_list <- lapply(freqs_list, log)
 
+  # Scale log-frequencies to [0, 1] for a scale-agnostic GP
+  log_freqs_scaled_list <- vector("list", 3)
+  for (j in 1:3) {
+    min_log_f <- min(log_freqs_list[[j]])
+    range_log_f <- max(log_freqs_list[[j]]) - min_log_f
+    log_freqs_scaled_list[[j]] <- (log_freqs_list[[j]] - min_log_f) / range_log_f
+  }
+
   # Precompute sine/cosine basis matrices and Gram matrices
   sin_mat_list <- vector("list", 3)
   cos_mat_list <- vector("list", 3)
@@ -100,8 +106,8 @@ generate_rri_simulation <- function(N,
 
   for (j in 1:3) {
     # Step 1: Generate the smooth spectral envelope from the GP
-    K <- gp_exp_quad_cov(log_freqs_list[[j]], params$alpha_gp[j], params$rho_gp[j])
-    K <- K + diag(1e-8 * params$alpha_gp[j]^2 + 1e-12, N_sin) # Scaled jitter
+    K <- gp_exp_quad_cov(log_freqs_scaled_list[[j]], params$rho_gp[j])
+    K <- K + diag(1e-10, N_sin) # Scaled jitter
     L <- t(chol(K)) # Lower triangular Cholesky factor
     log_v <- L %*% z_gp[[j]]
 
@@ -154,13 +160,6 @@ generate_rri_simulation <- function(N,
     RRi_t <- mu + sigma_t * rt(N, df = nu)
   } else {
     RRi_t <- rnorm(N, mean = mu, sd = sqrt(var_noise))
-  }
-
-  ## Add outliers
-  if (add_outliers) {
-    N_outliers <- floor(N * 0.01)
-    outliers <- sample.int(N, size = N_outliers)
-    RRi_t[outliers] <- RRi_t[outliers] * (runif(N_outliers, 0.5, 1.5))
   }
 
   # --- 6. Format Output ---

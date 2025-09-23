@@ -56,13 +56,6 @@ Below is the complete, line-by-line commented code for the generative model impl
 // 3. A structured, oscillatory signal representing physiological variability.
 // 4. An unstructured residual noise component.
 // The model uses a double-logistic form to capture a perturbation-recovery dynamic.
-//
-// Final Version Features:
-// - Mechanistic double-logistic core for dynamics.
-// - Non-parametric Gaussian Process (GP) prior for spectral shape.
-// - Non-Centered Parameterization (NCP) for the GP and oscillator coefficients.
-// - Deterministic inversion to solve for time-varying amplitude.
-// - Exact variance calculation using pre-computed Gram matrices.
 
 // =====================================================================
 // Functions Block
@@ -141,7 +134,15 @@ transformed data {
   // The GP prior operates on the log of the frequencies to better handle
   // the wide range of frequencies often seen in HRV.
   array[3] vector[N_sin] log_freqs;
-  for (j in 1:3) log_freqs[j] = log(freqs[j]);
+  array[3] vector[N_sin] log_freqs_scaled;
+  array[3] real log_range;
+  for (j in 1:3) {
+    log_freqs[j] = log(freqs[j]);
+    log_range[j] = max(log_freqs[j]) - min(log_freqs[j]);
+    // Work on scaled frequency range to make rho parameter scale-agnostic
+    log_freqs_scaled[j] = (log_freqs[j] - min(log_freqs[j])) / log_range[j];
+  }
+
 
   // --- Precompute per-band Gram matrices ---
   // These matrices contain the inner products of the basis vectors (e.g., sin_i * sin_j).
@@ -195,8 +196,7 @@ parameters {
 
   // --- GP Hyperparameters ---
   // These control the properties of the smooth function for the spectral shape.
-  array[3] real<lower=0> alpha_gp; // Marginal SD: Controls the vertical variation of the spectrum.
-  array[3] real<lower=0> rho_gp;   // Length-scale: Controls the smoothness of the spectrum.
+  array[3] real rho_gp_logit;   // Length-scale: Controls the smoothness of the spectrum.
 
   // --- Non-Centered GP Parameter ---
   // Instead of sampling the GP function values directly, we sample standard normal
@@ -243,6 +243,11 @@ transformed parameters {
   real c_c = inv_logit(c_c_logit); // Spectral recovery is between 0-100%.
   real w   = inv_logit(w_logit);   // Structured variance fraction is between 0-1.
 
+  array[3] real rho_gp; // Constrained smoothness of GP
+  for (j in 1:3) {
+    rho_gp[j] = inv_logit(rho_gp_logit[j]);
+  }
+
   // --- 1. Construct the two logistic building blocks ---
   // These shared curves drive all the dynamic changes in the model.
   vector[N] D1 = logistic_curve(t, tau, lambda);      // Primary perturbation curve.
@@ -276,8 +281,8 @@ transformed parameters {
     // --- Step A: Reconstruct the Centered GP (Non-Centered Parameterization) ---
     // 1. Construct the covariance matrix K from the hyperparameters.
     matrix[N_sin, N_sin] K =
-      gp_exp_quad_cov(to_array_1d(log_freqs[j]), alpha_gp[j], rho_gp[j])
-      + diag_matrix(rep_vector(1e-8 * square(alpha_gp[j]) + 1e-12, N_sin));
+      gp_exp_quad_cov(to_array_1d(log_freqs_scaled[j]), 1, rho_gp[j])
+      + diag_matrix(rep_vector(1e-8, N_sin));
 
     // 2. Compute the Cholesky factor of K.
     matrix[N_sin, N_sin] L = cholesky_decompose(K);
@@ -375,11 +380,8 @@ model {
   y_pert_log ~ normal([0, 0]', 2);
   c_c_logit ~ normal(1, 2);
 
-  // --- Priors for GP hyperparameters ---
-  // `rho_gp` is given a lognormal prior as it must be positive and often
-  // spans orders of magnitude, making its log a natural scale to work on.
-  alpha_gp ~ normal(0, 0.5) T[0, ];   // half-normal, favors modest envelope
-  rho_gp   ~ lognormal(0, 0.5);
+  // --- Priors for the Smoothness of the GP ---
+  rho_gp_logit   ~ normal(-2, 2); // Allows more wiggliness
 
   // --- Priors for Non-Centered Parameters ---
   // As part of the NCP pattern, the "raw" parameters are given standard normal
@@ -422,7 +424,7 @@ To assess the robustness of our conclusions, we performed a sensitivity analysis
 
 ## S1.3: Computational Environment
 
-All analyses were performed using `R` (version 4.5.0) and the `rstan` interface (version 2.32.7) to `Stan` (version 2.32.2). A complete list of packages and their versions is provided in the `renv.lock` file available in the public repository. The MCMC sampler was run with 4 chains for 10000 iterations each, with the first 5000 discarded as warmup, resulting in 20000 posterior samples.
+All analyses were performed using `R` (version 4.5.0) and the `rstan` interface (version 2.32.7) to `Stan` (version 2.32.2). A complete list of packages and their versions is provided in the `renv.lock` file available in the public repository. The MCMC sampler was run with 4 chains for 10,000 iterations each, with the first 5,000 discarded as warmup, resulting in 20,000 posterior samples.
 
 # S2: Extended Simulation Studies
 
@@ -434,7 +436,7 @@ Supplementary Figure S3 displays the complete posterior distributions for all ge
 
 ![](figures/fig-full-recovery.svg){width=100%}
 
-**Supplementary Figure S3: Full Posterior Recovery of Ground-Truth Parameters.** Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Vertical black lines indicate the true generative values.
+**Supplementary Figure S3: Full Posterior Recovery of Ground-Truth Parameters.** Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Vertical black lines indicate the true parameter values used to generate each simulated scenario.
 
 ## S2.2: Model Misspecification Analysis
 
@@ -510,11 +512,255 @@ sim_data <- data.frame(
 
 ### S2.2.2: Non-Gaussian Noise Structure
 
-We generated synthetic data using a Student's-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S4 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction ($w$) is biased downwards, meanwhile the SDNN magnitude parameters ($\alpha_s,\beta_s$) compensate the added noise by scaling up in response. The model incorrectly attributes the heavy-tailed noise to the unstructured residual component, which is expected given the model design to model residual variance coming from a Normal distribution.
+We generated synthetic data using a Student's-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S4 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction ($w$) is biased upwards to compensate the wider tails of the distribution. However, despite sampling from a non-gaussian distribution, the model is able to recover all the other parameters within credible intervals, providing evidence of the robustness of the model to distribution misspecification. Additionally, even though the difference form a $w = 0.80$ and $w = 0.82-0.83$ is statistically significant credible-interval-wise, it could be deemed neglible from a practical stand point.
 
 ![](figures/fig-student-t.svg){width=100%}
 
-**Supplementary Figure S4: Impact of Non-Gaussian Noise.** In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student's-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student's-t noise. The ground truth parameters are well recovered except for structured variance fraction $w$ and total signal variability magnitude parameters $\alpha_s,\beta_s$.
+**Supplementary Figure S4: Impact of Non-Gaussian Noise.** In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student's-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student's-t noise with 3 degrees of freedom. The ground truth parameters are well recovered except for structured variance fraction $w$.
+
+The R code used to generate the data is presented next
+
+```r
+# Define shared simulation parameters
+SIM_DURATION_MIN <- 15 # Total duration in minutes
+SAMPLING_RATE_HZ <- 2  # Sampling rate for RRi series
+N_points <- SIM_DURATION_MIN * 60 * SAMPLING_RATE_HZ
+time_vector <- seq(0, SIM_DURATION_MIN, length.out = N_points)
+
+# Define frequency bands (VLF, LF, HF)
+N_SINUSOIDS <- 20 # Number of sinusoids to approximate spectrum in each band
+freq_bands <- list(
+  vlf = seq(0.003, 0.039, length.out = N_SINUSOIDS),
+  lf  = seq(0.040, 0.149, length.out = N_SINUSOIDS),
+  hf  = seq(0.150, 0.400, length.out = N_SINUSOIDS)
+)
+
+# --- Define Parameters for the Three Scenarios ---
+# Scenario 1: Classic Sympatho-Vagal Response
+# A sharp drop in RR/SDNN with a partial recovery, accompanied by a shift
+# from high-frequency (HF) to low-frequency (LF) power and back.
+params <- list(
+  # Double-logistic timing
+  lambda = 2, phi = 3, tau = 6, delta = 3,
+  # RR(t) params
+  alpha_r = 800, beta_r = 400, c_r = 1.0,
+  # SDNN(t) params
+  alpha_s = 50, beta_s = 40, c_s = 1.0,
+  # Spectral & Noise params
+  c_c = 0.8, w = 0.80, # 90% structured variance
+  # p(t) params
+  pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest (HF dominant)
+  pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress (LF dominant)
+  rho_gp = c(1, 1, 1) * 0.1
+)
+
+# -------------------------------------------------------------------------
+
+
+# --- Generate and Visualize Data ---
+# This block demonstrates how to use the function and visualize the output.
+
+# --- Generate data for Scenario i ---
+sim_data <-
+  generate_rri_simulation(
+    N = N_points,
+    t_max = SIM_DURATION_MIN,
+    params = params,
+    N_sin = N_SINUSOIDS,
+    seed = 12345,
+    t_dist = TRUE,
+    nu = 3
+  )
+```
+
+And the components from the R function `generate_rri_simulation`, used to simulate the data, included the Student-t distribution, is the following:
+
+```r
+#' Generate a synthetic R-R interval time series from constrained parameters
+#'
+#' This function encapsulates the full data generating process from the Stan model.
+#' All model parameters are provided on their constrained, physiologically meaningful
+#' scale.
+#'
+#' @param N Number of data points.
+#' @param t_max Maximum time in minutes.
+#' @param N_sin Number of sinusoids per frequency band.
+#' @param params Named list with model parameters.
+#' @param seed An integer for reproducibility.
+#' @param nu Degrees of freedom for Student-t distribution. Only used if `t_dist` is TRUE.
+#' @param t_dist Logical. Use a t-distribution instead of a normal to generate the data. Default is FALSE.
+#'
+#' @return A data frame containing the time vector 't', the final generated
+#'   'RR' series, the underlying mean 'mu', and other key components.
+generate_rri_simulation <- function(N,
+                                    t_max,
+                                    params,
+                                    N_sin,
+                                    seed = 12345,
+                                    nu = NULL,
+                                    t_dist = FALSE) {
+
+  # Helper function to compute the GP's squared exponential covariance kernel
+  gp_exp_quad_cov <- function(x, rho) {
+    N <- length(x)
+    K <- matrix(0, N, N)
+    for (i in 1:N) {
+      for (j in 1:N) {
+        K[i, j] <- exp(-0.5 * ((x[i] - x[j]) / rho)^2)
+      }
+    }
+    return(K)
+  }
+
+  # Set seed for complete reproducibility
+  set.seed(seed)
+
+  # --- 1. Define Core Dynamic Functions ---
+  # These are the double-logistic building blocks for the model's dynamics.
+  D_1 <- function(t) { 1 / (1 + exp(-params$lambda * (t - params$tau))) }
+  D_2 <- function(t) { 1 / (1 + exp(-params$phi * (t - params$tau - params$delta))) }
+
+  # Define the simulation time grid
+  t <- seq(0, t_max, length.out = N)
+
+  # --- 2. Generate Time-Varying Trajectories ---
+  # These define the evolution of the signal's mean, total variability, and spectral mix.
+  RR_t <- params$alpha_r - params$beta_r * D_1(t) + params$c_r * params$beta_r * D_2(t)
+  SDNN_t <- params$alpha_s - params$beta_s * D_1(t) + params$c_s * params$beta_s * D_2(t)
+  C_t <- D_1(t) * (1 - params$c_c * D_2(t))
+
+  # Time-varying band proportions p_j(t) via convex combination
+  p_j <- (1 - C_t) %*% t(params$pi_base) + C_t %*% t(params$pi_pert)
+  colnames(p_j) <- c("VLF", "LF", "HF")
+
+  # --- 3. Pre-computation of Basis Functions (like Stan's transformed data) ---
+  band_defs <- list(
+    VLF = c(0.003, 0.039),
+    LF  = c(0.040, 0.149),
+    HF  = c(0.150, 0.400)
+  )
+
+  freqs_list <- lapply(band_defs, function(b) seq(b[1], b[2], length.out = N_sin))
+  log_freqs_list <- lapply(freqs_list, log)
+
+  # Scale log-frequencies to [0, 1] for a scale-agnostic GP
+  log_freqs_scaled_list <- vector("list", 3)
+  for (j in 1:3) {
+    min_log_f <- min(log_freqs_list[[j]])
+    range_log_f <- max(log_freqs_list[[j]]) - min_log_f
+    log_freqs_scaled_list[[j]] <- (log_freqs_list[[j]] - min_log_f) / range_log_f
+  }
+
+  # Precompute sine/cosine basis matrices and Gram matrices
+  sin_mat_list <- vector("list", 3)
+  cos_mat_list <- vector("list", 3)
+  G_sin_list <- vector("list", 3)
+  G_cos_list <- vector("list", 3)
+  G_sin_cos_list <- vector("list", 3)
+
+  for (j in 1:3) {
+    T_mat <- outer(t * 60, freqs_list[[j]])
+    sin_mat_list[[j]] <- sin(2 * pi * T_mat)
+    cos_mat_list[[j]] <- cos(2 * pi * T_mat)
+
+    normalization <- 1.0 / (N - 1)
+    G_sin_list[[j]] <- t(sin_mat_list[[j]]) %*% sin_mat_list[[j]] * normalization
+    G_cos_list[[j]] <- t(cos_mat_list[[j]]) %*% cos_mat_list[[j]] * normalization
+    G_sin_cos_list[[j]] <- t(sin_mat_list[[j]]) %*% cos_mat_list[[j]] * normalization
+  }
+
+  # --- 4. Generate Spectral Components via GP (like Stan's transformed parameters) ---
+  # This is the core of the new generative process.
+
+  # A. Simulate the standard normal deviates (the "z" parameters)
+  z_gp <- replicate(3, rnorm(N_sin), simplify = FALSE)
+  z_sin <- replicate(3, rnorm(N_sin), simplify = FALSE)
+  z_cos <- replicate(3, rnorm(N_sin), simplify = FALSE)
+
+  # B. Loop through bands to generate coefficients
+  u_sin_list <- vector("list", 3)
+  u_cos_list <- vector("list", 3)
+  log_v_list <- vector("list", 3)
+
+  for (j in 1:3) {
+    # Step 1: Generate the smooth spectral envelope from the GP
+    K <- gp_exp_quad_cov(log_freqs_scaled_list[[j]], params$rho_gp[j])
+    K <- K + diag(1e-10, N_sin) # Scaled jitter
+    L <- t(chol(K)) # Lower triangular Cholesky factor
+    log_v <- L %*% z_gp[[j]]
+
+    log_v_list[[j]] <- log_v
+
+    # Step 2: Normalize the GP output to have unit expected variance
+    a_k <- exp(log_v)
+    diag_sum <- diag(G_sin_list[[j]]) + diag(G_cos_list[[j]])
+    base_v_diag <- sum((a_k^2) * diag_sum)
+    full_scale <- a_k / sqrt(base_v_diag + 1e-12)
+
+    # Step 3: Generate the final oscillator coefficients (NCP)
+    u_sin_list[[j]] <- z_sin[[j]] * full_scale
+    u_cos_list[[j]] <- z_cos[[j]] * full_scale
+  }
+
+  # --- 5. Synthesize Signal and Calculate Final Components ---
+  S_t_matrix <- matrix(0, nrow = N, ncol = 3)
+  Sigma_S_diag <- numeric(3) # Will store Var(S_j) for each band
+
+  for (j in 1:3) {
+    # Synthesize the j-th oscillator signal and mean-center it
+    u_sin <- u_sin_list[[j]]
+    u_cos <- u_cos_list[[j]]
+    S_j <- sin_mat_list[[j]] %*% u_sin + cos_mat_list[[j]] %*% u_cos
+    S_t_matrix[, j] <- S_j - mean(S_j)
+
+    # Calculate its *exact* variance using the Gram matrices
+    vj <- t(u_sin) %*% G_sin_list[[j]] %*% u_sin +
+      t(u_cos) %*% G_cos_list[[j]] %*% u_cos +
+      2 * t(u_sin) %*% G_sin_cos_list[[j]] %*% u_cos
+    Sigma_S_diag[j] <- vj
+  }
+
+  # Calculate the time-varying scaling amplitude A(t)
+  var_structured <- SDNN_t^2 * params$w
+  denom_sq <- rowSums((p_j %*% diag(Sigma_S_diag)) * p_j)
+  A_t <- sqrt(var_structured) / sqrt(denom_sq + 1e-12)
+
+  # Combine components for the final mean trajectory
+  sum_weighted_S <- rowSums(S_t_matrix * p_j)
+  mu <- RR_t + A_t * sum_weighted_S
+
+  # Generate the final noisy RRi signal
+  var_noise <- SDNN_t^2 * (1 - params$w)
+
+  if (t_dist) {
+    sigma_t <- sqrt(var_noise * (nu - 2) / nu)
+    # Draw from standardized Student-t and scale/shift
+    RRi_t <- mu + sigma_t * rt(N, df = nu)
+  } else {
+    RRi_t <- rnorm(N, mean = mu, sd = sqrt(var_noise))
+  }
+
+  # --- 6. Format Output ---
+  out <- data.table::data.table(
+    t = t,
+    RR = RRi_t,
+    mu = mu,
+    RR_baseline = RR_t,
+    SDNN_t = SDNN_t,
+    A_t = A_t,
+    w = params$w,
+    p_vlf = p_j[, 1],
+    p_lf = p_j[, 2],
+    p_hf = p_j[, 3]
+  )
+
+  return(list(
+    data = out,
+    freqs = freqs_list,
+    log_v = log_v_list
+  ))
+}
+```
 
 # S3: Full Empirical Analysis Diagnostics
 
@@ -526,19 +772,19 @@ Supplementary Figure S5 shows the marginal posterior distributions (histograms) 
 
 **[Insert Figure S5 Here]**
 
-**Supplementary Figure S5: Full Posterior Distributions and Traceplots for Empirical Analysis.** The left column shows posterior histograms for each parameter. The right column shows the MCMC traceplots for four chains, demonstrating stationary, well-mixed chains.
+**Supplementary Figure S5: Full Posterior Distributions and Traceplots for Empirical Analysis.** The left column shows posterior histograms for each parameter. The right column shows the MCMC traceplots for four chains, showing stationary, well-mixed chains.
 
 ## S3.2: MCMC Diagnostic Statistics
 
-All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. **Supplementary Table S2** provides the `R-hat`, effective sample size (`n_eff`), and Monte Carlo Standard Error (MCSE) for all key parameters, confirming the reliability of the posterior estimates.
+All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S2 provides the `R-hat`, effective sample size (`n_eff`), and Monte Carlo Standard Error (MCSE) for all key parameters, confirming the reliability of the posterior estimates.
 
-**[Insert Table S2 Here]**
+**[Insert Table S1 Here]**
 
 **Supplementary Table S2: MCMC Diagnostic Statistics.** All `R-hat` values are 1.00, and `n_eff` is sufficient for all parameters.
 
 ## S3.3: Posterior Predictive Checks (PPC)
 
-To assess the model's descriptive adequacy, we performed posterior predictive checks. **Supplementary Figure S6** overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, **Supplementary Figure S7** shows that the distributions of key summary statistics (mean, SD, and autocorrelation at lag 1) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
+To assess the model's descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S6 overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S7 shows that the distributions of key summary statistics (mean, SD, and autocorrelation at lag 1) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
 
 **[Insert Figure S6 Here]**
 

@@ -68,8 +68,6 @@ sim_data <- data.frame(
   observed_rri = observed_rri
 )
 
-plot(sim_data)
-
 # Optional: Save the data to a CSV file for use with your Stan model
 # write.csv(sim_data, "asymmetric_recovery_data.csv", row.names = FALSE)
 

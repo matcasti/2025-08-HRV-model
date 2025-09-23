@@ -7,20 +7,6 @@
 # specification of ground-truth parameters to simulate different physiological
 # scenarios, providing a "gold standard" for model validation and comparison
 # with traditional analysis methods (e.g., windowed analysis, STFT).
-#
-# The generation process follows these key steps:
-#   1. Define underlying dynamic trajectories for mean RRi and SDNN using
-#      double-logistic functions.
-#   2. Define dynamic spectral proportions (VLF, LF, HF power distribution)
-#      controlled by a master logistic controller.
-#   3. Synthesize the structured oscillatory signal (S_t) from a sum of
-#      sinusoids with a 1/f^b power law.
-#   4. Invert the variance equation to calculate the time-varying amplitude (A_t)
-#      that ensures the structured signal variance matches the target.
-#   5. Combine the baseline, the structured signal, and a residual white noise
-#      component to produce the final RRi time series.
-#
-# Author: Matías Castillo-Aguilar
 # ---
 
 # 1. --- Load necessary libraries and scripts ---
@@ -63,7 +49,7 @@ params[[1]] <- list(
   # p(t) params
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest (HF dominant)
   pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress (LF dominant)
-  alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
+  rho_gp = c(1, 1, 1) * 0.1
 )
 
 # Scenario 2: Incomplete Recovery with Spectral Persistence
@@ -81,7 +67,7 @@ params[[2]] <- list(
   # p(t) params - c_c < 1 means spectral signature persists
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest
   pi_pert = c(0.5, 0.4, 0.1), # VLF, LF, HF - Stress
-  alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
+  rho_gp = c(1, 1, 1) * 0.1
 )
 
 # Scenario 3: High Noise with Incomplete Recovery
@@ -100,7 +86,7 @@ params[[3]] <- list(
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest
   pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress
   # Spectral & Noise params
-  alpha_gp = c(1, 1, 1), rho_gp = c(1, 1, 1)
+  rho_gp = c(1, 1, 1) * 0.1
 )
 
 
@@ -179,8 +165,7 @@ if (interactive()) {
         t_max = SIM_DURATION_MIN,
         params = params[[i]],
         N_sin = N_SINUSOIDS,
-        seed = 123,
-        add_outliers = TRUE
+        seed = 12345
       )
 
     legend <- FALSE
@@ -243,8 +228,6 @@ if (interactive()) {
                            widths = c(2,2,3),
                            align = "hv",
                            labels = c("(A)","(B)","(C)"))
-
-  plot(fig)
 
   ggsave(filename = "figures/fig-generated-data.svg", fig,
          device = "svg", width = 9, height = 9)

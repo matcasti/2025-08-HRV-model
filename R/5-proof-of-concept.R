@@ -98,8 +98,7 @@ spectral_data <- posterior[j = generate_rri_simulation(N = 1800,
     w = w, c_c = c_c,
     pi_base = c(pi_base.V1, pi_base.V2, pi_base.V3),
     pi_pert = c(pi_pert.V1, pi_pert.V2, pi_pert.V3),
-    alpha_gp = c(1,1,1),
-    rho_gp = c(1,1,1))
+    rho_gp = c(1,1,1) * 0.1)
   )$data, keyby = row_id
   ][j = list(
       p_vlf_mu = median(p_vlf),

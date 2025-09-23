@@ -6,13 +6,6 @@
 // 3. A structured, oscillatory signal representing physiological variability.
 // 4. An unstructured residual noise component.
 // The model uses a double-logistic form to capture a perturbation-recovery dynamic.
-//
-// Final Version Features:
-// - Mechanistic double-logistic core for dynamics.
-// - Non-parametric Gaussian Process (GP) prior for spectral shape.
-// - Non-Centered Parameterization (NCP) for the GP and oscillator coefficients.
-// - Deterministic inversion to solve for time-varying amplitude.
-// - Exact variance calculation using pre-computed Gram matrices.
 
 // =====================================================================
 // Functions Block
@@ -91,7 +84,15 @@ transformed data {
   // The GP prior operates on the log of the frequencies to better handle
   // the wide range of frequencies often seen in HRV.
   array[3] vector[N_sin] log_freqs;
-  for (j in 1:3) log_freqs[j] = log(freqs[j]);
+  array[3] vector[N_sin] log_freqs_scaled;
+  array[3] real log_range;
+  for (j in 1:3) {
+    log_freqs[j] = log(freqs[j]);
+    log_range[j] = max(log_freqs[j]) - min(log_freqs[j]);
+    // Work on scaled frequency range to make rho parameter scale-agnostic
+    log_freqs_scaled[j] = (log_freqs[j] - min(log_freqs[j])) / log_range[j];
+  }
+
 
   // --- Precompute per-band Gram matrices ---
   // These matrices contain the inner products of the basis vectors (e.g., sin_i * sin_j).
@@ -145,8 +146,7 @@ parameters {
 
   // --- GP Hyperparameters ---
   // These control the properties of the smooth function for the spectral shape.
-  array[3] real<lower=0> alpha_gp; // Marginal SD: Controls the vertical variation of the spectrum.
-  array[3] real<lower=0> rho_gp;   // Length-scale: Controls the smoothness of the spectrum.
+  array[3] real rho_gp_logit;   // Length-scale: Controls the smoothness of the spectrum.
 
   // --- Non-Centered GP Parameter ---
   // Instead of sampling the GP function values directly, we sample standard normal
@@ -193,6 +193,11 @@ transformed parameters {
   real c_c = inv_logit(c_c_logit); // Spectral recovery is between 0-100%.
   real w   = inv_logit(w_logit);   // Structured variance fraction is between 0-1.
 
+  array[3] real rho_gp; // Constrained smoothness of GP
+  for (j in 1:3) {
+    rho_gp[j] = inv_logit(rho_gp_logit[j]);
+  }
+
   // --- 1. Construct the two logistic building blocks ---
   // These shared curves drive all the dynamic changes in the model.
   vector[N] D1 = logistic_curve(t, tau, lambda);      // Primary perturbation curve.
@@ -226,8 +231,8 @@ transformed parameters {
     // --- Step A: Reconstruct the Centered GP (Non-Centered Parameterization) ---
     // 1. Construct the covariance matrix K from the hyperparameters.
     matrix[N_sin, N_sin] K =
-      gp_exp_quad_cov(to_array_1d(log_freqs[j]), alpha_gp[j], rho_gp[j])
-      + diag_matrix(rep_vector(1e-8 * square(alpha_gp[j]) + 1e-12, N_sin));
+      gp_exp_quad_cov(to_array_1d(log_freqs_scaled[j]), 1, rho_gp[j])
+      + diag_matrix(rep_vector(1e-8, N_sin));
 
     // 2. Compute the Cholesky factor of K.
     matrix[N_sin, N_sin] L = cholesky_decompose(K);
@@ -325,11 +330,8 @@ model {
   y_pert_log ~ normal([0, 0]', 2);
   c_c_logit ~ normal(1, 2);
 
-  // --- Priors for GP hyperparameters ---
-  // `rho_gp` is given a lognormal prior as it must be positive and often
-  // spans orders of magnitude, making its log a natural scale to work on.
-  alpha_gp ~ normal(0, 0.5) T[0, ];   // half-normal, favors modest envelope
-  rho_gp   ~ lognormal(0, 0.5);
+  // --- Priors for the Smoothness of the GP ---
+  rho_gp_logit   ~ normal(-2, 2); // Allows more wiggliness
 
   // --- Priors for Non-Centered Parameters ---
   // As part of the NCP pattern, the "raw" parameters are given standard normal
