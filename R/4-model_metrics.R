@@ -102,7 +102,7 @@ if(!file.exists("data/error_statistics.RDS")) {
         w = w, c_c = c_c,
         pi_base = c(pi_base.V1, pi_base.V2, pi_base.V3),
         pi_pert = c(pi_pert.V1, pi_pert.V2, pi_pert.V3),
-        rho_gp = c(1, 1, 1) * 0.1
+        rho_gp = c(1, 1, 1) * 0.5
       )
     )$data,
     keyby = row_id
@@ -191,7 +191,7 @@ if (!file.exists("data/model_predictions.RDS")) {
         w = w, c_c = c_c,
         pi_base = c(pi_base.V1, pi_base.V2, pi_base.V3),
         pi_pert = c(pi_pert.V1, pi_pert.V2, pi_pert.V3),
-        rho_gp = c(1,1,1) * 0.1
+        rho_gp = c(1,1,1) * 0.5
       )
     )$data,
     keyby = row_id

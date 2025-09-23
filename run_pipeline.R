@@ -14,7 +14,10 @@ if(REMOVE_FILES) {
                        "models/model_fit_scenario_2.RDS",
                        "models/model_fit_scenario_3.RDS")
   unlink(files_to_remove)
+  rm(files_to_remove, REMOVE_FILES)
 }
+
+closeAllConnections(); gc()
 
 source("R/1-generate_data.R"); gc()
 source("R/2-classic_metrics.R"); gc()

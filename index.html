@@ -141,7 +141,7 @@ window.Quarto = {
                 <div>
             <div class="quarto-title-meta-heading">Modified</div>
             <div class="quarto-title-meta-contents">
-              <p class="date-modified">September 22, 2025</p>
+              <p class="date-modified">September 23, 2025</p>
             </div>
           </div>
                 
@@ -198,39 +198,39 @@ window.Quarto = {
 <p>Heart rate variability (HRV) is the basis of non-invasive autonomic nervous system assessment, yet its analysis is constrained by the non-stationary nature of physiological signals. Standard analytical methods, which assume stationarity within fixed time windows, fail to capture dynamical effects of interest, such as the response to a physiological stressor. This limitation obstructs the development of mechanistic hypotheses about autonomic control. Here, we address this challenge by introducing a unified probabilistic framework for non-stationary HRV analysis. We propose a hypothesis-driven, generative model that transforms the physiological response as a continuous-time stochastic process controlled by a double-logistic function. This approach deconstructs the R-R interval (RRi) series into a set of interpretable parameters representing the latency, rate, and magnitude of distinct response and recovery phases. Through simulation, we establish the model’s ability to achieve high-fidelity parameter recovery and show its descriptive superiority over conventional fixed-time window methods. We then apply the framework to an empirical exercise-recovery recording, generating a precise, falsifiable hypothesis of “dissonant autonomic recovery”, where mean heart rate and its variability exhibit distinct recovery timescales. This framework provides a formal methodology for translating RRi time series into quantitative, testable estimates of their generative processes.</p>
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
-<p>A central goal in contemporary biomedical science is to mechanistically link the dynamics of physiological systems to human health and disease. A primary obstacle to this goal is the inferential gap between what we can measure with high-temporal resolution via wearable sensors, and the unobservable neurobiological processes that generate these measurements <span class="citation" data-cites="huber2025brain">(<a href="#ref-huber2025brain" role="doc-biblioref">Huber et al. 2025</a>)</span>. This “inverse problem” is specially more evident in the study of the autonomic nervous system (ANS), where heart rate variability (HRV) is the dominant non-invasive proxy <span class="citation" data-cites="shaffer2017overview">(<a href="#ref-shaffer2017overview" role="doc-biblioref">Shaffer and Ginsberg 2017</a>)</span>. The R-R interval (RRi) time-series is an invaluable signal, yet it poses a deep analytical challenge: it is a complex, integrated output reflecting the ceaseless, dynamic interplay of multiple regulatory systems <span class="citation" data-cites="arakaki2023connection">(<a href="#ref-arakaki2023connection" role="doc-biblioref">Arakaki et al. 2023</a>)</span>. Therefore, progress is contingent upon solving this problem of principled inverse inference: the development of a formal methodology to deconstruct this composite signal into quantitative, interpretable, and falsifiable estimates of its underlying generative processes. The urgency of this problem is mode more evident by its direct relevance to major public health burdens, as autonomic dysregulation is a core feature of disorders ranging from cardiovascular diseases <span class="citation" data-cites="orini2023long serhiyenko2024post">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>; <a href="#ref-serhiyenko2024post" role="doc-biblioref">Serhiyenko et al. 2024</a>)</span>, to anxiety and post-traumatic stress <span class="citation" data-cites="schneider2020autonomic cheng2022heart tomasi2024heart">(<a href="#ref-schneider2020autonomic" role="doc-biblioref">Schneider and Schwerdtfeger 2020</a>; <a href="#ref-cheng2022heart" role="doc-biblioref">Cheng et al. 2022</a>; <a href="#ref-tomasi2024heart" role="doc-biblioref">Tomasi et al. 2024</a>)</span>, where a precise characterization of system dynamics is essential for diagnosis and treatment <span class="citation" data-cites="orini2023long">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>)</span>.</p>
-<p>The analytical tools currently employed by the majority of researchers are unsuited for this task. The prevailing paradigm, which relies on calculating summary statistics within fixed temporal windows, imposes a static, linear worldview on a system that is intrinsically dynamic and non-linear. The use of fixed temporal windows is made on the assumption of stationarity that is inherently violated during any physiological transition of scientific or clinical interest <span class="citation" data-cites="shaffer2020critical kim2021ultra">(<a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. A core limitation for mechanistic inference is the relying on static assumptions, producing misleading and often uninterpretable results <span class="citation" data-cites="kim2021ultra">(<a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. For instance, by averaging across a period of stress recovery, such methods conflate the initial sympathetic response with the subsequent parasympathetic rebound, yielding a single, opaque number that masks the system’s adaptive capacity <span class="citation" data-cites="shaffer2020critical kim2021ultra">(<a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. The unavoidable distortion of RRi signals under non-stationary conditions, where their inherent assumptions are not met, can make it impossible to distinguish a resilient individual who exhibits a rapid and robust recovery from a vulnerable one, with a dampened recovery, a critical biomarker of pathology <span class="citation" data-cites="lu2023uncertainties">(<a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>)</span>. This “discretize-and-summarize” approach systematically discards the temporal structure of the data, thereby precluding the direct estimation of core mechanistic properties such as response latencies, rates of change, and adaptive magnitudes, which constitute the very essence of the physiological process <span class="citation" data-cites="tiwari2021analysis">(<a href="#ref-tiwari2021analysis" role="doc-biblioref">Tiwari et al. 2021</a>)</span>.</p>
-<p>Acknowledging these limitations, more sophisticated signal processing and modeling techniques have been proposed, yet these too often fail to resolve the core inferential challenge. They present a false choice between phenomenological description and non-interpretable abstraction. On one hand, time-frequency decompositions, such as the wavelet transform, excel at providing detailed visualizations of spectral dynamics, making them useful for exploratory analysis <span class="citation" data-cites="german2014wavelet">(<a href="#ref-german2014wavelet" role="doc-biblioref">German-Sallo 2014</a>)</span>. However, they are fundamentally descriptive; they do not instantiate a formal, generative model of the underlying biology. They can show that a change occurred, but they cannot provide a parameterized, testable estimate of what changed <span class="citation" data-cites="guo2022review">(<a href="#ref-guo2022review" role="doc-biblioref">Guo et al. 2022</a>)</span>.</p>
-<p>On the other hand, more advanced modeling traditions like state-space models (SSMs) offer mathematical sophistication for tracking and forecasting a system’s evolution <span class="citation" data-cites="martin2018improving rosas2024bayesian">(<a href="#ref-martin2018improving" role="doc-biblioref">Martı́n-González et al. 2018</a>; <a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>)</span>. While powerful, their typical formulations trade physiological fidelity for mathematical convenience; the latent states they infer are often defined by statistical properties rather than direct biological identity <span class="citation" data-cites="rosas2024bayesian liu2024efficient">(<a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>; <a href="#ref-liu2024efficient" role="doc-biblioref">Liu, Perley, and Coleman 2024</a>)</span>. Even in more tailored applications designed to enhance interpretability, SSMs excel at tracking continuously varying processes but are not explicitly structured to parameterize the distinct phases of a discrete physiological event, such as the specific onset rate, recovery latency, and adaptive magnitude of a stress response. Consequently, the field remains methodologically stalled, caught between descriptive tools that cannot test mechanisms and abstract models whose parameters do not directly map onto the discrete, event-driven components of a physiological hypothesis.</p>
-<p>Bridging the gap between data and mechanism requires an evolution in analytical philosophy, a shift from model-agnostic data description to the construction of hypothesis-driven, generative models. Such approach should move beyond simply characterizing what the data looks like and instead focuses on creating explicit, testable, and quantitative models of the biological processes that produced it. Here, we introduce and validate such a framework, which reframe physiological analysis as a form of formal hypothesis testing. We posit that a stereotyped autonomic response to an acute perturbation is a structured, dynamic process. Consequently, we propose it can be effectively modeled as a continuous-time stochastic process, allowing us to separate the structured response from inherent biological variability. As a specific, testable implementation of this philosophy, we model the response trajectory using a double-logistic function. This mathematical form is chosen as a parsimonious hypothesis for biphasic dynamics, designed to capture the characteristic onset and subsequent recovery phases <span class="citation" data-cites="castillo2025enhancing">(<a href="#ref-castillo2025enhancing" role="doc-biblioref">Castillo-Aguilar et al. 2025</a>)</span>. The power of this approach lies in its ability to translate the raw signal into a small set of interpretable mechanistic parameters: the latency, rate, and magnitude of each distinct response phase <span class="citation" data-cites="castillo2025enhancing">(<a href="#ref-castillo2025enhancing" role="doc-biblioref">Castillo-Aguilar et al. 2025</a>)</span>. This provides a direct, quantitative window into the system’s underlying reactivity and resilience.</p>
-<p>We implement this approach as a novel generative model within a Bayesian framework. This provides robust parameter estimation with full uncertainty quantification, enables hierarchical modeling of individual and group-level effects, and offers a basis for model comparison. This model provides a specific and testable implementation of our framework, decomposing the RRi series into a time-varying mean, total variance, and a dynamically shifting oscillatory component, all controlled by a double-logistic latent dynamic. This paper tests the hypothesis that this model provides a more accurate and useful characterization of autonomic dynamics than existing fixed-time window methods. Through simulation, we demonstrate its capacity to recover known ground-truth parameters, which establishes its core validity. We contend that this approach provides the necessary quantitative indices to develop and test mechanistic physiological hypotheses. This represents a step towards translating complex time-series into falsifiable knowledge.</p>
+<p>The central goal in contemporary biomedical science is to mechanistically link the dynamics of physiological systems to human health and disease. A primary obstacle to this goal is the inferential gap between what can be measure with high-temporal resolution via wearable sensors, and the unobservable neurobiological processes that generate these measurements <span class="citation" data-cites="huber2025brain">(<a href="#ref-huber2025brain" role="doc-biblioref">Huber et al. 2025</a>)</span>. This “inverse problem” is specially more evident in the study of the autonomic nervous system (ANS), where heart rate variability (HRV) is the dominant non-invasive proxy <span class="citation" data-cites="shaffer2017overview">(<a href="#ref-shaffer2017overview" role="doc-biblioref">Shaffer and Ginsberg 2017</a>)</span>. The R-R interval (RRi) time-series is an invaluable signal, yet it poses a deep analytical challenge: it is a complex, integrated output reflecting the ceaseless, dynamic interplay of multiple regulatory systems <span class="citation" data-cites="arakaki2023connection">(<a href="#ref-arakaki2023connection" role="doc-biblioref">Arakaki et al. 2023</a>)</span>. Therefore, progress is contingent upon solving this problem of principled inverse inference: the development of a formal methodology to deconstruct this composite signal into quantitative, interpretable, and falsifiable estimates of its underlying generative processes. The urgency of this problem is made more evident by its direct relevance to major public health burdens, as autonomic dysregulation is a core feature of disorders ranging from cardiovascular diseases <span class="citation" data-cites="orini2023long serhiyenko2024post">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>; <a href="#ref-serhiyenko2024post" role="doc-biblioref">Serhiyenko et al. 2024</a>)</span>, to anxiety and post-traumatic stress <span class="citation" data-cites="schneider2020autonomic cheng2022heart tomasi2024heart">(<a href="#ref-schneider2020autonomic" role="doc-biblioref">Schneider and Schwerdtfeger 2020</a>; <a href="#ref-cheng2022heart" role="doc-biblioref">Cheng et al. 2022</a>; <a href="#ref-tomasi2024heart" role="doc-biblioref">Tomasi et al. 2024</a>)</span>, where a precise characterization of system dynamics is essential for diagnosis and treatment <span class="citation" data-cites="orini2023long">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>)</span>.</p>
+<p>The analytical tools currently employed by the majority of researchers are unsuited for this task. The prevailing paradigm, which relies on calculating summary statistics within fixed temporal windows, imposes a static, linear worldview on a system that is intrinsically dynamic and non-linear. The use of fixed temporal windows is made on the assumption of stationarity that is inherently violated during any physiological transition of scientific or clinical interest <span class="citation" data-cites="shaffer2020critical kim2021ultra">(<a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. A core limitation for mechanistic inference is relying on static assumptions, producing misleading and often uninterpretable results <span class="citation" data-cites="kim2021ultra">(<a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. For instance, by averaging across a period of stress recovery, such methods conflate the initial sympathetic response with the subsequent parasympathetic rebound, yielding a single, opaque number that masks the system’s adaptive capacity <span class="citation" data-cites="shaffer2020critical kim2021ultra">(<a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. The unavoidable distortion of RRi signals under non-stationary conditions, where their inherent assumptions are not met, can make it impossible to distinguish between a resilient individual who exhibits a rapid and robust recovery from a vulnerable one, with a dampened recovery, a critical biomarker of pathology <span class="citation" data-cites="lu2023uncertainties">(<a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>)</span>. This “discretize-and-summarize” approach systematically discards the temporal structure of the data, thereby precluding the direct estimation of core mechanistic properties such as response latencies, rates of change, and adaptive magnitudes, which constitute the very essence of the physiological process <span class="citation" data-cites="tiwari2021analysis">(<a href="#ref-tiwari2021analysis" role="doc-biblioref">Tiwari et al. 2021</a>)</span>.</p>
+<p>Nonetheless, more sophisticated signal processing and modeling techniques have been proposed, yet these too often fail to resolve the core inferential challenge. They present a false choice between phenomenological description and non-interpretable abstraction. On one hand, time-frequency decompositions, such as the wavelet transform, excel at providing detailed visualizations of spectral dynamics, making them useful for exploratory analysis <span class="citation" data-cites="german2014wavelet">(<a href="#ref-german2014wavelet" role="doc-biblioref">German-Sallo 2014</a>)</span>. However, they are fundamentally descriptive; they do not instantiate a formal, generative model of the underlying biology. They can show that a change occurred, but they cannot provide a parameterized, testable estimate of what changed <span class="citation" data-cites="guo2022review">(<a href="#ref-guo2022review" role="doc-biblioref">Guo et al. 2022</a>)</span>.</p>
+<p>On the other hand, more advanced modeling traditions like state-space models (SSMs) offer mathematical intricacy for tracking and forecasting a system’s evolution <span class="citation" data-cites="martin2018improving rosas2024bayesian">(<a href="#ref-martin2018improving" role="doc-biblioref">Martı́n-González et al. 2018</a>; <a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>)</span>. While powerful, their typical formulations trade physiological fidelity for mathematical convenience; the latent states they infer are often defined by statistical properties rather than direct biological identity <span class="citation" data-cites="rosas2024bayesian liu2024efficient">(<a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>; <a href="#ref-liu2024efficient" role="doc-biblioref">Liu, Perley, and Coleman 2024</a>)</span>. Even in more tailored applications designed to enhance interpretability, SSMs excel at tracking continuously varying processes but are not explicitly structured to parameterize the distinct phases of a discrete physiological event, such as the specific onset rate, recovery latency, and adaptive magnitude of a stress response. Consequently, the field remains methodologically stalled, caught between descriptive tools that cannot test mechanisms and abstract models whose parameters do not directly map onto the discrete, event-driven components of a physiological hypothesis.</p>
+<p>Bridging the gap between data and mechanism requires an evolution in analytical philosophy, a shift from model-agnostic data description to the construction of hypothesis-driven, generative models. Such an approach should move beyond simply characterizing what the data looks like and instead focus on creating explicit, testable, and quantitative models of the biological processes that produced it. Here, we introduce and validate such a framework, which reframes physiological analysis as a form of formal hypothesis testing. We propose that a stereotyped autonomic response to an acute perturbation is a structured and dynamic process. Consequently, we propose that it can be effectively modeled as a continuous-time stochastic process, allowing us to separate the structured response from inherent biological variability. Specifically, we model the response trajectory using a double-logistic function. This mathematical form is chosen as a parsimonious hypothesis for biphasic dynamics, designed to capture the characteristic onset and subsequent recovery phases <span class="citation" data-cites="castillo2025enhancing">(<a href="#ref-castillo2025enhancing" role="doc-biblioref">Castillo-Aguilar et al. 2025</a>)</span>. The power of this approach lies in its ability to translate the raw signal into a small set of interpretable mechanistic parameters: the latency, rate, and magnitude of each distinct response phase <span class="citation" data-cites="castillo2025enhancing">(<a href="#ref-castillo2025enhancing" role="doc-biblioref">Castillo-Aguilar et al. 2025</a>)</span>. This provides a direct, quantitative understanding of the system’s underlying reactivity and resilience.</p>
+<p>We implement this approach as a novel generative model within a Bayesian framework. This provides robust parameter estimation with full uncertainty quantification, enables hierarchical modeling of individual and group-level effects, and offers a basis for model comparison and evaluation. This model provides a specific and testable implementation of our framework, decomposing the RRi series into a time-varying mean, total variance, and a dynamically shifting oscillatory component, all controlled by a double-logistic latent dynamic. This paper tests the hypothesis that this model provides a more accurate and useful characterization of autonomic dynamics than existing fixed-time window methods. Through simulation, we demonstrate its capacity to recover known ground-truth parameters, which establishes its core validity. We contend that this approach provides the necessary quantitative indices for developing and testing mechanistic physiological hypotheses. This represents a step towards translating complex time-series into falsifiable knowledge.</p>
 </section>
 <section id="results" class="level1 page-columns page-full">
 <h1>Results</h1>
-<p>We evaluated the quantitative framework in three parts to test its consistency, descriptive fidelity, and application. We first test the model’s internal consistency by assessing its ability to recover its own parameters from simulated data. We then benchmark its descriptive fidelity against conventional methods to quantify its effectiveness in characterizing dynamic signals. Finally, we use the framework to generate a structured, phenomenological description of an empirical exercise-response signal, illustrating its potential for generating precise and data-driven hypotheses.</p>
+<p>We first test the model’s internal consistency by assessing its ability to recover its own parameters from simulated data. We then benchmark its descriptive fidelity against conventional methods to quantify its effectiveness in characterizing dynamic signals. Finally, we use the framework to generate a structured, phenomenological description of an empirical exercise-response signal, illustrating its potential for developing precise and data-driven hypotheses.</p>
 <section id="model-validation-and-parameter-recovery-on-synthetic-data" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="model-validation-and-parameter-recovery-on-synthetic-data">Model validation and parameter recovery on synthetic data</h2>
-<p>To establish the model’s internal consistency and the identifiability of its parameters, we first assessed its ability to perform inference on synthetic data generated from its own structure. This in-silico procedure serves as a necessary check of the model’s self-consistency and the estimation algorithm’s ability to navigate the complex posterior geometry. We designed three distinct scenarios to test performance: (A) a canonical response with complete recovery; (B) an incomplete recovery with persistence in both time and frequency domains; and (C) a high-noise condition with a low structured variance fraction (<span class="math inline">\(w\)</span> = 0.6). The ground-truth dynamics are shown in Figure 1, with generative parameter values listed in Table 1. This procedure tests for inferential integrity under the assumption that the model is correctly specified; it does not test for robustness to model misspecification, a challenge inherent to all empirical data.</p>
+<p>To establish the model’s internal consistency and the identifiability of its parameters, we first assessed its ability to perform inference on synthetic data generated from its own structure. This in-silico procedure serves as a necessary check of the model’s self-consistency and the estimation algorithm’s ability to navigate the complex posterior geometry. To test the model’s performance, designed three distinct scenarios: (A) a canonical response with complete recovery; (B) an incomplete recovery with persistence in both time and frequency domains; and (C) a high-noise condition with a low structured variance fraction (<span class="math inline">\(w\)</span> = 0.6). The ground-truth dynamics are illustrated in Figure 1, with corresponding generative parameter values listed in Table 1. This procedure tests for inferential integrity under the assumption that the model is correctly specified; it does not test for robustness to model misspecification, a challenge inherent to all empirical data.</p>
 <p><img src="figures/fig-generated-data.svg" class="img-fluid" style="width:100.0%"> <strong>Figure 1. Ground-truth dynamics of three synthetic scenarios.</strong> The scenarios were designed to test model performance under diverse conditions: (A) a classic sympatho-vagal response, (B) an incomplete recovery with persistence in both time and frequency domains, and (C) a high-noise condition with dissonant (complete time-domain, incomplete spectral) recovery. Panels show the generated RRi data with the true mean signal, the underlying time-domain trajectories for baseline RRi and total SDNN, and the time-varying spectral proportions.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="dzsbuhtfga" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#dzsbuhtfga table {
+<div id="gdppbnijtp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#gdppbnijtp table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#dzsbuhtfga thead, #dzsbuhtfga tbody, #dzsbuhtfga tfoot, #dzsbuhtfga tr, #dzsbuhtfga td, #dzsbuhtfga th {
+#gdppbnijtp thead, #gdppbnijtp tbody, #gdppbnijtp tfoot, #gdppbnijtp tr, #gdppbnijtp td, #gdppbnijtp th {
   border-style: none;
 }
 
-#dzsbuhtfga p {
+#gdppbnijtp p {
   margin: 0;
   padding: 0;
 }
 
-#dzsbuhtfga .gt_table {
+#gdppbnijtp .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -256,12 +256,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#dzsbuhtfga .gt_caption {
+#gdppbnijtp .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#dzsbuhtfga .gt_title {
+#gdppbnijtp .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -273,7 +273,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#dzsbuhtfga .gt_subtitle {
+#gdppbnijtp .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -285,7 +285,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#dzsbuhtfga .gt_heading {
+#gdppbnijtp .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -297,13 +297,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#dzsbuhtfga .gt_bottom_border {
+#gdppbnijtp .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#dzsbuhtfga .gt_col_headings {
+#gdppbnijtp .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -318,7 +318,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#dzsbuhtfga .gt_col_heading {
+#gdppbnijtp .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -338,7 +338,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#dzsbuhtfga .gt_column_spanner_outer {
+#gdppbnijtp .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -350,15 +350,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#dzsbuhtfga .gt_column_spanner_outer:first-child {
+#gdppbnijtp .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#dzsbuhtfga .gt_column_spanner_outer:last-child {
+#gdppbnijtp .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#dzsbuhtfga .gt_column_spanner {
+#gdppbnijtp .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -370,11 +370,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#dzsbuhtfga .gt_spanner_row {
+#gdppbnijtp .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#dzsbuhtfga .gt_group_heading {
+#gdppbnijtp .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -400,7 +400,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#dzsbuhtfga .gt_empty_group_heading {
+#gdppbnijtp .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -415,15 +415,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#dzsbuhtfga .gt_from_md > :first-child {
+#gdppbnijtp .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#dzsbuhtfga .gt_from_md > :last-child {
+#gdppbnijtp .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#dzsbuhtfga .gt_row {
+#gdppbnijtp .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -442,7 +442,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#dzsbuhtfga .gt_stub {
+#gdppbnijtp .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -455,7 +455,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#dzsbuhtfga .gt_stub_row_group {
+#gdppbnijtp .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -469,15 +469,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#dzsbuhtfga .gt_row_group_first td {
+#gdppbnijtp .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#dzsbuhtfga .gt_row_group_first th {
+#gdppbnijtp .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#dzsbuhtfga .gt_summary_row {
+#gdppbnijtp .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -487,16 +487,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#dzsbuhtfga .gt_first_summary_row {
+#gdppbnijtp .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#dzsbuhtfga .gt_first_summary_row.thick {
+#gdppbnijtp .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#dzsbuhtfga .gt_last_summary_row {
+#gdppbnijtp .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -506,7 +506,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#dzsbuhtfga .gt_grand_summary_row {
+#gdppbnijtp .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -516,7 +516,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#dzsbuhtfga .gt_first_grand_summary_row {
+#gdppbnijtp .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -526,7 +526,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#dzsbuhtfga .gt_last_grand_summary_row_top {
+#gdppbnijtp .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -536,11 +536,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#dzsbuhtfga .gt_striped {
+#gdppbnijtp .gt_striped {
   background-color: #F4F4F4;
 }
 
-#dzsbuhtfga .gt_table_body {
+#gdppbnijtp .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -549,7 +549,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#dzsbuhtfga .gt_footnotes {
+#gdppbnijtp .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -563,7 +563,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#dzsbuhtfga .gt_footnote {
+#gdppbnijtp .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -572,7 +572,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#dzsbuhtfga .gt_sourcenotes {
+#gdppbnijtp .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -586,7 +586,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#dzsbuhtfga .gt_sourcenote {
+#gdppbnijtp .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -594,72 +594,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#dzsbuhtfga .gt_left {
+#gdppbnijtp .gt_left {
   text-align: left;
 }
 
-#dzsbuhtfga .gt_center {
+#gdppbnijtp .gt_center {
   text-align: center;
 }
 
-#dzsbuhtfga .gt_right {
+#gdppbnijtp .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#dzsbuhtfga .gt_font_normal {
+#gdppbnijtp .gt_font_normal {
   font-weight: normal;
 }
 
-#dzsbuhtfga .gt_font_bold {
+#gdppbnijtp .gt_font_bold {
   font-weight: bold;
 }
 
-#dzsbuhtfga .gt_font_italic {
+#gdppbnijtp .gt_font_italic {
   font-style: italic;
 }
 
-#dzsbuhtfga .gt_super {
+#gdppbnijtp .gt_super {
   font-size: 65%;
 }
 
-#dzsbuhtfga .gt_footnote_marks {
+#gdppbnijtp .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#dzsbuhtfga .gt_asterisk {
+#gdppbnijtp .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#dzsbuhtfga .gt_indent_1 {
+#gdppbnijtp .gt_indent_1 {
   text-indent: 5px;
 }
 
-#dzsbuhtfga .gt_indent_2 {
+#gdppbnijtp .gt_indent_2 {
   text-indent: 10px;
 }
 
-#dzsbuhtfga .gt_indent_3 {
+#gdppbnijtp .gt_indent_3 {
   text-indent: 15px;
 }
 
-#dzsbuhtfga .gt_indent_4 {
+#gdppbnijtp .gt_indent_4 {
   text-indent: 20px;
 }
 
-#dzsbuhtfga .gt_indent_5 {
+#gdppbnijtp .gt_indent_5 {
   text-indent: 25px;
 }
 
-#dzsbuhtfga .katex-display {
+#gdppbnijtp .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#dzsbuhtfga div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#gdppbnijtp div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -786,23 +786,23 @@ window.Quarto = {
 <p>Beyond recovering the continuous dynamic trajectories, the model also recovered the discrete parameters that govern the shape and timing of these dynamics. Table 2 presents the posterior summaries for these key parameters, comparing the posterior median and 95% credible intervals against their true values. For all parameters across all scenarios, the 95% credible intervals successfully contained the ground-truth values. Successfully recovering all parameters confirms that they are practically identifiable from this type of data, at least when the data-generating process aligns with the model’s structural assumptions.</p>
 <div class="cell page-columns page-full">
 <div class="cell-output-display column-screen-inset-left">
-<div id="qigqbfjwue" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#qigqbfjwue table {
+<div id="ooedpwwjxe" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ooedpwwjxe table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#qigqbfjwue thead, #qigqbfjwue tbody, #qigqbfjwue tfoot, #qigqbfjwue tr, #qigqbfjwue td, #qigqbfjwue th {
+#ooedpwwjxe thead, #ooedpwwjxe tbody, #ooedpwwjxe tfoot, #ooedpwwjxe tr, #ooedpwwjxe td, #ooedpwwjxe th {
   border-style: none;
 }
 
-#qigqbfjwue p {
+#ooedpwwjxe p {
   margin: 0;
   padding: 0;
 }
 
-#qigqbfjwue .gt_table {
+#ooedpwwjxe .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -828,12 +828,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#qigqbfjwue .gt_caption {
+#ooedpwwjxe .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#qigqbfjwue .gt_title {
+#ooedpwwjxe .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -845,7 +845,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#qigqbfjwue .gt_subtitle {
+#ooedpwwjxe .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -857,7 +857,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#qigqbfjwue .gt_heading {
+#ooedpwwjxe .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -869,13 +869,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#qigqbfjwue .gt_bottom_border {
+#ooedpwwjxe .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#qigqbfjwue .gt_col_headings {
+#ooedpwwjxe .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -890,7 +890,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#qigqbfjwue .gt_col_heading {
+#ooedpwwjxe .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -910,7 +910,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#qigqbfjwue .gt_column_spanner_outer {
+#ooedpwwjxe .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -922,15 +922,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#qigqbfjwue .gt_column_spanner_outer:first-child {
+#ooedpwwjxe .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#qigqbfjwue .gt_column_spanner_outer:last-child {
+#ooedpwwjxe .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#qigqbfjwue .gt_column_spanner {
+#ooedpwwjxe .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -942,11 +942,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#qigqbfjwue .gt_spanner_row {
+#ooedpwwjxe .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#qigqbfjwue .gt_group_heading {
+#ooedpwwjxe .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -972,7 +972,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#qigqbfjwue .gt_empty_group_heading {
+#ooedpwwjxe .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -987,15 +987,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#qigqbfjwue .gt_from_md > :first-child {
+#ooedpwwjxe .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#qigqbfjwue .gt_from_md > :last-child {
+#ooedpwwjxe .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#qigqbfjwue .gt_row {
+#ooedpwwjxe .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1014,7 +1014,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#qigqbfjwue .gt_stub {
+#ooedpwwjxe .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -1027,7 +1027,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#qigqbfjwue .gt_stub_row_group {
+#ooedpwwjxe .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1041,15 +1041,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#qigqbfjwue .gt_row_group_first td {
+#ooedpwwjxe .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#qigqbfjwue .gt_row_group_first th {
+#ooedpwwjxe .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#qigqbfjwue .gt_summary_row {
+#ooedpwwjxe .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -1059,16 +1059,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#qigqbfjwue .gt_first_summary_row {
+#ooedpwwjxe .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#qigqbfjwue .gt_first_summary_row.thick {
+#ooedpwwjxe .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#qigqbfjwue .gt_last_summary_row {
+#ooedpwwjxe .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1078,7 +1078,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#qigqbfjwue .gt_grand_summary_row {
+#ooedpwwjxe .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -1088,7 +1088,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#qigqbfjwue .gt_first_grand_summary_row {
+#ooedpwwjxe .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1098,7 +1098,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#qigqbfjwue .gt_last_grand_summary_row_top {
+#ooedpwwjxe .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1108,11 +1108,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#qigqbfjwue .gt_striped {
+#ooedpwwjxe .gt_striped {
   background-color: #F4F4F4;
 }
 
-#qigqbfjwue .gt_table_body {
+#ooedpwwjxe .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1121,7 +1121,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#qigqbfjwue .gt_footnotes {
+#ooedpwwjxe .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1135,7 +1135,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#qigqbfjwue .gt_footnote {
+#ooedpwwjxe .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1144,7 +1144,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#qigqbfjwue .gt_sourcenotes {
+#ooedpwwjxe .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1158,7 +1158,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#qigqbfjwue .gt_sourcenote {
+#ooedpwwjxe .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1166,72 +1166,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#qigqbfjwue .gt_left {
+#ooedpwwjxe .gt_left {
   text-align: left;
 }
 
-#qigqbfjwue .gt_center {
+#ooedpwwjxe .gt_center {
   text-align: center;
 }
 
-#qigqbfjwue .gt_right {
+#ooedpwwjxe .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#qigqbfjwue .gt_font_normal {
+#ooedpwwjxe .gt_font_normal {
   font-weight: normal;
 }
 
-#qigqbfjwue .gt_font_bold {
+#ooedpwwjxe .gt_font_bold {
   font-weight: bold;
 }
 
-#qigqbfjwue .gt_font_italic {
+#ooedpwwjxe .gt_font_italic {
   font-style: italic;
 }
 
-#qigqbfjwue .gt_super {
+#ooedpwwjxe .gt_super {
   font-size: 65%;
 }
 
-#qigqbfjwue .gt_footnote_marks {
+#ooedpwwjxe .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#qigqbfjwue .gt_asterisk {
+#ooedpwwjxe .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#qigqbfjwue .gt_indent_1 {
+#ooedpwwjxe .gt_indent_1 {
   text-indent: 5px;
 }
 
-#qigqbfjwue .gt_indent_2 {
+#ooedpwwjxe .gt_indent_2 {
   text-indent: 10px;
 }
 
-#qigqbfjwue .gt_indent_3 {
+#ooedpwwjxe .gt_indent_3 {
   text-indent: 15px;
 }
 
-#qigqbfjwue .gt_indent_4 {
+#ooedpwwjxe .gt_indent_4 {
   text-indent: 20px;
 }
 
-#qigqbfjwue .gt_indent_5 {
+#ooedpwwjxe .gt_indent_5 {
   text-indent: 25px;
 }
 
-#qigqbfjwue .katex-display {
+#ooedpwwjxe .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#qigqbfjwue div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#ooedpwwjxe div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1281,23 +1281,23 @@ window.Quarto = {
 <td class="gt_row gt_right" headers="Estimate" style="font-size: small">1.99</td>
 <td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[1.92, 2.07]</td>
 <td class="gt_row gt_right" headers="Truth.1" style="font-size: small">2.00</td>
-<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">1.97</td>
+<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">1.98</td>
 <td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[1.87, 2.08]</td>
 <td class="gt_row gt_right" headers="Truth.2" style="font-size: small">1.50</td>
-<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">1.44</td>
-<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[1.31, 1.57]</td>
+<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">1.45</td>
+<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[1.31, 1.58]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\phi\)</span></td>
 <td class="gt_row gt_right gt_striped" headers="Truth" style="font-size: small">3.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">2.95</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[2.82, 3.09]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">2.96</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[2.82, 3.1]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.1" style="font-size: small">1.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">0.97</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[0.87, 1.08]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">0.98</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[0.87, 1.07]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.2" style="font-size: small">1.50</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">1.45</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[1.3, 1.61]</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[1.29, 1.61]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Parameter" style="font-size: small"><span class="math inline">\(\tau\)</span></td>
@@ -1305,47 +1305,47 @@ window.Quarto = {
 <td class="gt_row gt_right" headers="Estimate" style="font-size: small">6.01</td>
 <td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[5.99, 6.03]</td>
 <td class="gt_row gt_right" headers="Truth.1" style="font-size: small">6.00</td>
-<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">6.02</td>
+<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">6.01</td>
 <td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[5.98, 6.05]</td>
 <td class="gt_row gt_right" headers="Truth.2" style="font-size: small">6.00</td>
-<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">6.07</td>
-<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[5.95, 6.2]</td>
+<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">6.06</td>
+<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[5.95, 6.19]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\delta\)</span></td>
 <td class="gt_row gt_right gt_striped" headers="Truth" style="font-size: small">3.00</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">2.99</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[2.95, 3.02]</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[2.96, 3.02]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.1" style="font-size: small">3.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">2.92</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[2.66, 3.16]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">2.94</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[2.67, 3.16]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.2" style="font-size: small">3.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">2.89</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[2.62, 3.12]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">2.91</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[2.65, 3.13]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Parameter" style="font-size: small"><span class="math inline">\(\alpha_r\)</span></td>
 <td class="gt_row gt_right" headers="Truth" style="font-size: small">800.00</td>
-<td class="gt_row gt_right" headers="Estimate" style="font-size: small">800.05</td>
-<td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[798.58, 801.47]</td>
+<td class="gt_row gt_right" headers="Estimate" style="font-size: small">800.12</td>
+<td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[798.63, 801.54]</td>
 <td class="gt_row gt_right" headers="Truth.1" style="font-size: small">700.00</td>
-<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">699.95</td>
-<td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[698.74, 701.11]</td>
+<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">700.00</td>
+<td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[698.84, 701.15]</td>
 <td class="gt_row gt_right" headers="Truth.2" style="font-size: small">900.00</td>
-<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">900.63</td>
-<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[897.34, 904.05]</td>
+<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">900.73</td>
+<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[897.32, 904.02]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\beta_r\)</span></td>
 <td class="gt_row gt_right gt_striped" headers="Truth" style="font-size: small">400.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">401.64</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[396.61, 407.22]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">401.42</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[396.43, 406.93]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.1" style="font-size: small">300.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">305.53</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[289.11, 326.23]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">305.01</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[289.36, 325.7]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.2" style="font-size: small">400.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">417.27</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[380.07, 462.89]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">415.13</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[380.38, 460.63]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Parameter" style="font-size: small"><span class="math inline">\(c_r\)</span></td>
@@ -1362,26 +1362,26 @@ window.Quarto = {
 <tr class="even">
 <td class="gt_row gt_left gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\alpha_s\)</span></td>
 <td class="gt_row gt_right gt_striped" headers="Truth" style="font-size: small">50.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">49.34</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[48.19, 50.49]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">49.35</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[48.26, 50.47]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.1" style="font-size: small">40.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">39.52</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[38.6, 40.42]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">39.54</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[38.59, 40.47]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.2" style="font-size: small">50.00</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">48.96</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[46.85, 51.14]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">49.14</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[46.99, 51.23]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Parameter" style="font-size: small"><span class="math inline">\(\beta_s\)</span></td>
 <td class="gt_row gt_right" headers="Truth" style="font-size: small">40.00</td>
-<td class="gt_row gt_right" headers="Estimate" style="font-size: small">39.41</td>
-<td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[37.56, 41.37]</td>
+<td class="gt_row gt_right" headers="Estimate" style="font-size: small">39.49</td>
+<td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[37.58, 41.27]</td>
 <td class="gt_row gt_right" headers="Truth.1" style="font-size: small">30.00</td>
-<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">30.49</td>
-<td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[27.85, 33.23]</td>
+<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">30.56</td>
+<td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[28.1, 33.37]</td>
 <td class="gt_row gt_right" headers="Truth.2" style="font-size: small">30.00</td>
-<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">30.21</td>
-<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[25.05, 35.52]</td>
+<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">30.96</td>
+<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[26.09, 36.13]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(c_s\)</span></td>
@@ -1390,7 +1390,7 @@ window.Quarto = {
 <td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[0.98, 1.06]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.1" style="font-size: small">0.60</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">0.63</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[0.58, 0.68]</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[0.59, 0.68]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.2" style="font-size: small">1.00</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">1.05</td>
 <td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[0.95, 1.15]</td>
@@ -1399,24 +1399,24 @@ window.Quarto = {
 <td class="gt_row gt_left" headers="Parameter" style="font-size: small"><span class="math inline">\(c_c\)</span></td>
 <td class="gt_row gt_right" headers="Truth" style="font-size: small">0.80</td>
 <td class="gt_row gt_right" headers="Estimate" style="font-size: small">0.79</td>
-<td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[0.74, 0.83]</td>
+<td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[0.74, 0.84]</td>
 <td class="gt_row gt_right" headers="Truth.1" style="font-size: small">0.40</td>
-<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">0.42</td>
+<td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">0.43</td>
 <td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[0.37, 0.48]</td>
 <td class="gt_row gt_right" headers="Truth.2" style="font-size: small">0.40</td>
 <td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">0.47</td>
-<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[0.36, 0.58]</td>
+<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[0.35, 0.58]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(w\)</span></td>
 <td class="gt_row gt_right gt_striped" headers="Truth" style="font-size: small">0.90</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">0.90</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[0.89, 0.91]</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[0.89, 0.9]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.1" style="font-size: small">0.90</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">0.90</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[0.89, 0.91]</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[0.89, 0.9]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.2" style="font-size: small">0.60</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">0.58</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">0.59</td>
 <td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[0.56, 0.61]</td>
 </tr>
 <tr class="odd">
@@ -1426,10 +1426,10 @@ window.Quarto = {
 <td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[0.16, 0.27]</td>
 <td class="gt_row gt_right" headers="Truth.1" style="font-size: small">0.20</td>
 <td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">0.22</td>
-<td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[0.17, 0.27]</td>
+<td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[0.16, 0.27]</td>
 <td class="gt_row gt_right" headers="Truth.2" style="font-size: small">0.20</td>
-<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">0.18</td>
-<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[0.12, 0.25]</td>
+<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">0.19</td>
+<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[0.13, 0.26]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{base}\)</span> [LF]</td>
@@ -1446,11 +1446,11 @@ window.Quarto = {
 <tr class="odd">
 <td class="gt_row gt_left" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{base}\)</span> [HF]</td>
 <td class="gt_row gt_right" headers="Truth" style="font-size: small">0.60</td>
-<td class="gt_row gt_right" headers="Estimate" style="font-size: small">0.59</td>
-<td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[0.52, 0.66]</td>
+<td class="gt_row gt_right" headers="Estimate" style="font-size: small">0.58</td>
+<td class="gt_row gt_left" headers="95% HDI" style="font-size: small">[0.51, 0.65]</td>
 <td class="gt_row gt_right" headers="Truth.1" style="font-size: small">0.60</td>
 <td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">0.58</td>
-<td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[0.52, 0.65]</td>
+<td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[0.51, 0.65]</td>
 <td class="gt_row gt_right" headers="Truth.2" style="font-size: small">0.60</td>
 <td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">0.61</td>
 <td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[0.53, 0.69]</td>
@@ -1459,13 +1459,13 @@ window.Quarto = {
 <td class="gt_row gt_left gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{pert}\)</span> [VLF]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth" style="font-size: small">0.40</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">0.46</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[0.37, 0.54]</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[0.38, 0.55]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.1" style="font-size: small">0.50</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">0.56</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[0.47, 0.65]</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[0.48, 0.65]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.2" style="font-size: small">0.40</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">0.49</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[0.39, 0.6]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">0.48</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[0.39, 0.59]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{pert}\)</span> [LF]</td>
@@ -1476,20 +1476,20 @@ window.Quarto = {
 <td class="gt_row gt_right" headers="Estimate.1" style="font-size: small">0.38</td>
 <td class="gt_row gt_left" headers="95% HDI.1" style="font-size: small">[0.3, 0.46]</td>
 <td class="gt_row gt_right" headers="Truth.2" style="font-size: small">0.40</td>
-<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">0.39</td>
-<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[0.31, 0.48]</td>
+<td class="gt_row gt_right" headers="Estimate.2" style="font-size: small">0.40</td>
+<td class="gt_row gt_left" headers="95% HDI.2" style="font-size: small">[0.31, 0.49]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{pert}\)</span> [HF]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth" style="font-size: small">0.20</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate" style="font-size: small">0.16</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[0.11, 0.22]</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI" style="font-size: small">[0.12, 0.22]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.1" style="font-size: small">0.10</td>
 <td class="gt_row gt_right gt_striped" headers="Estimate.1" style="font-size: small">0.06</td>
 <td class="gt_row gt_left gt_striped" headers="95% HDI.1" style="font-size: small">[0.02, 0.1]</td>
 <td class="gt_row gt_right gt_striped" headers="Truth.2" style="font-size: small">0.20</td>
-<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">0.11</td>
-<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[0.03, 0.19]</td>
+<td class="gt_row gt_right gt_striped" headers="Estimate.2" style="font-size: small">0.12</td>
+<td class="gt_row gt_left gt_striped" headers="95% HDI.2" style="font-size: small">[0.04, 0.2]</td>
 </tr>
 </tbody>
 </table>
@@ -1507,23 +1507,23 @@ window.Quarto = {
 <p>A formal quantitative analysis confirms the descriptive efficiency and accuracy of the generative approach for signals of this particular nature. Table 3 provides a summary of key performance metrics. Across all scenarios and all signal components, the generative model consistently provided a more accurate and parsimonious description of the data. It achieved substantially lower error (RMSE and Bias) and captured a significantly higher proportion of the signal’s variance, with <span class="math inline">\(R^2\)</span> values typically exceeding 0.90. It is important to interpret this result with caution. The model’s performance is, in one sense, expected, as the synthetic data were generated from its own structure. However, it illustrates a core theoretical argument of this work: for signals that are plausibly characterized by smooth, continuous transitions between distinct physiological states, a model whose parametric form explicitly encodes this structure will naturally provide a more efficient, less distorted, and more interpretable quantitative summary than a non-parametric, windowed approach that was designed for stationary or quasi-stationary signals.</p>
 <div class="cell page-columns page-full">
 <div class="cell-output-display column-screen-inset-left">
-<div id="bvufhsgyde" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#bvufhsgyde table {
+<div id="ernurkbuix" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ernurkbuix table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#bvufhsgyde thead, #bvufhsgyde tbody, #bvufhsgyde tfoot, #bvufhsgyde tr, #bvufhsgyde td, #bvufhsgyde th {
+#ernurkbuix thead, #ernurkbuix tbody, #ernurkbuix tfoot, #ernurkbuix tr, #ernurkbuix td, #ernurkbuix th {
   border-style: none;
 }
 
-#bvufhsgyde p {
+#ernurkbuix p {
   margin: 0;
   padding: 0;
 }
 
-#bvufhsgyde .gt_table {
+#ernurkbuix .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1549,12 +1549,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#bvufhsgyde .gt_caption {
+#ernurkbuix .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#bvufhsgyde .gt_title {
+#ernurkbuix .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1566,7 +1566,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#bvufhsgyde .gt_subtitle {
+#ernurkbuix .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1578,7 +1578,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#bvufhsgyde .gt_heading {
+#ernurkbuix .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1590,13 +1590,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#bvufhsgyde .gt_bottom_border {
+#ernurkbuix .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#bvufhsgyde .gt_col_headings {
+#ernurkbuix .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1611,7 +1611,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#bvufhsgyde .gt_col_heading {
+#ernurkbuix .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1631,7 +1631,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#bvufhsgyde .gt_column_spanner_outer {
+#ernurkbuix .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1643,15 +1643,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#bvufhsgyde .gt_column_spanner_outer:first-child {
+#ernurkbuix .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#bvufhsgyde .gt_column_spanner_outer:last-child {
+#ernurkbuix .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#bvufhsgyde .gt_column_spanner {
+#ernurkbuix .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -1663,11 +1663,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#bvufhsgyde .gt_spanner_row {
+#ernurkbuix .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#bvufhsgyde .gt_group_heading {
+#ernurkbuix .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1693,7 +1693,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#bvufhsgyde .gt_empty_group_heading {
+#ernurkbuix .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1708,15 +1708,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#bvufhsgyde .gt_from_md > :first-child {
+#ernurkbuix .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#bvufhsgyde .gt_from_md > :last-child {
+#ernurkbuix .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#bvufhsgyde .gt_row {
+#ernurkbuix .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1735,7 +1735,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#bvufhsgyde .gt_stub {
+#ernurkbuix .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -1748,7 +1748,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bvufhsgyde .gt_stub_row_group {
+#ernurkbuix .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1762,15 +1762,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#bvufhsgyde .gt_row_group_first td {
+#ernurkbuix .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#bvufhsgyde .gt_row_group_first th {
+#ernurkbuix .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#bvufhsgyde .gt_summary_row {
+#ernurkbuix .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -1780,16 +1780,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bvufhsgyde .gt_first_summary_row {
+#ernurkbuix .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#bvufhsgyde .gt_first_summary_row.thick {
+#ernurkbuix .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#bvufhsgyde .gt_last_summary_row {
+#ernurkbuix .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1799,7 +1799,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#bvufhsgyde .gt_grand_summary_row {
+#ernurkbuix .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -1809,7 +1809,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bvufhsgyde .gt_first_grand_summary_row {
+#ernurkbuix .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1819,7 +1819,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#bvufhsgyde .gt_last_grand_summary_row_top {
+#ernurkbuix .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1829,11 +1829,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#bvufhsgyde .gt_striped {
+#ernurkbuix .gt_striped {
   background-color: #F4F4F4;
 }
 
-#bvufhsgyde .gt_table_body {
+#ernurkbuix .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1842,7 +1842,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#bvufhsgyde .gt_footnotes {
+#ernurkbuix .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1856,7 +1856,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#bvufhsgyde .gt_footnote {
+#ernurkbuix .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1865,7 +1865,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bvufhsgyde .gt_sourcenotes {
+#ernurkbuix .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1879,7 +1879,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#bvufhsgyde .gt_sourcenote {
+#ernurkbuix .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1887,72 +1887,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#bvufhsgyde .gt_left {
+#ernurkbuix .gt_left {
   text-align: left;
 }
 
-#bvufhsgyde .gt_center {
+#ernurkbuix .gt_center {
   text-align: center;
 }
 
-#bvufhsgyde .gt_right {
+#ernurkbuix .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#bvufhsgyde .gt_font_normal {
+#ernurkbuix .gt_font_normal {
   font-weight: normal;
 }
 
-#bvufhsgyde .gt_font_bold {
+#ernurkbuix .gt_font_bold {
   font-weight: bold;
 }
 
-#bvufhsgyde .gt_font_italic {
+#ernurkbuix .gt_font_italic {
   font-style: italic;
 }
 
-#bvufhsgyde .gt_super {
+#ernurkbuix .gt_super {
   font-size: 65%;
 }
 
-#bvufhsgyde .gt_footnote_marks {
+#ernurkbuix .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#bvufhsgyde .gt_asterisk {
+#ernurkbuix .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#bvufhsgyde .gt_indent_1 {
+#ernurkbuix .gt_indent_1 {
   text-indent: 5px;
 }
 
-#bvufhsgyde .gt_indent_2 {
+#ernurkbuix .gt_indent_2 {
   text-indent: 10px;
 }
 
-#bvufhsgyde .gt_indent_3 {
+#ernurkbuix .gt_indent_3 {
   text-indent: 15px;
 }
 
-#bvufhsgyde .gt_indent_4 {
+#ernurkbuix .gt_indent_4 {
   text-indent: 20px;
 }
 
-#bvufhsgyde .gt_indent_5 {
+#ernurkbuix .gt_indent_5 {
   text-indent: 25px;
 }
 
-#bvufhsgyde .katex-display {
+#ernurkbuix .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#bvufhsgyde div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#ernurkbuix div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1992,30 +1992,30 @@ window.Quarto = {
 <tr class="gt_row_group_first odd">
 <td rowspan="5" class="gt_row gt_left gt_stub_row_group" headers="mathrm-rr-t-i stub_1_1 stub_1"><span class="math inline">\(\mathrm{RR}(t_i)\)</span></td>
 <td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Metric" style="font-size: small; font-weight: bold">Bias</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Classic_1" style="font-size: small">0.5</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Classic_2" style="font-size: small">0.35</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Classic_3" style="font-size: small">0.97</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Model_1" style="font-size: small">0.40 [-0.25, 1.07]</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Model_2" style="font-size: small">0.26 [-0.19, 0.72]</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Model_3" style="font-size: small">0.82 [-0.54, 2.17]</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Classic_1" style="font-size: small">0.48</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Classic_2" style="font-size: small">0.33</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Classic_3" style="font-size: small">0.95</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Model_1" style="font-size: small">0.44 [-0.21, 1.10]</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Model_2" style="font-size: small">0.28 [-0.16, 0.74]</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i stub_1_1 Model_3" style="font-size: small">0.89 [-0.47, 2.24]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Metric" style="font-size: small; font-weight: bold">MAE</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Classic_1" style="font-size: small">4.75</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Classic_2" style="font-size: small">2.92</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Classic_3" style="font-size: small">4</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Model_1" style="font-size: small">0.90 [0.40, 1.49]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Model_2" style="font-size: small">0.65 [0.29, 1.10]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Model_3" style="font-size: small">1.95 [0.87, 3.18]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Classic_1" style="font-size: small">4.42</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Classic_2" style="font-size: small">2.68</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Classic_3" style="font-size: small">3.66</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Model_1" style="font-size: small">0.91 [0.39, 1.46]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Model_2" style="font-size: small">0.65 [0.29, 1.11]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_2 Model_3" style="font-size: small">1.93 [0.89, 3.17]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Metric" style="font-size: small; font-weight: bold">MAPE</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Classic_1" style="font-size: small">0.73</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Classic_2" style="font-size: small">0.5</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Classic_3" style="font-size: small">0.5</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Model_1" style="font-size: small">0.13 [0.06, 0.22]</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Model_2" style="font-size: small">0.11 [0.05, 0.20]</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Model_3" style="font-size: small">0.25 [0.11, 0.40]</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Classic_1" style="font-size: small">0.69</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Classic_2" style="font-size: small">0.47</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Classic_3" style="font-size: small">0.47</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Model_1" style="font-size: small">0.13 [0.06, 0.21]</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Model_2" style="font-size: small">0.11 [0.05, 0.19]</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_3 Model_3" style="font-size: small">0.24 [0.11, 0.39]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-rr-t-i Metric_4 Metric" style="font-size: small; font-weight: bold">R2</td>
@@ -2028,100 +2028,100 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Metric" style="font-size: small; font-weight: bold">RMSE</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Classic_1" style="font-size: small">5.91</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Classic_2" style="font-size: small">3.67</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Classic_3" style="font-size: small">4.81</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Model_1" style="font-size: small">1.13 [0.53, 1.84]</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Model_2" style="font-size: small">0.82 [0.37, 1.39]</td>
-<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Model_3" style="font-size: small">2.41 [1.14, 3.89]</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Classic_1" style="font-size: small">5.6</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Classic_2" style="font-size: small">3.36</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Classic_3" style="font-size: small">4.49</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Model_1" style="font-size: small">1.14 [0.52, 1.81]</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Model_2" style="font-size: small">0.82 [0.38, 1.39]</td>
+<td class="gt_row gt_center" headers="mathrm-rr-t-i Metric_5 Model_3" style="font-size: small">2.36 [1.11, 3.82]</td>
 </tr>
 <tr class="gt_row_group_first even">
 <td rowspan="5" class="gt_row gt_left gt_stub_row_group" headers="mathrm-sdnn-t-i stub_1_6 stub_1"><span class="math inline">\(\mathrm{SDNN}(t_i)\)</span></td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Metric" style="font-size: small; font-weight: bold">Bias</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Classic_1" style="font-size: small">11.8</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Classic_2" style="font-size: small">6.43</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Classic_3" style="font-size: small">9.21</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Model_1" style="font-size: small">-0.19 [-0.85, 0.45]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Model_2" style="font-size: small">-0.20 [-0.64, 0.24]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Model_3" style="font-size: small">-0.27 [-1.49, 0.93]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Classic_1" style="font-size: small">7.87</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Classic_2" style="font-size: small">2.48</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Classic_3" style="font-size: small">4.05</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Model_1" style="font-size: small">-0.13 [-0.76, 0.50]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Model_2" style="font-size: small">-0.18 [-0.61, 0.27]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i stub_1_6 Model_3" style="font-size: small">-0.23 [-1.40, 0.97]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Metric" style="font-size: small; font-weight: bold">MAE</td>
-<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Classic_1" style="font-size: small">12.53</td>
-<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Classic_2" style="font-size: small">7.22</td>
-<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Classic_3" style="font-size: small">9.79</td>
-<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Model_1" style="font-size: small">0.52 [0.12, 0.97]</td>
-<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Model_2" style="font-size: small">0.38 [0.10, 0.72]</td>
-<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Model_3" style="font-size: small">0.94 [0.24, 1.78]</td>
+<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Classic_1" style="font-size: small">9.47</td>
+<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Classic_2" style="font-size: small">4.56</td>
+<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Classic_3" style="font-size: small">5.71</td>
+<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Model_1" style="font-size: small">0.53 [0.12, 0.98]</td>
+<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Model_2" style="font-size: small">0.39 [0.11, 0.74]</td>
+<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_7 Model_3" style="font-size: small">0.93 [0.24, 1.77]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Metric" style="font-size: small; font-weight: bold">MAPE</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Classic_1" style="font-size: small">43.11</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Classic_2" style="font-size: small">26.8</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Classic_3" style="font-size: small">24.07</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Model_1" style="font-size: small">1.40 [0.39, 2.58]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Model_2" style="font-size: small">1.38 [0.39, 2.51]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Model_3" style="font-size: small">2.19 [0.59, 4.05]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Classic_1" style="font-size: small">35.01</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Classic_2" style="font-size: small">17.57</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Classic_3" style="font-size: small">14.71</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Model_1" style="font-size: small">1.41 [0.38, 2.56]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Model_2" style="font-size: small">1.44 [0.40, 2.63]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_8 Model_3" style="font-size: small">2.19 [0.59, 4.04]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Metric" style="font-size: small; font-weight: bold">R2</td>
-<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Classic_1" style="font-size: small">-1.06</td>
-<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Classic_2" style="font-size: small">-0.36</td>
-<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Classic_3" style="font-size: small">-1.39</td>
+<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Classic_1" style="font-size: small">-0.6</td>
+<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Classic_2" style="font-size: small">0.3</td>
+<td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Classic_3" style="font-size: small">0</td>
 <td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Model_1" style="font-size: small">1.00 [0.99, 1.00]</td>
 <td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Model_2" style="font-size: small">1.00 [0.99, 1.00]</td>
 <td class="gt_row gt_center" headers="mathrm-sdnn-t-i Metric_9 Model_3" style="font-size: small">0.98 [0.94, 1.00]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Metric" style="font-size: small; font-weight: bold">RMSE</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Classic_1" style="font-size: small">18.57</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Classic_2" style="font-size: small">10.06</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Classic_3" style="font-size: small">12.75</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Model_1" style="font-size: small">0.60 [0.14, 1.12]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Model_2" style="font-size: small">0.45 [0.12, 0.84]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Model_3" style="font-size: small">1.09 [0.29, 2.03]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Classic_1" style="font-size: small">16.37</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Classic_2" style="font-size: small">7.22</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Classic_3" style="font-size: small">8.24</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Model_1" style="font-size: small">0.61 [0.16, 1.13]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Model_2" style="font-size: small">0.46 [0.13, 0.87]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-sdnn-t-i Metric_10 Model_3" style="font-size: small">1.08 [0.29, 2.01]</td>
 </tr>
 <tr class="gt_row_group_first odd">
 <td rowspan="5" class="gt_row gt_left gt_stub_row_group" headers="mathrm-hf-t-i stub_1_11 stub_1"><span class="math inline">\(\mathrm{HF}(t_i)\)</span></td>
 <td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Metric" style="font-size: small; font-weight: bold">Bias</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Classic_1" style="font-size: small">-0.26</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Classic_2" style="font-size: small">-0.16</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Classic_3" style="font-size: small">-0.08</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Model_1" style="font-size: small">-0.02 [-0.09, 0.04]</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Classic_1" style="font-size: small">-0.32</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Classic_2" style="font-size: small">-0.23</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Classic_3" style="font-size: small">-0.13</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Model_1" style="font-size: small">-0.02 [-0.08, 0.04]</td>
 <td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Model_2" style="font-size: small">-0.02 [-0.07, 0.03]</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Model_3" style="font-size: small">-0.01 [-0.08, 0.05]</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i stub_1_11 Model_3" style="font-size: small">-0.02 [-0.08, 0.05]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Metric" style="font-size: small; font-weight: bold">MAE</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Classic_1" style="font-size: small">0.29</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Classic_2" style="font-size: small">0.23</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Classic_3" style="font-size: small">0.17</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Classic_1" style="font-size: small">0.33</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Classic_2" style="font-size: small">0.24</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Classic_3" style="font-size: small">0.16</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Model_1" style="font-size: small">0.03 [0.00, 0.08]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Model_2" style="font-size: small">0.02 [0.00, 0.07]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Model_2" style="font-size: small">0.03 [0.00, 0.07]</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_12 Model_3" style="font-size: small">0.03 [0.01, 0.07]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Metric" style="font-size: small; font-weight: bold">MAPE</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Classic_1" style="font-size: small">57.88</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Classic_2" style="font-size: small">58.82</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Classic_3" style="font-size: small">37.43</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Model_1" style="font-size: small">6.46 [ 0.76, 17.05]</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Model_2" style="font-size: small">8.30 [ 1.08, 20.39]</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Model_3" style="font-size: small">9.04 [ 2.04, 18.66]</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Classic_1" style="font-size: small">65.22</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Classic_2" style="font-size: small">60.24</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Classic_3" style="font-size: small">35.17</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Model_1" style="font-size: small">6.48 [ 0.72, 17.06]</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Model_2" style="font-size: small">8.26 [ 0.97, 20.28]</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_13 Model_3" style="font-size: small">8.84 [ 1.90, 19.11]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Metric" style="font-size: small; font-weight: bold">R2</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Classic_1" style="font-size: small">-6.25</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Classic_2" style="font-size: small">-1.75</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Classic_3" style="font-size: small">-1.67</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Classic_1" style="font-size: small">-7.57</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Classic_2" style="font-size: small">-2.02</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Classic_3" style="font-size: small">-1.68</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Model_1" style="font-size: small">0.94 [0.60, 1.00]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Model_2" style="font-size: small">0.97 [0.85, 1.00]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Model_3" style="font-size: small">0.90 [0.67, 1.00]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Model_2" style="font-size: small">0.97 [0.84, 1.00]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-hf-t-i Metric_14 Model_3" style="font-size: small">0.91 [0.66, 1.00]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_15 Metric" style="font-size: small; font-weight: bold">RMSE</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_15 Classic_1" style="font-size: small">0.32</td>
-<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_15 Classic_2" style="font-size: small">0.28</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_15 Classic_1" style="font-size: small">0.35</td>
+<td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_15 Classic_2" style="font-size: small">0.29</td>
 <td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_15 Classic_3" style="font-size: small">0.21</td>
 <td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_15 Model_1" style="font-size: small">0.03 [0.00, 0.08]</td>
 <td class="gt_row gt_center" headers="mathrm-hf-t-i Metric_15 Model_2" style="font-size: small">0.03 [0.00, 0.07]</td>
@@ -2130,17 +2130,17 @@ window.Quarto = {
 <tr class="gt_row_group_first even">
 <td rowspan="5" class="gt_row gt_left gt_stub_row_group" headers="mathrm-lf-t-i stub_1_16 stub_1"><span class="math inline">\(\mathrm{LF}(t_i)\)</span></td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Metric" style="font-size: small; font-weight: bold">Bias</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Classic_1" style="font-size: small">0.3</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Classic_2" style="font-size: small">0.17</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Classic_3" style="font-size: small">0.14</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Classic_1" style="font-size: small">0.31</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Classic_2" style="font-size: small">0.19</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Classic_3" style="font-size: small">0.16</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Model_1" style="font-size: small">-0.01 [-0.06, 0.05]</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Model_2" style="font-size: small">-0.01 [-0.07, 0.05]</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i stub_1_16 Model_3" style="font-size: small">-0.01 [-0.07, 0.05]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_17 Metric" style="font-size: small; font-weight: bold">MAE</td>
-<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_17 Classic_1" style="font-size: small">0.31</td>
-<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_17 Classic_2" style="font-size: small">0.25</td>
+<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_17 Classic_1" style="font-size: small">0.34</td>
+<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_17 Classic_2" style="font-size: small">0.26</td>
 <td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_17 Classic_3" style="font-size: small">0.19</td>
 <td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_17 Model_1" style="font-size: small">0.02 [0.00, 0.05]</td>
 <td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_17 Model_2" style="font-size: small">0.02 [0.00, 0.06]</td>
@@ -2148,74 +2148,74 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Metric" style="font-size: small; font-weight: bold">MAPE</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Classic_1" style="font-size: small">137.93</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Classic_2" style="font-size: small">106.38</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Classic_3" style="font-size: small">82.66</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Model_1" style="font-size: small">7.62 [ 0.69, 21.51]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Model_2" style="font-size: small">7.87 [ 0.43, 20.89]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Model_3" style="font-size: small">8.95 [ 1.12, 22.08]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Classic_1" style="font-size: small">147.42</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Classic_2" style="font-size: small">111.6</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Classic_3" style="font-size: small">83.9</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Model_1" style="font-size: small">7.52 [ 0.67, 21.08]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Model_2" style="font-size: small">7.86 [ 0.90, 21.39]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_18 Model_3" style="font-size: small">8.74 [ 1.07, 21.92]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Metric" style="font-size: small; font-weight: bold">R2</td>
-<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Classic_1" style="font-size: small">-35.71</td>
-<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Classic_2" style="font-size: small">-21.26</td>
-<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Classic_3" style="font-size: small">-14.79</td>
-<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Model_1" style="font-size: small">0.87 [0.16, 1.00]</td>
-<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Model_2" style="font-size: small">0.86 [0.11, 1.00]</td>
-<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Model_3" style="font-size: small">0.81 [0.00, 1.00]</td>
+<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Classic_1" style="font-size: small">-38.66</td>
+<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Classic_2" style="font-size: small">-23.08</td>
+<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Classic_3" style="font-size: small">-15.29</td>
+<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Model_1" style="font-size: small">0.87 [0.18, 1.00]</td>
+<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Model_2" style="font-size: small">0.86 [0.12, 1.00]</td>
+<td class="gt_row gt_center" headers="mathrm-lf-t-i Metric_19 Model_3" style="font-size: small">0.82 [0.01, 1.00]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Metric" style="font-size: small; font-weight: bold">RMSE</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Classic_1" style="font-size: small">0.36</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Classic_2" style="font-size: small">0.31</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Classic_3" style="font-size: small">0.25</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Model_1" style="font-size: small">0.02 [0.00, 0.06]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Classic_1" style="font-size: small">0.38</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Classic_2" style="font-size: small">0.33</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Classic_3" style="font-size: small">0.26</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Model_1" style="font-size: small">0.02 [0.00, 0.05]</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Model_2" style="font-size: small">0.02 [0.00, 0.06]</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-lf-t-i Metric_20 Model_3" style="font-size: small">0.03 [0.00, 0.06]</td>
 </tr>
 <tr class="gt_row_group_first odd">
 <td rowspan="5" class="gt_row gt_left gt_stub_row_group" headers="mathrm-vlf-t-i stub_1_21 stub_1"><span class="math inline">\(\mathrm{VLF}(t_i)\)</span></td>
 <td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Metric" style="font-size: small; font-weight: bold">Bias</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Classic_1" style="font-size: small">-0.04</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Classic_2" style="font-size: small">-0.01</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Classic_3" style="font-size: small">-0.06</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Classic_1" style="font-size: small">0.01</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Classic_2" style="font-size: small">0.04</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Classic_3" style="font-size: small">-0.02</td>
 <td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Model_1" style="font-size: small">0.03 [-0.03, 0.09]</td>
 <td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Model_2" style="font-size: small">0.03 [-0.03, 0.10]</td>
 <td class="gt_row gt_center" headers="mathrm-vlf-t-i stub_1_21 Model_3" style="font-size: small">0.02 [-0.04, 0.09]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Metric" style="font-size: small; font-weight: bold">MAE</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Classic_1" style="font-size: small">0.13</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Classic_1" style="font-size: small">0.14</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Classic_2" style="font-size: small">0.18</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Classic_3" style="font-size: small">0.14</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Classic_3" style="font-size: small">0.13</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Model_1" style="font-size: small">0.03 [0.00, 0.08]</td>
 <td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Model_2" style="font-size: small">0.03 [0.00, 0.09]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Model_3" style="font-size: small">0.04 [0.01, 0.08]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_22 Model_3" style="font-size: small">0.03 [0.00, 0.08]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Metric" style="font-size: small; font-weight: bold">MAPE</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Classic_1" style="font-size: small">53.59</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Classic_2" style="font-size: small">54.4</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Classic_3" style="font-size: small">48.71</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Model_1" style="font-size: small">10.50 [ 0.89, 31.63]</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Model_2" style="font-size: small">9.76 [ 0.60, 28.14]</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Model_3" style="font-size: small">12.65 [ 1.95, 27.23]</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Classic_1" style="font-size: small">55</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Classic_2" style="font-size: small">55.22</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Classic_3" style="font-size: small">45.64</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Model_1" style="font-size: small">10.80 [ 0.79, 32.18]</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Model_2" style="font-size: small">9.92 [ 0.67, 28.04]</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_23 Model_3" style="font-size: small">11.73 [ 1.49, 27.50]</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Metric" style="font-size: small; font-weight: bold">R2</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Classic_1" style="font-size: small">-5.72</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Classic_2" style="font-size: small">-3.54</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Classic_3" style="font-size: small">-5.35</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Model_1" style="font-size: small">0.72 [-0.88, 1.00]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Model_2" style="font-size: small">0.87 [0.13, 1.00]</td>
-<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Model_3" style="font-size: small">0.57 [-0.97, 1.00]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Classic_1" style="font-size: small">-6.29</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Classic_2" style="font-size: small">-3.95</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Classic_3" style="font-size: small">-4.68</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Model_1" style="font-size: small">0.71 [-0.96, 1.00]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Model_2" style="font-size: small">0.87 [0.15, 1.00]</td>
+<td class="gt_row gt_center gt_striped" headers="mathrm-vlf-t-i Metric_24 Model_3" style="font-size: small">0.63 [-0.88, 1.00]</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Metric" style="font-size: small; font-weight: bold">RMSE</td>
 <td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Classic_1" style="font-size: small">0.16</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Classic_2" style="font-size: small">0.21</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Classic_3" style="font-size: small">0.16</td>
-<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Model_1" style="font-size: small">0.03 [0.00, 0.08]</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Classic_2" style="font-size: small">0.22</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Classic_3" style="font-size: small">0.15</td>
+<td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Model_1" style="font-size: small">0.03 [0.00, 0.09]</td>
 <td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Model_2" style="font-size: small">0.04 [0.00, 0.09]</td>
 <td class="gt_row gt_center" headers="mathrm-vlf-t-i Metric_25 Model_3" style="font-size: small">0.04 [0.01, 0.09]</td>
 </tr>
@@ -2234,24 +2234,24 @@ window.Quarto = {
 <p>Upon fitting the model to the empirical data, it yields a phenomenological decomposition of the entire exercise-recovery response, as depicted in Figure 4. The framework parses the signal into its constituent components, describing the physiological process as a rapid initial tachycardia (a decrease in the baseline RRi component) and a concurrent suppression of total heart rate variability (a decrease in the SDNN component). This initial response is followed by a slower, more gradual recovery phase after the cessation of the exercise stimulus. From a spectral perspective, the model attributes the signature of this response to a near-complete withdrawal of power in the high-frequency (HF) band, a correlate of parasympathetic activity, and a corresponding surge in the proportion of very-low-frequency (VLF) power, a band whose physiological interpretation remains debated but is often associated with sympathetic and other systemic influences. The model captures these dynamics as continuous, smooth trajectories, providing an integrated narrative of the entire physiological event.</p>
 <p><img src="figures/fig-poc.svg" class="img-fluid" style="width:100.0%"></p>
 <p><strong>Figure 4. Phenomenological decomposition of an empirical exercise-recovery response.</strong> (A) The reconstructed <span class="math inline">\(\mu(t_i)\)</span> RRi signal (red line) overlaid on top of the observed RRi signal (gray). (B-C) time-domain components: the baseline RRi trend (<span class="math inline">\(\mathrm{RR_{base}}\)</span>, blue) and the total instantaneous variability (<span class="math inline">\(\mathrm{SDNN}\)</span>, orange). (D) The inferred dynamics of the spectral proportions. Shaded regions are 95% highest density intervals.</p>
-<p>The framework’s primary scientific utility, however, lies in the generation of quantitative, testable claims, which are encapsulated by the posterior distributions of its parameters (Figure 5). A key feature of the model is its separate parameterization of the recovery dynamics of the signal’s first moment (mean RRi, via the coefficient <span class="math inline">\(c_r\)</span>) and its second moment (total variability, or SDNN, via the coefficient <span class="math inline">\(c_s\)</span>). This explicit separation allows for a direct, quantitative description of their potential divergence. In this particular recording, the posterior distributions for these two recovery parameters were credibly distinct; the 95% credible interval for <span class="math inline">\(c_r\)</span> was clearly separated from that for <span class="math inline">\(c_s\)</span>. This descriptive feature of the model’s output, which we term model-inferred dissonance, provides a data-driven and falsifiable hypothesis: that the recovery of mean heart rate and the recovery of its variability can follow distinct and dissociable time courses in response to an acute exercise stressor. This hypothesis is a quantitative statement, grounded in the posterior probability distributions of the model’s parameters.</p>
+<p>The framework’s primary scientific utility, however, lies in generating quantitative, testable claims, which are encapsulated by the posterior distributions of its parameters (Figure 5). A key feature of the model is its separate parameterization of the recovery dynamics of the signal’s first moment (mean RRi, via the coefficient <span class="math inline">\(c_r\)</span>) and its second moment (total variability, or SDNN, via the coefficient <span class="math inline">\(c_s\)</span>). This explicit separation allows for a direct, quantitative description of their potential divergence. In this particular recording, the posterior distributions for these two recovery parameters were credibly distinct; the 95% credible interval for <span class="math inline">\(c_r\)</span> was clearly separated from that for <span class="math inline">\(c_s\)</span>. This descriptive feature of the model’s output, which we term model-inferred dissonance, provides a data-driven and falsifiable hypothesis: that the recovery of mean heart rate and the recovery of its variability can follow distinct and dissociable time courses in response to an acute exercise stressor. This hypothesis is a quantitative statement, grounded in the posterior probability distributions of the model’s parameters.</p>
 <p><img src="figures/fig-poc-posterior.svg" class="img-fluid" style="width:100.0%"></p>
 <p><strong>Figure 5. Posterior distribution of phenomenological recovery parameters from the empirical analysis.</strong> The posterior distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance, alongside the structured variance fraction (<span class="math inline">\(w\)</span>). The posterior distribution allows for visual inspection of model convergence of model parameters.</p>
 </section>
 </section>
 <section id="discussion" class="level1">
 <h1>Discussion</h1>
-<p>The quantitative analysis of HRV has long been a principal method for the non-invasive study of the autonomic nervous system <span class="citation" data-cites="malik1990heart shaffer2017overview">(<a href="#ref-malik1990heart" role="doc-biblioref">Malik and Camm 1990</a>; <a href="#ref-shaffer2017overview" role="doc-biblioref">Shaffer and Ginsberg 2017</a>)</span>. A persistent challenge in this field is the inherent non-stationarity of physiological signals, which directly conflicts with the foundational assumptions of traditional analytical techniques <span class="citation" data-cites="voss2009methods shaffer2020critical kim2021ultra">(<a href="#ref-voss2009methods" role="doc-biblioref">Voss et al. 2009</a>; <a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>, which were often adopted due to the computational constraints of their era. This discrepancy necessitates the use of methodological compromises, most notably time-windowing, that can introduce significant analytical artifacts and obscure the very dynamics they seek to quantify <span class="citation" data-cites="rajendra2006heart lu2023uncertainties">(<a href="#ref-rajendra2006heart" role="doc-biblioref">Rajendra Acharya et al. 2006</a>; <a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>)</span>. The present study was undertaken to develop and evaluate a generative probabilistic model for RRi time series, explicitly designed to represent and infer the parameters of transient physiological events. Our findings, based on a comprehensive suite of simulations and an empirical application, suggest that this inferential paradigm offers a more accurate and granular characterization of autonomic dynamics than is achievable with conventional windowed approaches. Our generative model provides a more detailed characterization of autonomic dynamics, but its interpretation requires careful consideration of its underlying assumptions.</p>
+<p>The quantitative analysis of HRV has long been a principal method for the non-invasive study of the autonomic nervous system <span class="citation" data-cites="malik1990heart shaffer2017overview">(<a href="#ref-malik1990heart" role="doc-biblioref">Malik and Camm 1990</a>; <a href="#ref-shaffer2017overview" role="doc-biblioref">Shaffer and Ginsberg 2017</a>)</span>. A persistent challenge in this field is the inherent non-stationarity of physiological signals, which directly conflicts with the foundational assumptions of traditional analytical techniques <span class="citation" data-cites="voss2009methods shaffer2020critical kim2021ultra">(<a href="#ref-voss2009methods" role="doc-biblioref">Voss et al. 2009</a>; <a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>, which were often adopted due to the computational constraints of their era. This discrepancy necessitates the use of methodological compromises, most notably time-windowing, which can introduce significant analytical artifacts and obscure the very dynamics they seek to quantify <span class="citation" data-cites="rajendra2006heart lu2023uncertainties">(<a href="#ref-rajendra2006heart" role="doc-biblioref">Rajendra Acharya et al. 2006</a>; <a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>)</span>. The present study was undertaken to develop and evaluate a generative probabilistic model for RRi time series, explicitly designed to represent and infer the parameters of transient physiological events. Our findings, based on a comprehensive suite of simulations and an empirical application, suggest that this inferential paradigm provides a more accurate and granular characterization of autonomic dynamics than is achievable with conventional windowed approaches. Our generative model offers a more detailed characterization of autonomic dynamics, however its interpretation requires careful consideration of its underlying assumptions.</p>
 <p>The primary contribution of this research is the novel synthesis and application of established Bayesian inference principles to construct a purpose-built, physiologically-oriented measurement instrument <span class="citation" data-cites="ghahramani2013bayesian">(<a href="#ref-ghahramani2013bayesian" role="doc-biblioref">Ghahramani 2013</a>)</span>. The model formalizes a specific, falsifiable hypothesis about the data-generating process underlying dynamic RRi signals. We employ the term <em>generative</em> to signify this complete probabilistic specification, which enables a coherent inferential procedure regarding the model’s latent parameters. The internal validity and statistical integrity of this inferential process were examined through extensive simulation studies. In these controlled in-silico experiments, where the ground truth was known, the model consistently recovered the generative parameters, and its posterior credible intervals were well-calibrated <span class="citation" data-cites="cook2006validation talts2018validating">(<a href="#ref-cook2006validation" role="doc-biblioref">Cook, Gelman, and Rubin 2006</a>; <a href="#ref-talts2018validating" role="doc-biblioref">Talts et al. 2018</a>)</span>. The model’s successful parameter recovery in these controlled simulations provides baseline confidence in its function as a reliable measurement device, but only under conditions where its numerous and restrictive structural assumptions are perfectly met. When benchmarked against conventional methods, its superior performance in tracking dynamic signals was observed. This outperformance is an expected consequence of its design, which replaces the crude filtering of windowing with a formal, continuous model of the underlying process. However, the apparent sophistication of this approach belies a series of deep-seated assumptions and conceptual challenges that demand scrupulous consideration.</p>
 <section id="methodological-superiority-and-the-abandonment-of-stationarity" class="level2">
 <h2 class="anchored" data-anchor-id="methodological-superiority-and-the-abandonment-of-stationarity">Methodological superiority and the abandonment of stationarity</h2>
 <p>A core assertion of this work is that the analytical shortcomings of traditional HRV analysis are conceptual, not merely technical. Windowed methods are, in essence, digital filters <span class="citation" data-cites="sassi2015advances">(<a href="#ref-sassi2015advances" role="doc-biblioref">Sassi et al. 2015</a>)</span>. As such, they inevitably distort the signal they are intended to measure, introducing lag, attenuating amplitudes, and enforcing a false dichotomy between temporal and spectral resolution as dictated by the Heisenberg-Gabor uncertainty principle <span class="citation" data-cites="deka2023detection">(<a href="#ref-deka2023detection" role="doc-biblioref">Deka and Deka 2023</a>)</span>. The inferential approach adopted here avoids these specific artifacts by modeling the entire time-course of an event holistically. Information from every data point is leveraged to inform the estimate at every other data point, conditioned on the assumed model structure <span class="citation" data-cites="shashikant2021gaussian">(<a href="#ref-shashikant2021gaussian" role="doc-biblioref">Shashikant et al. 2021</a>)</span>.</p>
 <p>However, this approach introduces its own set of abstractions. A potentially problematic assumption is the model’s imposition of orthogonality on a non-orthogonal system. The model specifies the observed RRi signal as a linear, additive combination of a baseline trend, several sinusoidal components, and a residual noise term. This mathematical decomposition is elegant and ensures parameter identifiability <span class="citation" data-cites="hines2014determination hyvarinen2024identifiability">(<a href="#ref-hines2014determination" role="doc-biblioref">Hines, Middendorf, and Aldrich 2014</a>; <a href="#ref-hyvarinen2024identifiability" role="doc-biblioref">Hyvärinen, Khemakhem, and Monti 2024</a>)</span>, nonetheless it is a convenient simplification of cardiovascular physiology.</p>
-<p>Similarly, in physiology, the systems underlying these model components are deeply and non-linearly coupled. Baroreflex activity (a major contributor to the low-frequency component) and respiratory sinus arrhythmia (the high-frequency component) are not independent processes that simply sum together; they are neurologically intertwined within the brainstem and are engaged in a constant, dynamic feedback loop <span class="citation" data-cites="polanczyk1998sympathetic gregoire2023autonomic">(<a href="#ref-polanczyk1998sympathetic" role="doc-biblioref">Polanczyk et al. 1998</a>; <a href="#ref-gregoire2023autonomic" role="doc-biblioref">Grégoire et al. 2023</a>)</span>. By construction, the model is design to assign variance to its clean, orthogonal components in a way that may not map cleanly onto the underlying biology. The estimate for the amplitude of the high-frequency component, for instance, should be interpreted as the magnitude of the best-fitting sinusoidal component in that band, assuming it can be linearly and additively separated from all other ongoing dynamics, rather than a pure measure of respiratory sinus arrhythmia. The model’s simplifying assumption of linear, additive separation is an important caveat for physiological interpretation that needs careful consideration <span class="citation" data-cites="lundberg2017unified">(<a href="#ref-lundberg2017unified" role="doc-biblioref">Lundberg and Lee 2017</a>)</span>.</p>
+<p>Similarly, in physiology, the systems underlying these model components are deeply and non-linearly coupled. Baroreflex activity (a major contributor to the low-frequency component) and respiratory sinus arrhythmia (the high-frequency component) are not independent processes that simply sum together; they are neurologically intertwined within the brainstem and are engaged in a constant, dynamic feedback loop <span class="citation" data-cites="polanczyk1998sympathetic gregoire2023autonomic">(<a href="#ref-polanczyk1998sympathetic" role="doc-biblioref">Polanczyk et al. 1998</a>; <a href="#ref-gregoire2023autonomic" role="doc-biblioref">Grégoire et al. 2023</a>)</span>. By construction, the model is designed to assign variance to its clean, orthogonal components in a way that may not map cleanly onto the underlying biology. The estimate for the amplitude of the high-frequency component, for instance, should be interpreted as the magnitude of the best-fitting sinusoidal component in that band, assuming it can be linearly and additively separated from all other ongoing dynamics, rather than a pure measure of respiratory sinus arrhythmia. The model’s simplifying assumption of linear, additive separation is an important caveat for physiological interpretation that requires careful consideration <span class="citation" data-cites="lundberg2017unified">(<a href="#ref-lundberg2017unified" role="doc-biblioref">Lundberg and Lee 2017</a>)</span>.</p>
 </section>
 <section id="from-statistical-constructs-to-biological-reality" class="level2">
 <h2 class="anchored" data-anchor-id="from-statistical-constructs-to-biological-reality">From statistical constructs to biological reality</h2>
-<p>The intended value of this framework is its ability to distill a complex signal into a set of “interpretable” parameters. This claimed interpretability, however, occupies a position between useful abstraction and the risk of equating a parameter with a physical process <span class="citation" data-cites="ramstead2022generative thiele2024choosing">(<a href="#ref-ramstead2022generative" role="doc-biblioref">Ramstead et al. 2022</a>; <a href="#ref-thiele2024choosing" role="doc-biblioref">Thiele et al. 2024</a>)</span>. The very act of assigning a label like “recovery rate” to a parameter (<span class="math inline">\(\phi\)</span>) cognitively biases the researcher to perceive it as a distinct, tangible biological process <span class="citation" data-cites="navarro2021risk">(<a href="#ref-navarro2021risk" role="doc-biblioref">Navarro et al. 2021</a>)</span>. While the parameter perfectly describes a feature of the fitted mathematical curve, it is an unsubstantiated inferential leap to equate it with a singular neurophysiological mechanism <span class="citation" data-cites="rosenberg2018prediction thiele2024choosing">(<a href="#ref-rosenberg2018prediction" role="doc-biblioref">Rosenberg, Casey, and Holmes 2018</a>; <a href="#ref-thiele2024choosing" role="doc-biblioref">Thiele et al. 2024</a>)</span>. The observed recovery trajectory is the net result of an immensely complex cascade of interacting neural, endocrine, and humoral processes <span class="citation" data-cites="lu2023uncertainties gregoire2023autonomic colebank2024guidelines">(<a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>; <a href="#ref-gregoire2023autonomic" role="doc-biblioref">Grégoire et al. 2023</a>; <a href="#ref-colebank2024guidelines" role="doc-biblioref">Colebank et al. 2024</a>)</span>. The model’s parameterization of this trajectory is a descriptive summary, not an elucidation of its constituent parts.</p>
+<p>The intended value of this framework is its ability to distill a complex signal into a set of “interpretable” parameters. This claimed interpretability, however, occupies a position between useful abstraction and the risk of equating a parameter with a physical process <span class="citation" data-cites="ramstead2022generative thiele2024choosing">(<a href="#ref-ramstead2022generative" role="doc-biblioref">Ramstead et al. 2022</a>; <a href="#ref-thiele2024choosing" role="doc-biblioref">Thiele et al. 2024</a>)</span>. The very act of assigning a label like “recovery rate” to a parameter (<span class="math inline">\(\phi\)</span>) cognitively biases the researcher to perceive it as a distinct, tangible biological process <span class="citation" data-cites="navarro2021risk">(<a href="#ref-navarro2021risk" role="doc-biblioref">Navarro et al. 2021</a>)</span>. While the parameter perfectly describes a feature of the fitted mathematical curve, it is an unsubstantiated inferential leap to equate it with a singular neurophysiological mechanism <span class="citation" data-cites="rosenberg2018prediction thiele2024choosing">(<a href="#ref-rosenberg2018prediction" role="doc-biblioref">Rosenberg, Casey, and Holmes 2018</a>; <a href="#ref-thiele2024choosing" role="doc-biblioref">Thiele et al. 2024</a>)</span>. The observed recovery trajectory is the net result of an immensely complex cascade of interacting neural, endocrine, and humoral processes <span class="citation" data-cites="lu2023uncertainties gregoire2023autonomic colebank2024guidelines">(<a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>; <a href="#ref-gregoire2023autonomic" role="doc-biblioref">Grégoire et al. 2023</a>; <a href="#ref-colebank2024guidelines" role="doc-biblioref">Colebank et al. 2024</a>)</span>. The model’s parameterization of this trajectory is a descriptive summary, rather than an elucidation of its constituent parts.</p>
 <p>Such interpretive discipline, separating a mathematical parameter from a singular biological process, must be applied to all model outputs. The concept of “dissonant autonomic recovery”, for example, is a statistically identifiable pattern where heart rate returns to baseline far more quickly than measures of heart rate variability <span class="citation" data-cites="lee2012dissociation">(<a href="#ref-lee2012dissociation" role="doc-biblioref">Lee and Mendoza 2012</a>)</span>. Yet, its proposed link to “lingering sympathetic activation” remains a speculative hypothesis requiring external validation. Could this pattern alternatively reflect differential downregulation rates of adrenergic and cholinergic receptors, or a mismatch in the resetting of central autonomic command versus peripheral feedback? These are precisely the kinds of sophisticated hypotheses the model allows one to formulate, but it possesses no inherent capacity to adjudicate between them. It provides the tool to quantify the phenomenon with precision, thereby allowing to test such hypotheses <span class="citation" data-cites="sankaran2023generative">(<a href="#ref-sankaran2023generative" role="doc-biblioref">Sankaran and Holmes 2023</a>)</span>, but it cannot, on its own, provide definitive causal evidence.</p>
 <p>Nowhere is this interpretive caution more warranted than with the structured variance fraction, <span class="math inline">\(w\)</span>. Its proposed role as an index of “autonomic coherence” is a compelling narrative, but one that rests on a fragile foundation. At its core, <span class="math inline">\(w\)</span> is simply the proportion of signal variance captured by a fixed set of sinusoids. A reduction in <span class="math inline">\(w\)</span> could plausibly reflect a pathological dysregulation of autonomic rhythms <span class="citation" data-cites="solis2020entropy">(<a href="#ref-solis2020entropy" role="doc-biblioref">Solı́s-Montufar, Gálvez-Coyt, and Muñoz-Diosdado 2020</a>)</span>. However, it could equally reflect a plethora of other confounders: an increase in movement artifact, the presence of uncorrected ectopic beats, a change in breathing frequency outside the canonical high-frequency band, or activation of other physiological processes that contribute to RRi variance but are not sinusoidal <span class="citation" data-cites="kim2021ultra tiwari2021analysis lu2023uncertainties">(<a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>; <a href="#ref-tiwari2021analysis" role="doc-biblioref">Tiwari et al. 2021</a>; <a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>)</span>. To label this and other model parameters with a term as specific is, at best, premature and risks imbuing it with a degree of physiological certainty that it does not currently warrant.</p>
 </section>
@@ -2275,17 +2275,11 @@ window.Quarto = {
 <h1>Methods</h1>
 <section id="model-formulation" class="level2">
 <h2 class="anchored" data-anchor-id="model-formulation">Model formulation</h2>
-<p>We presented a comprehensive generative model for the RRi signal, observed at a discrete set of time points <span class="math inline">\(\{t_i\}_{i=1}^N\)</span>. The model’s architecture is designed to deconstruct the signal into its constituent physiological components, providing a mechanistic account of the processes that shape heart rate dynamics. This is achieved by conceptualizing the signal as a probabilistic process controlled by a time-varying mean, <span class="math inline">\(\mu(t_i)\)</span>, and a partitioned, time-varying standard deviation. This approach moves beyond simple curve-fitting to formalize a theory of autonomic control and its temporal evolution within a fully Bayesian framework.</p>
-<p>A central component of the model is the partitioning of the total signal variance into two distinct, time-dependent components: a structured variance, <span class="math inline">\(\sigma^2_{\text{struct}}(t_i)\)</span>, which captures the physiologically meaningful, oscillatory patterns of HRV, and a residual variance, <span class="math inline">\(\sigma^2_{\text{resid}}(t_i)\)</span>, which accounts for unstructured, moment-to-moment fluctuations. However, physiological recordings are frequently contaminated by artifacts or ectopic beats that are not well-described by a simple Gaussian noise process. To ensure the model is robust to such outliers, we depart from a unimodal likelihood. Instead, we specify the observation model as a two-component finite mixture model, which conceptualizes each data point as arising from one of two states: a primary “inlier” state, or a rare “outlier” state.</p>
-<p>The inlier state assumes the data follows the core physiological model, with residuals distributed normally. The outlier state is captured by a heavy-tailed Cauchy distribution, which can account for extreme, aberrant observations without influencing the estimation of the core dynamic parameters. The complete likelihood is a mixture of these two distributions, as defined in <a href="#eq-full-likelihood" class="quarto-xref">Equation&nbsp;1</a>.</p>
+<p>We presented a comprehensive generative model for the RRi signal, observed at a discrete set of time points <span class="math inline">\(\{t_i\}_{i=1}^N\)</span>. The model’s architecture is designed to deconstruct the signal into its constituent physiological components, providing a mechanistic account of the processes that shape heart rate dynamics. This is achieved by conceptualizing the signal as a probabilistic process controlled by a time-varying mean, <span class="math inline">\(\mu(t_i)\)</span>, and a partitioned, time-varying standard deviation. This sophisticated approach moves beyond simple curve-fitting to formalize a theory of autonomic control and its temporal evolution within a fully Bayesian framework.</p>
+<p>A central component of the model is the partitioning of the total signal variance into two distinct, time-dependent components: a structured variance, <span class="math inline">\(\sigma^2_{\text{struct}}(t_i)\)</span>, which captures the physiologically meaningful, oscillatory patterns of HRV, and a residual variance, <span class="math inline">\(\sigma^2_{\text{resid}}(t_i)\)</span>, which accounts for unstructured, moment-to-moment fluctuations or measurement noise. The complete observation model, which integrates these components, is defined by the Normal likelihood in <a href="#eq-full-likelihood" class="quarto-xref">Equation&nbsp;1</a>.</p>
 <p><span id="eq-full-likelihood"><span class="math display">\[
-\begin{aligned}
-z_i &amp;\sim \text{Bernoulli}(p_{\text{out}}) \\
-\mathrm{RRi}(t_i) | z_i=0 &amp;\sim \mathcal{N}\left(\mu(t_i), \sigma_{\text{resid}}(t_i)\right) \\
-\mathrm{RRi}(t_i) | z_i=1 &amp;\sim \text{Cauchy}\left(\mu(t_i), \sigma_{\text{resid}}(t_i)\right)
-\end{aligned}
+\mathrm{RRi}(t_i) \sim \mathcal{N}\left(\mu(t_i), \sigma_{\text{resid}}(t_i)\right)
 \tag{1}\]</span></span></p>
-<p>Here, a latent binary variable <span class="math inline">\(z_i\)</span> determines if an observation is an inlier (<span class="math inline">\(z_i=0\)</span>) or an outlier (<span class="math inline">\(z_i=1\)</span>) with probability <span class="math inline">\(p_{\text{out}}\)</span>. Inliers follow a Normal distribution centered on the model’s dynamic prediction <span class="math inline">\(\mu(t_i)\)</span>, while outliers follow a heavy-tailed Cauchy distribution, sharing the scale <span class="math inline">\(\sigma_{\text{resid}}(t_i)\)</span>.</p>
 <p>The core of the model lies in the construction of the mean and variance components from a shared set of underlying dynamic functions. The mean trajectory, <span class="math inline">\(\mu(t_i)\)</span>, is a superposition of a smoothly varying baseline trend and the synthesized structured signal itself, as shown in <a href="#eq-mean-model" class="quarto-xref">Equation&nbsp;2</a>.</p>
 <p><span id="eq-mean-model"><span class="math display">\[
 \mu(t_i)
@@ -2293,8 +2287,8 @@ z_i &amp;\sim \text{Bernoulli}(p_{\text{out}}) \\
 +
 \underbrace{A(t_i) \cdot \sum_{j=1}^{J} p_j(t_i) \cdot S_j(t_i)}_{\substack{\text{Structured Variability Signal}}}
 \tag{2}\]</span></span></p>
-<p>Here, <span class="math inline">\(\mathrm{RR_{base}}(t_i)\)</span> represents the gross, underlying heart period trajectory. The structured variability signal is synthesized from a set of dynamically evolving spectral oscillators, <span class="math inline">\(S_j(t_i)\)</span>, which represent activity in different physiological frequency bands (<span class="math inline">\(j=1,2,3\)</span> for VLF, LF, and HF, respectively). These oscillators are weighted by time-varying proportions, <span class="math inline">\(p_j(t_i)\)</span>, and their overall magnitude is controlled by a scaling amplitude, <span class="math inline">\(A(t_i)\)</span>. This amplitude is deterministically calculated to ensure the signal’s variance matches the target structured variance, <span class="math inline">\(\sigma^2_{\text{struct}}(t_i)\)</span>.</p>
-<p>A key feature is a dynamic trajectory for the total signal variability, denoted <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span>, which is then partitioned into its structured and residual components. This partition is controlled by a parameter, <span class="math inline">\(w \in [0, 1]\)</span>, which represents the fraction of total variance attributable to the structured component, as defined in <a href="#eq-var-structure" class="quarto-xref">Equation&nbsp;3</a>.</p>
+<p>Here, <span class="math inline">\(\mathrm{RR_{base}}(t_i)\)</span> represents the gross, underlying heart period trajectory. The structured variability signal is synthesized from a set of dynamically evolving spectral oscillators, <span class="math inline">\(S_j(t_i)\)</span>, which represent activity in different physiological frequency bands (<span class="math inline">\(j=1,2,3\)</span> for VLF, LF, and HF, respectively). These oscillators are weighted by time-varying proportions, <span class="math inline">\(p_j(t_i)\)</span>, and their overall magnitude is controlled by a scaling amplitude, <span class="math inline">\(A(t_i)\)</span>. This amplitude is deterministically calculated to ensure the signal’s variance exactly matches the target structured variance, <span class="math inline">\(\sigma^2_{\text{struct}}(t_i)\)</span>.</p>
+<p>A pivotal feature is a dynamic trajectory for the total signal variability, denoted <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span>, which is then partitioned into its structured and residual components. This partition is controlled by a parameter, <span class="math inline">\(w \in [0, 1]\)</span>, which represents the fraction of total variance attributable to the structured component, as defined in <a href="#eq-var-structure" class="quarto-xref">Equation&nbsp;3</a>.</p>
 <p><span id="eq-var-structure"><span class="math display">\[
 \begin{aligned}
 \sigma^2_{\text{struct}}(t_i) &amp;= w \cdot \mathrm{SDNN}(t_i)^2 \\
@@ -2335,7 +2329,7 @@ z_i &amp;\sim \text{Bernoulli}(p_{\text{out}}) \\
 </section>
 <section id="generative-model-for-the-structured-signal" class="level3">
 <h3 class="anchored" data-anchor-id="generative-model-for-the-structured-signal">Generative model for the structured signal</h3>
-<p>The structured component of the signal is where the model’s spectral properties are defined. Its construction involves three key elements: the dynamic spectral proportions, the latent spectral oscillators (whose amplitudes are controlled by a Gaussian Process), and a deterministic amplitude inversion that ties them to the target variance.</p>
+<p>The structured component of the signal is where the model’s spectral properties are defined. Its construction involves three key elements: the dynamic spectral proportions, the latent spectral oscillators (whose amplitudes are governed by a Gaussian Process), and a deterministic amplitude inversion that ties them to the target variance.</p>
 <section id="dynamic-frequency-band-proportions" class="level4">
 <h4 class="anchored" data-anchor-id="dynamic-frequency-band-proportions">Dynamic frequency band proportions</h4>
 <p>The proportions <span class="math inline">\(p_j(t_i)\)</span> dictate how the total structured variance, <span class="math inline">\(\sigma^2_{\text{struct}}(t_i)\)</span>, is allocated across the different frequency bands at each moment. The model captures the evolution of these proportions as a smooth transition between two distinct spectral states: a baseline state (<span class="math inline">\(\vec\pi_{\text{base}}\)</span>) and a perturbed state (<span class="math inline">\(\vec\pi_{\text{pert}}\)</span>). The transition is determined by a single master controller function, <span class="math inline">\(C(t_i)\)</span>, as shown in the convex combination of <a href="#eq-pj-using-ct" class="quarto-xref">Equation&nbsp;7</a>.</p>
@@ -2351,7 +2345,7 @@ C(t_i) = \mathcal{D}_{1}(t_i) \cdot \left(1 - c_c \cdot \mathcal{D}_{2}(t_i)\rig
 <section id="latent-spectral-oscillators-via-a-gaussian-process-prior" class="level4">
 <h4 class="anchored" data-anchor-id="latent-spectral-oscillators-via-a-gaussian-process-prior">Latent spectral oscillators via a Gaussian Process prior</h4>
 <p>A central task of the model is to infer the power of oscillations across a range of frequencies from the observed data. A simple approach might impose a rigid mathematical structure on the spectrum (e.g., a <span class="math inline">\(1/f^b\)</span> power law) or treat the power at each frequency as independent. However, physiological spectra are rarely so simple; they typically exhibit smooth, continuous shapes with broad peaks.</p>
-<p>To capture this structure, we employ a non-parametric Gaussian Process (GP) prior. A GP is a statistical tool that allows us to place a prior on an unknown function, enforcing the assumption that it is smooth <span class="citation" data-cites="binois2022survey">(<a href="#ref-binois2022survey" role="doc-biblioref">Binois and Wycoff 2022</a>)</span>. In this context, it formalizes the intuition that the amplitudes of nearby frequencies should be similar, allowing the model to learn the characteristic shape of the spectrum within each band directly from the data.</p>
+<p>To capture this realistic structure, we employ a flexible, non-parametric Gaussian Process (GP) prior. A GP is a statistical tool that allows us to place a prior on an unknown function, enforcing the assumption that it is smooth <span class="citation" data-cites="binois2022survey">(<a href="#ref-binois2022survey" role="doc-biblioref">Binois and Wycoff 2022</a>)</span>. In this context, it formalizes the intuition that the amplitudes of nearby frequencies should be similar, allowing the model to learn the characteristic shape of the spectrum within each band directly from the data.</p>
 <p>Each underlying oscillator, <span class="math inline">\(S_j(t_i)\)</span>, which contributes to the structured variability, is modeled as a sum of simple sine and cosine waves with pre-specified frequencies (<span class="math inline">\(f_{j,k}\)</span>) but unknown amplitudes (<span class="math inline">\(u_{j,k}\)</span>), as shown in <a href="#eq-multi-sine-fun" class="quarto-xref">Equation&nbsp;9</a>.</p>
 <p><span id="eq-multi-sine-fun"><span class="math display">\[
 S_j(t_i) = \sum_{k=1}^{K_j} \left[ u_{j,k}^{(\sin)} \sin(2 \pi f_{j,k} t_i) + u_{j,k}^{(\cos)} \cos(2 \pi f_{j,k} t_i) \right]
@@ -2385,7 +2379,7 @@ S_j(t_i) = \sum_{k=1}^{K_j} \left[ u_{j,k}^{(\sin)} \sin(2 \pi f_{j,k} t_i) + u_
 <p><span id="eq-amplitude-inversion"><span class="math display">\[
 A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathbf{\Sigma}_S \; \vec{p}(t_i)}}
 \tag{13}\]</span></span></p>
-<p>This inversion dynamically adjusts the amplitude of the synthesized spectral signal to ensure its contribution to the total variance is exactly as prescribed by the model’s parameters (<span class="math inline">\(\mathrm{SDNN}(t_i)\)</span> and <span class="math inline">\(w\)</span>), thereby connecting the time-domain and frequency-domain components of the model.</p>
+<p>This inversion is essential. It dynamically adjusts the amplitude of the synthesized spectral signal to ensure its contribution to the total variance is exactly as prescribed by the model’s high-level parameters (<span class="math inline">\(\mathrm{SDNN}(t_i)\)</span> and <span class="math inline">\(w\)</span>), thereby connecting the time-domain and frequency-domain components of the model.</p>
 </section>
 </section>
 <section id="model-parameterization-and-priors" class="level3">
@@ -2394,7 +2388,7 @@ A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathb
 <section id="timing-rate-and-magnitude-parameters" class="level4">
 <h4 class="anchored" data-anchor-id="timing-rate-and-magnitude-parameters">Timing, Rate, and Magnitude Parameters</h4>
 <p>Parameters constrained to a specific interval are parameterized on the logit scale, while positive parameters are on the log scale. For instance, the timing parameters <span class="math inline">\(\tau\)</span> and <span class="math inline">\(\delta\)</span> are mapped to the observed time interval (<span class="math inline">\(t_\text{range}\)</span>) and the remaining time, respectively, using the inverse logit transformation, such that <span class="math inline">\(\tau = \text{logit}^{-1}(\tau_\text{logit}) \cdot t_\text{range} + t_\text{min}\)</span> and <span class="math inline">\(\delta = \text{logit}^{-1}(\delta_\text{logit}) \cdot (t_\text{range} - \tau)\)</span>.</p>
-<p>The positive rate parameters <span class="math inline">\(\lambda\)</span> and <span class="math inline">\(\phi\)</span> are simply log-transformed, i.e., <span class="math inline">\(\lambda = \exp(\lambda_\text{log})\)</span>. The recovery coefficients for the time-domain components (<span class="math inline">\(c_r,c_s\)</span>) are mapped to the interval <span class="math inline">\([0, 2]\)</span>, while the recovery parameter for spectral components (<span class="math inline">\(c_c\)</span>) is mapped to the <span class="math inline">\([0, 1]\)</span> interval, using a scaled logit function. Similarly, the fraction of structured variance, <span class="math inline">\(w\)</span>, is constrained between 0 and 1 via <span class="math inline">\(w = \text{logit}^{-1}(w_{\text{logit}})\)</span>. The probability of an observation being an outlier, <span class="math inline">\(p_{\text{out}}\)</span>, is likewise mapped from the logit scale, <span class="math inline">\(p_{\text{out}} = \text{logit}^{-1}(p_{\text{out,logit}})\)</span>. We place a weakly informative prior on this parameter, <span class="math inline">\(p_{\text{out,logit}} \sim \mathcal{N}(\text{logit}(0.01), 0.5)\)</span>, which centers our prior belief on a 1% outlier rate but allows the data to update this belief.</p>
+<p>The positive rate parameters <span class="math inline">\(\lambda\)</span> and <span class="math inline">\(\phi\)</span> are simply log-transformed, i.e., <span class="math inline">\(\lambda = \exp(\lambda_\text{log})\)</span>. The recovery coefficients for the time-domain components (<span class="math inline">\(c_r,c_s\)</span>) are mapped to the interval <span class="math inline">\([0, 2]\)</span>, while the recovery parameter for spectral components (<span class="math inline">\(c_c\)</span>) is mapped to the <span class="math inline">\([0, 1]\)</span> interval, using a scaled logit function. Similarly, the fraction of structured variance, <span class="math inline">\(w\)</span>, is constrained between 0 and 1 via <span class="math inline">\(w = \text{logit}^{-1}(w_{\text{logit}})\)</span>.</p>
 <p>The magnitude parameters (<span class="math inline">\(\alpha_r, \beta_r, \alpha_s, \beta_s\)</span>) are scaled relative to data-derived quantities to create dimensionless parameters whose priors are easier to specify. These transformations ensure the sampler explores a valid and well-behaved parameter space.</p>
 </section>
 <section id="spectral-and-oscillator-parameters" class="level4">
@@ -2408,7 +2402,7 @@ A(t_i) = \frac{\sqrt{w} \cdot \mathrm{SDNN}(t_i)}{\sqrt{\vec{p}(t_i)^\top \mathb
 <section id="simulation-studies" class="level2">
 <h2 class="anchored" data-anchor-id="simulation-studies">Simulation Studies</h2>
 <p>To evaluate the model’s performance, we conducted a series of simulation studies. The objectives were to assess the model’s ability to recover known ground-truth parameters from synthetic data and to quantitatively benchmark its reconstruction of key HRV dynamics against conventional, windowed analysis techniques. Synthetic RRi time series were generated using the model’s own generative structure with pre-specified parameter values. This process provided datasets with perfectly known underlying dynamics for <span class="math inline">\(\mathrm{RR}(t_i)\)</span>, <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span>, and <span class="math inline">\(p_j(t_i)\)</span>, serving as an objective gold standard for evaluation.</p>
-<p>We designed three distinct scenarios to probe the model’s capabilities under diverse and challenging conditions. These scenarios: (A) a classic sympatho-vagal response, (B) an incomplete recovery with time-domain and spectral persistence, and (C) an incomplete spectral but complete time-domain recovery with high noise, were chosen specifically to test the limitations inherent in standard analysis methods. Each simulated dataset was analyzed with our full Bayesian model and, for comparison, with conventional techniques: a sliding-window analysis for time-domain metrics and a Short-Time Fourier Transform (STFT) for spectral dynamics.</p>
+<p>We designed three distinct scenarios to probe the model’s capabilities under diverse and challenging conditions. These scenarios: (A) a classic sympatho-vagal response, (B) an incomplete recovery with time-domain and spectral persistence, and (C) an incomplete spectral but complete time-domain recovery with high noise, were chosen specifically to test the limitations inherent in standard analysis methods. Each simulated dataset was analyzed with our complete Bayesian model and, for comparison, with conventional techniques: a sliding-window analysis for time-domain metrics and a Short-Time Fourier Transform (STFT) for spectral dynamics.</p>
 <section id="time-domain-trajectory-reconstruction" class="level3">
 <h3 class="anchored" data-anchor-id="time-domain-trajectory-reconstruction">Time-domain trajectory reconstruction</h3>
 <p>The capacity to accurately capture time-domain dynamics was evaluated by comparing the model’s continuous estimates of <span class="math inline">\(\mathrm{RR}(t_i)\)</span> and <span class="math inline">\(\mathrm{SDNN}(t_i)\)</span> against the stepwise approximations derived from a standard sliding-window mean and standard deviation. To provide a comprehensive evaluation of reconstruction fidelity, model performance was quantified against the ground-truth trajectories using a suite of complementary metrics. The root mean squared error (RMSE) and mean absolute error (MAE) were used to measure the average magnitude of the estimation error, with MAE offering a more robust assessment against sporadic outliers. The model’s bias (mean error) was calculated to identify any systematic tendency for over- or underestimation. Finally, the coefficient of determination (<span class="math inline">\(R^2\)</span>) was used to assess the proportion of variance in the true signal captured by the estimate.</p>

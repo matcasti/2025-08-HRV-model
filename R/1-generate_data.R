@@ -49,7 +49,7 @@ params[[1]] <- list(
   # p(t) params
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest (HF dominant)
   pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress (LF dominant)
-  rho_gp = c(1, 1, 1) * 0.1
+  rho_gp = c(1, 1, 1) * 0.5
 )
 
 # Scenario 2: Incomplete Recovery with Spectral Persistence
@@ -67,7 +67,7 @@ params[[2]] <- list(
   # p(t) params - c_c < 1 means spectral signature persists
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest
   pi_pert = c(0.5, 0.4, 0.1), # VLF, LF, HF - Stress
-  rho_gp = c(1, 1, 1) * 0.1
+  rho_gp = c(1, 1, 1) * 0.5
 )
 
 # Scenario 3: High Noise with Incomplete Recovery
@@ -86,7 +86,7 @@ params[[3]] <- list(
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest
   pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress
   # Spectral & Noise params
-  rho_gp = c(1, 1, 1) * 0.1
+  rho_gp = c(1, 1, 1) * 0.5
 )
 
 

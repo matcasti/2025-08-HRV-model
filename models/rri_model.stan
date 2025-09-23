@@ -331,7 +331,7 @@ model {
   c_c_logit ~ normal(1, 2);
 
   // --- Priors for the Smoothness of the GP ---
-  rho_gp_logit   ~ normal(-2, 2); // Allows more wiggliness
+  rho_gp_logit   ~ normal(0, 1); // Allows more wiggliness
 
   // --- Priors for Non-Centered Parameters ---
   // As part of the NCP pattern, the "raw" parameters are given standard normal

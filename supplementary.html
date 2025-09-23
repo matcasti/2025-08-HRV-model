@@ -157,7 +157,7 @@ window.Quarto = {
                 <div>
             <div class="quarto-title-meta-heading">Modified</div>
             <div class="quarto-title-meta-contents">
-              <p class="date-modified">September 20, 2025</p>
+              <p class="date-modified">September 23, 2025</p>
             </div>
           </div>
                 
@@ -592,7 +592,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="s2.1-full-parameter-recovery-results">S2.1: Full Parameter Recovery Results</h2>
 <p>Supplementary Figure S3 displays the complete posterior distributions for all generative parameters from the three simulation scenarios described in the main text, plotted against their known ground-truth values (red vertical lines). The posteriors are well-centered on the true values, and the true values are consistently contained within the 95% credible intervals, demonstrating parameter recovery.</p>
 <p><img src="figures/fig-full-recovery.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Supplementary Figure S3: Full Posterior Recovery of Ground-Truth Parameters.</strong> Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Vertical black lines indicate the true generative values.</p>
+<p><strong>Supplementary Figure S3: Full Posterior Recovery of Ground-Truth Parameters.</strong> Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Vertical black lines indicate the true parameter values used to generate each simulated scenario.</p>
 </section>
 <section id="s2.2-model-misspecification-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="s2.2-model-misspecification-analysis">S2.2: Model Misspecification Analysis</h2>
@@ -662,9 +662,237 @@ window.Quarto = {
 </section>
 <section id="s2.2.2-non-gaussian-noise-structure" class="level3">
 <h3 class="anchored" data-anchor-id="s2.2.2-non-gaussian-noise-structure">S2.2.2: Non-Gaussian Noise Structure</h3>
-<p>We generated synthetic data using a Student’s-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S4 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction (<span class="math inline">\(w\)</span>) is biased downwards, meanwhile the SDNN magnitude parameters (<span class="math inline">\(\alpha_s,\beta_s\)</span>) compensate the added noise by scaling up in response. The model incorrectly attributes the heavy-tailed noise to the unstructured residual component, which is expected given the model design to model residual variance coming from a Normal distribution.</p>
+<p>We generated synthetic data using a Student’s-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S4 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction (<span class="math inline">\(w\)</span>) is biased upwards to compensate the wider tails of the distribution. However, despite sampling from a non-gaussian distribution, the model is able to recover all the other parameters within credible intervals, providing evidence of the robustness of the model to distribution misspecification. Additionally, even though the difference form a <span class="math inline">\(w = 0.80\)</span> and <span class="math inline">\(w = 0.82-0.83\)</span> is statistically significant credible-interval-wise, it could be deemed neglible from a practical stand point.</p>
 <p><img src="figures/fig-student-t.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Supplementary Figure S4: Impact of Non-Gaussian Noise.</strong> In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student’s-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student’s-t noise. The ground truth parameters are well recovered except for structured variance fraction <span class="math inline">\(w\)</span> and total signal variability magnitude parameters <span class="math inline">\(\alpha_s,\beta_s\)</span>.</p>
+<p><strong>Supplementary Figure S4: Impact of Non-Gaussian Noise.</strong> In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student’s-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student’s-t noise with 3 degrees of freedom. The ground truth parameters are well recovered except for structured variance fraction <span class="math inline">\(w\)</span>.</p>
+<p>The R code used to generate the data is presented next</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define simulation parameters</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>SIM_DURATION_MIN <span class="ot">=</span> <span class="dv">15</span> <span class="co"># Total duration in minutes</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>SAMPLING_RATE_HZ <span class="ot">=</span> <span class="dv">2</span>  <span class="co"># Sampling rate for RRi series</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>N_points <span class="ot">=</span> SIM_DURATION_MIN <span class="sc">*</span> <span class="dv">60</span> <span class="sc">*</span> SAMPLING_RATE_HZ</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>time_vector <span class="ot">=</span> <span class="fu">seq</span>(<span class="dv">0</span>, SIM_DURATION_MIN, <span class="at">length.out =</span> N_points)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Define frequency bands (VLF, LF, HF)</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>N_SINUSOIDS <span class="ot">&lt;-</span> <span class="dv">20</span> <span class="co"># Number of sinusoids to approximate spectrum in each band</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>freq_bands <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">vlf =</span> <span class="fu">seq</span>(<span class="fl">0.003</span>, <span class="fl">0.039</span>, <span class="at">length.out =</span> N_SINUSOIDS),</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">lf  =</span> <span class="fu">seq</span>(<span class="fl">0.040</span>, <span class="fl">0.149</span>, <span class="at">length.out =</span> N_SINUSOIDS),</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">hf  =</span> <span class="fu">seq</span>(<span class="fl">0.150</span>, <span class="fl">0.400</span>, <span class="at">length.out =</span> N_SINUSOIDS)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Define Parameters for the Three Scenarios ---</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Scenario 1: Classic Sympatho-Vagal Response</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co"># A sharp drop in RR/SDNN with a partial recovery, accompanied by a shift</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co"># from high-frequency (HF) to low-frequency (LF) power and back.</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Double-logistic timing</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="dv">2</span>, <span class="at">phi =</span> <span class="dv">3</span>, <span class="at">tau =</span> <span class="dv">6</span>, <span class="at">delta =</span> <span class="dv">3</span>,</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># RR(t) params</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha_r =</span> <span class="dv">800</span>, <span class="at">beta_r =</span> <span class="dv">400</span>, <span class="at">c_r =</span> <span class="fl">1.0</span>,</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># SDNN(t) params</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha_s =</span> <span class="dv">50</span>, <span class="at">beta_s =</span> <span class="dv">40</span>, <span class="at">c_s =</span> <span class="fl">1.0</span>,</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Spectral &amp; Noise params</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">c_c =</span> <span class="fl">0.8</span>, <span class="at">w =</span> <span class="fl">0.80</span>, <span class="co"># 90% structured variance</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># p(t) params</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">pi_base =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.6</span>), <span class="co"># VLF, LF, HF - Rest (HF dominant)</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">pi_pert =</span> <span class="fu">c</span>(<span class="fl">0.4</span>, <span class="fl">0.4</span>, <span class="fl">0.2</span>), <span class="co"># VLF, LF, HF - Stress (LF dominant)</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha_gp =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>), <span class="at">rho_gp =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="co"># -------------------------------------------------------------------------</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. --- Generate and Visualize Data ---</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="co"># This block demonstrates how to use the function and visualize the output.</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Generate data for Scenario i ---</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>sim_data <span class="ot">&lt;-</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_rri_simulation</span>(</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> N_points,</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">t_max =</span> SIM_DURATION_MIN,</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">params =</span> params,</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">N_sin =</span> N_SINUSOIDS,</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> <span class="dv">123</span>,</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">t_dist =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">nu =</span> <span class="dv">3</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>And the components from the R function <code>generate_rri_simulation</code>, used to simulate the data, included the Student-t distribution, is the following:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' Generate a synthetic R-R interval time series from constrained parameters</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' This function encapsulates the full data generating process from the Stan model.</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#' All model parameters are provided on their constrained, physiologically meaningful</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#' scale.</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param N Number of data points.</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param t_max Maximum time in minutes.</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param N_sin Number of sinusoids per frequency band.</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param params Named list with model parameters.</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param seed An integer for reproducibility.</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param nu Degrees of freedom for Student-t distribution. Only used if `t_dist` is TRUE.</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param t_dist Logical. Use a t-distribution instead of a normal to generate the data. Default is FALSE.</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return A data frame containing the time vector 't', the final generated</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">#'   'RR' series, the underlying mean 'mu', and other key components.</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>generate_rri_simulation <span class="ot">&lt;-</span> <span class="cf">function</span>(N,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>                                    t_max,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>                                    params,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>                                    N_sin,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">seed =</span> <span class="dv">123</span>,</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nu =</span> <span class="cn">NULL</span>,</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">t_dist =</span> <span class="cn">FALSE</span>) {</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Helper function to compute the GP's squared exponential covariance kernel</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  gp_exp_quad_cov <span class="ot">&lt;-</span> <span class="cf">function</span>(x, alpha, rho) {</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    N <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    K <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, N, N)</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) {</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) {</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>        K[i, j] <span class="ot">&lt;-</span> alpha<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.5</span> <span class="sc">*</span> ((x[i] <span class="sc">-</span> x[j]) <span class="sc">/</span> rho)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(K)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Set seed for complete reproducibility</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(seed)</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- 1. Define Core Dynamic Functions ---</span></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>  <span class="co"># These are the double-logistic building blocks for the model's dynamics.</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  D_1 <span class="ot">&lt;-</span> <span class="cf">function</span>(t) { <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>params<span class="sc">$</span>lambda <span class="sc">*</span> (t <span class="sc">-</span> params<span class="sc">$</span>tau))) }</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>  D_2 <span class="ot">&lt;-</span> <span class="cf">function</span>(t) { <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>params<span class="sc">$</span>phi <span class="sc">*</span> (t <span class="sc">-</span> params<span class="sc">$</span>tau <span class="sc">-</span> params<span class="sc">$</span>delta))) }</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Define the simulation time grid</span></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  t <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, t_max, <span class="at">length.out =</span> N)</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- 2. Generate Time-Varying Trajectories ---</span></span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  <span class="co"># These define the evolution of the signal's mean, total variability, and spectral mix.</span></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>  RR_t <span class="ot">&lt;-</span> params<span class="sc">$</span>alpha_r <span class="sc">-</span> params<span class="sc">$</span>beta_r <span class="sc">*</span> <span class="fu">D_1</span>(t) <span class="sc">+</span> params<span class="sc">$</span>c_r <span class="sc">*</span> params<span class="sc">$</span>beta_r <span class="sc">*</span> <span class="fu">D_2</span>(t)</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>  SDNN_t <span class="ot">&lt;-</span> params<span class="sc">$</span>alpha_s <span class="sc">-</span> params<span class="sc">$</span>beta_s <span class="sc">*</span> <span class="fu">D_1</span>(t) <span class="sc">+</span> params<span class="sc">$</span>c_s <span class="sc">*</span> params<span class="sc">$</span>beta_s <span class="sc">*</span> <span class="fu">D_2</span>(t)</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>  C_t <span class="ot">&lt;-</span> <span class="fu">D_1</span>(t) <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> params<span class="sc">$</span>c_c <span class="sc">*</span> <span class="fu">D_2</span>(t))</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Time-varying band proportions p_j(t) via convex combination</span></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>  p_j <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> C_t) <span class="sc">%*%</span> <span class="fu">t</span>(params<span class="sc">$</span>pi_base) <span class="sc">+</span> C_t <span class="sc">%*%</span> <span class="fu">t</span>(params<span class="sc">$</span>pi_pert)</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(p_j) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"VLF"</span>, <span class="st">"LF"</span>, <span class="st">"HF"</span>)</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- 3. Pre-computation of Basis Functions (like Stan's transformed data) ---</span></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>  band_defs <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>    <span class="at">VLF =</span> <span class="fu">c</span>(<span class="fl">0.003</span>, <span class="fl">0.039</span>),</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>    <span class="at">LF  =</span> <span class="fu">c</span>(<span class="fl">0.040</span>, <span class="fl">0.149</span>),</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>    <span class="at">HF  =</span> <span class="fu">c</span>(<span class="fl">0.150</span>, <span class="fl">0.400</span>)</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>  freqs_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(band_defs, <span class="cf">function</span>(b) <span class="fu">seq</span>(b[<span class="dv">1</span>], b[<span class="dv">2</span>], <span class="at">length.out =</span> N_sin))</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>  log_freqs_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(freqs_list, log)</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Precompute sine/cosine basis matrices and Gram matrices</span></span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>  sin_mat_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="dv">3</span>)</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>  cos_mat_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="dv">3</span>)</span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>  G_sin_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="dv">3</span>)</span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>  G_cos_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="dv">3</span>)</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>  G_sin_cos_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="dv">3</span>)</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) {</span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>    T_mat <span class="ot">&lt;-</span> <span class="fu">outer</span>(t <span class="sc">*</span> <span class="dv">60</span>, freqs_list[[j]])</span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>    sin_mat_list[[j]] <span class="ot">&lt;-</span> <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> T_mat)</span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>    cos_mat_list[[j]] <span class="ot">&lt;-</span> <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> T_mat)</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>    normalization <span class="ot">&lt;-</span> <span class="fl">1.0</span> <span class="sc">/</span> (N <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>    G_sin_list[[j]] <span class="ot">&lt;-</span> <span class="fu">t</span>(sin_mat_list[[j]]) <span class="sc">%*%</span> sin_mat_list[[j]] <span class="sc">*</span> normalization</span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>    G_cos_list[[j]] <span class="ot">&lt;-</span> <span class="fu">t</span>(cos_mat_list[[j]]) <span class="sc">%*%</span> cos_mat_list[[j]] <span class="sc">*</span> normalization</span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>    G_sin_cos_list[[j]] <span class="ot">&lt;-</span> <span class="fu">t</span>(sin_mat_list[[j]]) <span class="sc">%*%</span> cos_mat_list[[j]] <span class="sc">*</span> normalization</span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- 4. Generate Spectral Components via GP (like Stan's transformed parameters) ---</span></span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>  <span class="co"># This is the core of the new generative process.</span></span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>  <span class="co"># A. Simulate the standard normal deviates (the "z" parameters)</span></span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>  z_gp <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">3</span>, <span class="fu">rnorm</span>(N_sin), <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>  z_sin <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">3</span>, <span class="fu">rnorm</span>(N_sin), <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>  z_cos <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">3</span>, <span class="fu">rnorm</span>(N_sin), <span class="at">simplify =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>  <span class="co"># B. Loop through bands to generate coefficients</span></span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a>  u_sin_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="dv">3</span>)</span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a>  u_cos_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="dv">3</span>)</span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>  log_v_list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="dv">3</span>)</span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) {</span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Step 1: Generate the smooth spectral envelope from the GP</span></span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>    K <span class="ot">&lt;-</span> <span class="fu">gp_exp_quad_cov</span>(log_freqs_list[[j]], params<span class="sc">$</span>alpha_gp[j], params<span class="sc">$</span>rho_gp[j])</span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>    K <span class="ot">&lt;-</span> K <span class="sc">+</span> <span class="fu">diag</span>(<span class="fl">1e-8</span> <span class="sc">*</span> params<span class="sc">$</span>alpha_gp[j]<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="fl">1e-12</span>, N_sin) <span class="co"># Scaled jitter</span></span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>    L <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">chol</span>(K)) <span class="co"># Lower triangular Cholesky factor</span></span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>    log_v <span class="ot">&lt;-</span> L <span class="sc">%*%</span> z_gp[[j]]</span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>    log_v_list[[j]] <span class="ot">&lt;-</span> log_v</span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Step 2: Normalize the GP output to have unit expected variance</span></span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a>    a_k <span class="ot">&lt;-</span> <span class="fu">exp</span>(log_v)</span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a>    diag_sum <span class="ot">&lt;-</span> <span class="fu">diag</span>(G_sin_list[[j]]) <span class="sc">+</span> <span class="fu">diag</span>(G_cos_list[[j]])</span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a>    base_v_diag <span class="ot">&lt;-</span> <span class="fu">sum</span>((a_k<span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> diag_sum)</span>
+<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a>    full_scale <span class="ot">&lt;-</span> a_k <span class="sc">/</span> <span class="fu">sqrt</span>(base_v_diag <span class="sc">+</span> <span class="fl">1e-12</span>)</span>
+<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Step 3: Generate the final oscillator coefficients (NCP)</span></span>
+<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a>    u_sin_list[[j]] <span class="ot">&lt;-</span> z_sin[[j]] <span class="sc">*</span> full_scale</span>
+<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a>    u_cos_list[[j]] <span class="ot">&lt;-</span> z_cos[[j]] <span class="sc">*</span> full_scale</span>
+<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- 5. Synthesize Signal and Calculate Final Components ---</span></span>
+<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a>  S_t_matrix <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> N, <span class="at">ncol =</span> <span class="dv">3</span>)</span>
+<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a>  Sigma_S_diag <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="dv">3</span>) <span class="co"># Will store Var(S_j) for each band</span></span>
+<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>) {</span>
+<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Synthesize the j-th oscillator signal and mean-center it</span></span>
+<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a>    u_sin <span class="ot">&lt;-</span> u_sin_list[[j]]</span>
+<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a>    u_cos <span class="ot">&lt;-</span> u_cos_list[[j]]</span>
+<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a>    S_j <span class="ot">&lt;-</span> sin_mat_list[[j]] <span class="sc">%*%</span> u_sin <span class="sc">+</span> cos_mat_list[[j]] <span class="sc">%*%</span> u_cos</span>
+<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a>    S_t_matrix[, j] <span class="ot">&lt;-</span> S_j <span class="sc">-</span> <span class="fu">mean</span>(S_j)</span>
+<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate its *exact* variance using the Gram matrices</span></span>
+<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a>    vj <span class="ot">&lt;-</span> <span class="fu">t</span>(u_sin) <span class="sc">%*%</span> G_sin_list[[j]] <span class="sc">%*%</span> u_sin <span class="sc">+</span></span>
+<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a>      <span class="fu">t</span>(u_cos) <span class="sc">%*%</span> G_cos_list[[j]] <span class="sc">%*%</span> u_cos <span class="sc">+</span></span>
+<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a>      <span class="dv">2</span> <span class="sc">*</span> <span class="fu">t</span>(u_sin) <span class="sc">%*%</span> G_sin_cos_list[[j]] <span class="sc">%*%</span> u_cos</span>
+<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a>    Sigma_S_diag[j] <span class="ot">&lt;-</span> vj</span>
+<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculate the time-varying scaling amplitude A(t)</span></span>
+<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a>  var_structured <span class="ot">&lt;-</span> SDNN_t<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> params<span class="sc">$</span>w</span>
+<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a>  denom_sq <span class="ot">&lt;-</span> <span class="fu">rowSums</span>((p_j <span class="sc">%*%</span> <span class="fu">diag</span>(Sigma_S_diag)) <span class="sc">*</span> p_j)</span>
+<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a>  A_t <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(var_structured) <span class="sc">/</span> <span class="fu">sqrt</span>(denom_sq <span class="sc">+</span> <span class="fl">1e-12</span>)</span>
+<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Combine components for the final mean trajectory</span></span>
+<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a>  sum_weighted_S <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(S_t_matrix <span class="sc">*</span> p_j)</span>
+<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> RR_t <span class="sc">+</span> A_t <span class="sc">*</span> sum_weighted_S</span>
+<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Generate the final noisy RRi signal</span></span>
+<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a>  var_noise <span class="ot">&lt;-</span> SDNN_t<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> params<span class="sc">$</span>w)</span>
+<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (t_dist) {</span>
+<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a>    sigma_t <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(var_noise <span class="sc">*</span> (nu <span class="sc">-</span> <span class="dv">2</span>) <span class="sc">/</span> nu)</span>
+<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Draw from standardized Student-t and scale/shift</span></span>
+<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a>    RRi_t <span class="ot">&lt;-</span> mu <span class="sc">+</span> sigma_t <span class="sc">*</span> <span class="fu">rt</span>(N, <span class="at">df =</span> nu)</span>
+<span id="cb4-153"><a href="#cb4-153" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb4-154"><a href="#cb4-154" aria-hidden="true" tabindex="-1"></a>    RRi_t <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N, <span class="at">mean =</span> mu, <span class="at">sd =</span> <span class="fu">sqrt</span>(var_noise))</span>
+<span id="cb4-155"><a href="#cb4-155" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-156"><a href="#cb4-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-157"><a href="#cb4-157" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- 6. Format Output ---</span></span>
+<span id="cb4-158"><a href="#cb4-158" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">data.table</span>(</span>
+<span id="cb4-159"><a href="#cb4-159" aria-hidden="true" tabindex="-1"></a>    <span class="at">t =</span> t,</span>
+<span id="cb4-160"><a href="#cb4-160" aria-hidden="true" tabindex="-1"></a>    <span class="at">RR =</span> RRi_t,</span>
+<span id="cb4-161"><a href="#cb4-161" aria-hidden="true" tabindex="-1"></a>    <span class="at">mu =</span> mu,</span>
+<span id="cb4-162"><a href="#cb4-162" aria-hidden="true" tabindex="-1"></a>    <span class="at">RR_baseline =</span> RR_t,</span>
+<span id="cb4-163"><a href="#cb4-163" aria-hidden="true" tabindex="-1"></a>    <span class="at">SDNN_t =</span> SDNN_t,</span>
+<span id="cb4-164"><a href="#cb4-164" aria-hidden="true" tabindex="-1"></a>    <span class="at">A_t =</span> A_t,</span>
+<span id="cb4-165"><a href="#cb4-165" aria-hidden="true" tabindex="-1"></a>    <span class="at">w =</span> params<span class="sc">$</span>w,</span>
+<span id="cb4-166"><a href="#cb4-166" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_vlf =</span> p_j[, <span class="dv">1</span>],</span>
+<span id="cb4-167"><a href="#cb4-167" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_lf =</span> p_j[, <span class="dv">2</span>],</span>
+<span id="cb4-168"><a href="#cb4-168" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_hf =</span> p_j[, <span class="dv">3</span>]</span>
+<span id="cb4-169"><a href="#cb4-169" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-170"><a href="#cb4-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-171"><a href="#cb4-171" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="cb4-172"><a href="#cb4-172" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> out,</span>
+<span id="cb4-173"><a href="#cb4-173" aria-hidden="true" tabindex="-1"></a>    <span class="at">freqs =</span> freqs_list,</span>
+<span id="cb4-174"><a href="#cb4-174" aria-hidden="true" tabindex="-1"></a>    <span class="at">log_v =</span> log_v_list</span>
+<span id="cb4-175"><a href="#cb4-175" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb4-176"><a href="#cb4-176" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 </section>
 </section>
@@ -675,17 +903,17 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="s3.1-complete-posterior-distributions">S3.1: Complete Posterior Distributions</h2>
 <p>Supplementary Figure S5 shows the marginal posterior distributions (histograms) and MCMC traceplots for all key parameters from the empirical model fit.</p>
 <p><strong>[Insert Figure S5 Here]</strong></p>
-<p><strong>Supplementary Figure S5: Full Posterior Distributions and Traceplots for Empirical Analysis.</strong> The left column shows posterior histograms for each parameter. The right column shows the MCMC traceplots for four chains, demonstrating stationary, well-mixed chains.</p>
+<p><strong>Supplementary Figure S5: Full Posterior Distributions and Traceplots for Empirical Analysis.</strong> The left column shows posterior histograms for each parameter. The right column shows the MCMC traceplots for four chains, showing stationary, well-mixed chains.</p>
 </section>
 <section id="s3.2-mcmc-diagnostic-statistics" class="level2">
 <h2 class="anchored" data-anchor-id="s3.2-mcmc-diagnostic-statistics">S3.2: MCMC Diagnostic Statistics</h2>
-<p>All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. <strong>Supplementary Table S2</strong> provides the <code>R-hat</code>, effective sample size (<code>n_eff</code>), and Monte Carlo Standard Error (MCSE) for all key parameters, confirming the reliability of the posterior estimates.</p>
-<p><strong>[Insert Table S2 Here]</strong></p>
+<p>All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S2 provides the <code>R-hat</code>, effective sample size (<code>n_eff</code>), and Monte Carlo Standard Error (MCSE) for all key parameters, confirming the reliability of the posterior estimates.</p>
+<p><strong>[Insert Table S1 Here]</strong></p>
 <p><strong>Supplementary Table S2: MCMC Diagnostic Statistics.</strong> All <code>R-hat</code> values are 1.00, and <code>n_eff</code> is sufficient for all parameters.</p>
 </section>
 <section id="s3.3-posterior-predictive-checks-ppc" class="level2">
 <h2 class="anchored" data-anchor-id="s3.3-posterior-predictive-checks-ppc">S3.3: Posterior Predictive Checks (PPC)</h2>
-<p>To assess the model’s descriptive adequacy, we performed posterior predictive checks. <strong>Supplementary Figure S6</strong> overlays the empirical RRi time series with 100 time series simulated from the fitted model’s posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, <strong>Supplementary Figure S7</strong> shows that the distributions of key summary statistics (mean, SD, and autocorrelation at lag 1) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.</p>
+<p>To assess the model’s descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S6 overlays the empirical RRi time series with 100 time series simulated from the fitted model’s posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S7 shows that the distributions of key summary statistics (mean, SD, and autocorrelation at lag 1) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.</p>
 <p><strong>[Insert Figure S6 Here]</strong></p>
 <p><strong>Supplementary Figure S6: Graphical Posterior Predictive Check.</strong> The observed RRi data (black line) is shown with 100 replicated datasets (faint red lines) generated from the fitted model.</p>
 <p><strong>[Insert Figure S7 Here]</strong></p>

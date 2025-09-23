@@ -61,7 +61,7 @@ params <- list(
   # p(t) params
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest (HF dominant)
   pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress (LF dominant)
-  rho_gp = c(1, 1, 1) * 0.1
+  rho_gp = c(1, 1, 1) * 0.5
 )
 
 # -------------------------------------------------------------------------
