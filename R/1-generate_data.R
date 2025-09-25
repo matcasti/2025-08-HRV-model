@@ -165,7 +165,7 @@ if (interactive()) {
         t_max = SIM_DURATION_MIN,
         params = params[[i]],
         N_sin = N_SINUSOIDS,
-        seed = 12345
+        seed = 123
       )
 
     legend <- FALSE

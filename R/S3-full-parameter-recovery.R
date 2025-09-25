@@ -17,7 +17,7 @@ models <- list(
   readRDS("models/model_fit_scenario_3.RDS") |>
     extract() |>
     as.data.table()
-)w
+)
 
 ## Import parameters used for simulation
 simulation_parameters <- readRDS("~/Research/2025-08 HRV-model/data/simulation_parameters.RDS")

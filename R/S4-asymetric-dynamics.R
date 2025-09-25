@@ -56,7 +56,7 @@ recovery     <- exponential_recovery(t, start_time = tau + delta, rate = phi)
 mean_rri <- alpha - (beta * perturbation) + (c_r * beta * recovery)
 
 # Add Gaussian noise to create the final observed signal
-set.seed(42) # for reproducibility
+set.seed(123) # for reproducibility
 observed_rri <- rnorm(n = N, mean = mean_rri, sd = sigma)
 
 # --- 4. Package and Save Data ---
@@ -130,7 +130,7 @@ if (!file.exists("models/model_fit_asymetric.RDS")) {
     data = stan_data,
     iter = 10000, warmup = 5000,
     chains = 4, cores = 4,
-    seed = 12345,
+    seed = 123,
     control = list(adapt_delta = 0.95, ## Target acceptance rate
                    max_treedepth = 10) ## Maximum per-side steps (before U-turn)
   )

@@ -18,7 +18,7 @@ generate_rri_simulation <- function(N,
                                     t_max,
                                     params,
                                     N_sin,
-                                    seed = 12345,
+                                    seed = 123,
                                     nu = NULL,
                                     t_dist = FALSE) {
 

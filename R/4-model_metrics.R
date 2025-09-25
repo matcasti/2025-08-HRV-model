@@ -94,7 +94,7 @@ if(!file.exists("data/error_statistics.RDS")) {
       N = 1800,
       t_max = 15,
       N_sin = 20,
-      seed = 12345,
+      seed = 123,
       params = list(
         lambda = lambda, phi = phi, tau = tau, delta = delta,
         alpha_r = alpha_r, beta_r = beta_r, c_r = c_r,
@@ -183,7 +183,7 @@ if (!file.exists("data/model_predictions.RDS")) {
       N = 1800,
       t_max = 15,
       N_sin = 20,
-      seed = 12345,
+      seed = 123,
       params = list(
         lambda = lambda, phi = phi, tau = tau, delta = delta,
         alpha_r = alpha_r, beta_r = beta_r, c_r = c_r,

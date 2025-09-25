@@ -77,7 +77,7 @@ sim_data <-
     t_max = SIM_DURATION_MIN,
     params = params,
     N_sin = N_SINUSOIDS,
-    seed = 12345,
+    seed = 123,
     t_dist = TRUE,
     nu = 3
   )
@@ -172,7 +172,7 @@ if (!file.exists("models/model_t_dist.RDS")) {
     data = stan_data,
     iter = 10000, warmup = 5000,
     chains = 4, cores = 4,
-    seed = 12345,
+    seed = 123,
     control = list(adapt_delta = 0.95, ## Target acceptance rate
                    max_treedepth = 10) ## Maximum per-side steps (before U-turn)
   )

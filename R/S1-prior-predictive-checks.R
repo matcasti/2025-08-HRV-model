@@ -44,7 +44,7 @@ prior_fit <- sampling(
   data = stan_data,
   iter = 10000, warmup = 5000,
   chains = 4, cores = 4,
-  seed = 12345
+  seed = 123
 )
 
 
