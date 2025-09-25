@@ -112,7 +112,7 @@ A formal quantitative analysis confirms the descriptive efficiency and accuracy 
 readRDS(file = "tables/tbl-3.RDS")
 ```
 
-**Table 3. Quantitative Performance Metrics for the Generative Model versus Windowed Methods.** This table presents the Root Mean Squared Error (RMSE), Bias, and Coefficient of Determination ($R^2$) for each method's ability to reconstruct the ground-truth trajectories from all three simulation scenarios. Lower RMSE/Bias and higher $R^2$ indicate superior performance.
+**Table 3. Quantitative Performance Metrics for the Generative Model versus Windowed Methods.** This table presents the root mean squared error (RMSE) and mean absolute error (MAE) as measures of the average magnitude of the estimation error; Bias (mean error) identify any systematic tendency for over- or underestimation; and the coefficient of determination ($R^2$) to assess the proportion of variance in the true signal captured by the estimate.
 
 ## A phenomenological description of an empirical exercise response
 

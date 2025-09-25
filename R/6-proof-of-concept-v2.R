@@ -70,6 +70,8 @@ if (!file.exists("models/model_fit_poc_2.RDS")) {
 
 # Reconstructed signal ----------------------------------------------------
 
+w_param <- extract(model_fit, pars = "w")$w |> median()
+
 mu_hat <- extract(model_fit, pars = "mu") |>
   as.data.table()
 
@@ -143,8 +145,8 @@ pred_data <- rr_base_hat[sd_hat, on = "time"][mu_hat, on = "time"]
 fig_mu <- ggplot() +
   geom_line(aes(time, RRi, col = "Observed"), poc_data, linetype = 1) +
   geom_ribbon(aes(x = poc_data$time, fill = "Residual noise",
-                  ymin = mu - ((1 - estimates$w) * sdnn),
-                  ymax = mu + ((1 - estimates$w) * sdnn)),
+                  ymin = mu - ((1 - w_param) * sdnn),
+                  ymax = mu + ((1 - w_param) * sdnn)),
               data = pred_data, alpha = 0.5) +
   geom_line(aes(x = poc_data$time, y = mu, col = "Estimated µ(t)"),
             data = pred_data) +
@@ -173,11 +175,11 @@ fig_rr <- ggplot() +
   theme(legend.position = "right")
 
 fig_spectral <- ggplot(p_t_bands, aes(time, estimate)) +
-  geom_area(aes(fill = band, color = band), alpha = 0.8) +
+  geom_line(aes(color = band), linewidth = 1) +
   scale_color_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
-                     aesthetics = c("color", "fill")) +
+                     aesthetics = c("color")) +
   scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0), n.breaks = 5) +
+  scale_y_continuous(expand = c(0,0), n.breaks = 5, limits = 0:1) +
   labs(subtitle = "Spectral signature",
        x = "Time (minutes)", y = "Proportion of Power",
        color = "Color", fill = "Color") +
