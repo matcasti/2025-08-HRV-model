@@ -2,3 +2,9 @@ model_fit_poc.RDS
 model_t_dist.RDS
 model_fit_asymetric.RDS
 model_fit_poc_2.RDS
+model_fit_prior_narrow.RDS
+model_fit_prior_normal.RDS
+model_fit_prior_wide.RDS
+model_fit_scenario_1.RDS
+model_fit_scenario_2.RDS
+model_fit_scenario_3.RDS

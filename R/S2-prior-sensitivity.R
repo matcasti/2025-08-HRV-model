@@ -25,16 +25,18 @@ points(poc_data, pch = 16, cex = 0.5); grid()
 ## Get an initial estimation of logistic parameters
 prior_params <- with(poc_data, estimate_RRi_curve(time, RRi))$parameters |> abs()
 
+N_sin <- 50
+
 ## Stan data
 stan_data <- list(
   N = length(poc_data$time),
   t = poc_data$time,
   RR = poc_data$RRi,
-  N_sin = 20,
+  N_sin = N_sin,
   freqs = list(
-    seq(0.003, 0.039, length.out = 20), # VLF
-    seq(0.040, 0.149, length.out = 20), # LF
-    seq(0.150, 0.400, length.out = 20)  # HF
+    seq(0.003, 0.039, length.out = N_sin), # VLF
+    seq(0.040, 0.149, length.out = N_sin), # LF
+    seq(0.150, 0.400, length.out = N_sin)  # HF
   ),
   lambda_mu = prior_params[["lambda"]],
   phi_mu = prior_params[["phi"]],
@@ -66,7 +68,7 @@ for (i in 1:3) {
     data = stan_data,
     iter = 10000, warmup = 5000,
     chains = 4, cores = 4,
-    seed = 123,
+    seed = 1234,
     control = list(adapt_delta = 0.95, ## Target acceptance rate
                    max_treedepth = 10) ## Maximum per-side steps (before U-turn)
   )

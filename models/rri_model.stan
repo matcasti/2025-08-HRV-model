@@ -326,8 +326,8 @@ model {
   // These priors encode a physiological hypothesis:
   // Baseline state is HF-dominant (low y_base_log).
   // Perturbed state is LF/VLF-dominant (high y_pert_log).
-  y_base_log ~ normal([0, 0]', 2);
-  y_pert_log ~ normal([0, 0]', 2);
+  y_base_log ~ normal([0, 0]', 3);
+  y_pert_log ~ normal([0, 0]', 3);
   c_c_logit ~ normal(1, 2);
 
   // --- Priors for the Smoothness of the GP ---
