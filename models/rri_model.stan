@@ -323,11 +323,8 @@ model {
   c_s_logit     ~ normal(0, 2);
 
   // --- Priors for spectral proportion p_j(t) parameters ---
-  // These priors encode a physiological hypothesis:
-  // Baseline state is HF-dominant (low y_base_log).
-  // Perturbed state is LF/VLF-dominant (high y_pert_log).
-  y_base_log ~ normal([0, 0]', 3);
-  y_pert_log ~ normal([0, 0]', 3);
+  y_base_log ~ normal([0, 0]', 2);
+  y_pert_log ~ normal([0, 0]', 2);
   c_c_logit ~ normal(1, 2);
 
   // --- Priors for the Smoothness of the GP ---

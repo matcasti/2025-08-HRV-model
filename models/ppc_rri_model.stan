@@ -128,8 +128,8 @@ model {
   beta_s_logit  ~ normal(0, 2);
   c_s_logit     ~ normal(0, 2);
 
-  y_base_log ~ normal([0, 0]', 3);
-  y_pert_log ~ normal([0, 0]', 3);
+  y_base_log ~ normal([0, 0]', 2);
+  y_pert_log ~ normal([0, 0]', 2);
   c_c_logit ~ normal(1, 2);
 
   alpha_gp ~ normal(0, 0.5) T[0, ];

@@ -19,17 +19,17 @@ if(REMOVE_FILES) {
 
 closeAllConnections(); gc()
 
-source("R/1-generate_data.R"); gc()
-source("R/2-classic_metrics.R"); gc()
-source("R/3-model-fitting.R"); gc()
-source("R/4-model_metrics.R"); gc()
-source("R/5-proof-of-concept.R"); gc()
+source("R/1-generate_data.R"); rm(list = ls(all.names = TRUE)); gc()
+source("R/2-classic_metrics.R"); rm(list = ls(all.names = TRUE)); gc()
+source("R/3-model-fitting.R"); rm(list = ls(all.names = TRUE)); gc()
+source("R/4-model_metrics.R"); rm(list = ls(all.names = TRUE)); gc()
+source("R/5-proof-of-concept.R"); rm(list = ls(all.names = TRUE)); gc()
 
-source("R/S1-prior-predictive-checks.R"); gc()
-source("R/S2-prior-sensitivity.R"); gc()
-source("R/S3-full-parameter-recovery.R"); gc()
-source("R/S4-asymetric-dynamics.R"); gc()
-source("R/S5-t-distribution.R"); gc()
+source("R/S1-prior-predictive-checks.R"); rm(list = ls(all.names = TRUE)); gc()
+source("R/S2-prior-sensitivity.R"); rm(list = ls(all.names = TRUE)); gc()
+source("R/S3-full-parameter-recovery.R"); rm(list = ls(all.names = TRUE)); gc()
+source("R/S4-asymetric-dynamics.R"); rm(list = ls(all.names = TRUE)); gc()
+source("R/S5-t-distribution.R"); rm(list = ls(all.names = TRUE)); gc()
 
 quarto::quarto_render("index.qmd")
 quarto::quarto_render("supplementary.qmd")

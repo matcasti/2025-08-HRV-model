@@ -47,9 +47,9 @@ params[[1]] <- list(
   # Spectral & Noise params
   c_c = 0.8, w = 0.90, # 90% structured variance
   # p(t) params
-  pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest (HF dominant)
-  pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress (LF dominant)
-  rho_gp = c(1, 1, 1) * 0.5
+  pi_base = c(0.20, 0.20, 0.60), # VLF, LF, HF - Rest (HF dominant)
+  pi_pert = c(0.40, 0.40, 0.20), # VLF, LF, HF - Stress (LF dominant)
+  rho_gp = c(1, 1, 1)
 )
 
 # Scenario 2: Incomplete Recovery with Spectral Persistence
@@ -57,17 +57,17 @@ params[[1]] <- list(
 # spectral signature of the perturbation.
 params[[2]] <- list(
   # Double-logistic timing
-  lambda = 2, phi = 1, tau = 6, delta = 3,
+  lambda = 2, phi = 3, tau = 6, delta = 3,
   # RR(t) params - c_r < 1 means incomplete mean recovery
-  alpha_r = 700, beta_r = 300, c_r = 0.6,
+  alpha_r = 700, beta_r = 350, c_r = 0.6,
   # SDNN(t) params - c_s < 1 means incomplete variability recovery
-  alpha_s = 40, beta_s = 30, c_s = 0.6,
+  alpha_s = 40, beta_s = 20, c_s = 0.6,
   # Spectral & Noise params
   c_c = 0.4, w = 0.90,
   # p(t) params - c_c < 1 means spectral signature persists
-  pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest
-  pi_pert = c(0.5, 0.4, 0.1), # VLF, LF, HF - Stress
-  rho_gp = c(1, 1, 1) * 0.5
+  pi_base = c(0.20, 0.20, 0.60), # VLF, LF, HF - Rest
+  pi_pert = c(0.40, 0.40, 0.20), # VLF, LF, HF - Stress
+  rho_gp = c(1, 1, 1)
 )
 
 # Scenario 3: High Noise with Incomplete Recovery
@@ -76,19 +76,18 @@ params[[2]] <- list(
 # variance from random noise.
 params[[3]] <- list(
   # Double-logistic timing (less dramatic transition)
-  lambda = 1.5, phi = 1.5, tau = 6, delta = 3,
+  lambda = 2, phi = 3, tau = 6, delta = 3,
   # RR(t) params
-  alpha_r = 900, beta_r = 400, c_r = 1.0,
+  alpha_r = 800, beta_r = 400, c_r = 1.0,
   # SDNN(t) params - High baseline variability
-  alpha_s = 50, beta_s = 30, c_s = 1.0,
+  alpha_s = 50, beta_s = 25, c_s = 1.0,
   # p(t) params - Stable spectrum (base and pert are similar)
   c_c = 0.4, w = 0.60, # 60% structured variance
-  pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest
-  pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress
+  pi_base = c(0.20, 0.20, 0.60), # VLF, LF, HF - Rest
+  pi_pert = c(0.40, 0.40, 0.20), # VLF, LF, HF - Stress
   # Spectral & Noise params
-  rho_gp = c(1, 1, 1) * 0.5
+  rho_gp = c(1, 1, 1)
 )
-
 
 # -------------------------------------------------------------------------
 
@@ -152,89 +151,88 @@ simulated_data <- vector("list", length = 3)
 
 # 3. --- Generate and Visualize Data ---
 # This block demonstrates how to use the function and visualize the output.
-if (interactive()) {
 
-  plots <- vector("list", length = 3)
 
-  for(i in 1:3) {
-    # --- Generate data for Scenario i ---
-    simulated_data[[i]] <-
-      sim_data <-
-      generate_rri_simulation(
-        N = N_points,
-        t_max = SIM_DURATION_MIN,
-        params = params[[i]],
-        N_sin = N_SINUSOIDS,
-        seed = 123
-      )
+plots <- vector("list", length = 3)
 
-    legend <- FALSE
-    if (i == 3) {
-      legend <- NA
-    }
-    # --- Create Plots to Visualize the Ground Truth and Simulated Data ---
+for(i in 1:3) {
+  # --- Generate data for Scenario i ---
+  simulated_data[[i]] <-
+    sim_data <-
+    generate_rri_simulation(
+      N = N_points,
+      t_max = SIM_DURATION_MIN,
+      params = params[[i]],
+      N_sin = N_SINUSOIDS,
+      seed = 123
+    )
 
-    # Plot 1: Observed RRi and underlying true mean (mu)
-    p1 <- ggplot(sim_data$data, aes(x = t)) +
-      geom_line(aes(y = RR, color = "Observed"), linewidth = 1/3, show.legend = legend) +
-      geom_line(aes(y = mu, color = "True µ(t)"), linewidth = 1/3, show.legend = legend) +
-      scale_color_manual(values = c("Observed" = "grey70", "True µ(t)" = "firebrick")) +
-      labs(subtitle = ifelse(i==1,"Observed RRi Signal",""),
-           x = "Time (minutes)", y = "ms",
-           color = "Signal") +
-      scale_x_continuous(expand = c(0,0)) +
-      theme_classic(base_size = 12)
-
-    # Plot 2: Ground-truth time-domain dynamics
-    p2 <- sim_data$data[, c("t","RR_baseline", "SDNN_t")] |>
-      ggplot(aes(x = t)) +
-      geom_ribbon(aes(ymin = RR_baseline - SDNN_t,
-                      ymax = RR_baseline + SDNN_t,
-                      fill = "SDNN"), show.legend = legend) +
-      geom_line(aes(y = RR_baseline, color = "Mean R-R"), linewidth = 1, show.legend = legend) +
-      scale_color_manual(values = c("Mean R-R" = "darkred")) +
-      scale_fill_manual(values = c("SDNN" = "pink")) +
-      labs(subtitle = ifelse(i==1,"Time-domain dynamics",""),
-           x = "Time (minutes)", y = "ms",
-           color = "Line", fill = "Shaded area") +
-      scale_x_continuous(expand = c(0,0)) +
-      theme_classic(base_size = 12) +
-      theme(legend.position = "right")
-
-    # Plot 3: Ground-truth spectral proportion dynamics
-    p3 <- melt(sim_data$data,
-               id = "t",
-               measure.vars = c("p_vlf","p_lf","p_hf")
-    )[, variable := factor(variable,
-                           levels = c("p_vlf","p_lf","p_hf"),
-                           labels = c("VLF","LF","HF"))][] |>
-      ggplot(aes(x = t, y = value, fill = variable, color = variable)) +
-      geom_area(alpha = 0.8, show.legend = legend) +
-      scale_fill_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
-                        aesthetics = c("fill", "color")) +
-      labs(subtitle = ifelse(i==1,"Spectral signatures",""),
-           x = "Time (minutes)", y = "Proportion of Power", fill = "Band", color = "Band") +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) +
-      theme_classic(base_size = 12) +
-      theme(legend.position = "right")
-
-    # Combine plots into a single figure
-    plots[[i]] <- ggpubr::ggarrange(p1, p2, p3, ncol = 1, align = "v")
+  legend <- FALSE
+  if (i == 3) {
+    legend <- NA
   }
+  # --- Create Plots to Visualize the Ground Truth and Simulated Data ---
 
-  fig <- ggpubr::ggarrange(plotlist = plots,
-                           ncol = 3,
-                           widths = c(2,2,3),
-                           align = "hv",
-                           labels = c("(A)","(B)","(C)"))
+  # Plot 1: Observed RRi and underlying true mean (mu)
+  p1 <- ggplot(sim_data$data, aes(x = t)) +
+    geom_line(aes(y = RR, color = "Observed"), linewidth = 1/3, show.legend = legend) +
+    geom_line(aes(y = mu, color = "True µ(t)"), linewidth = 1/3, show.legend = legend) +
+    scale_color_manual(values = c("Observed" = "grey70", "True µ(t)" = "firebrick")) +
+    labs(subtitle = ifelse(i==1,"Observed RRi Signal",""),
+         x = "Time (minutes)", y = "ms",
+         color = "Signal") +
+    scale_x_continuous(expand = c(0,0)) +
+    theme_classic(base_size = 12)
 
-  ggsave(filename = "figures/fig-generated-data.svg", fig,
-         device = "svg", width = 9, height = 9)
-  ggsave(filename = "figures/fig-generated-data.pdf", fig,
-         device = "pdf", width = 9, height = 9)
+  # Plot 2: Ground-truth time-domain dynamics
+  p2 <- sim_data$data[, c("t","RR_baseline", "SDNN_t")] |>
+    ggplot(aes(x = t)) +
+    geom_ribbon(aes(ymin = RR_baseline - SDNN_t,
+                    ymax = RR_baseline + SDNN_t,
+                    fill = "SDNN"), show.legend = legend) +
+    geom_line(aes(y = RR_baseline, color = "Mean R-R"), linewidth = 1, show.legend = legend) +
+    scale_color_manual(values = c("Mean R-R" = "darkred")) +
+    scale_fill_manual(values = c("SDNN" = "pink")) +
+    labs(subtitle = ifelse(i==1,"Time-domain dynamics",""),
+         x = "Time (minutes)", y = "ms",
+         color = "Line", fill = "Shaded area") +
+    scale_x_continuous(expand = c(0,0)) +
+    theme_classic(base_size = 12) +
+    theme(legend.position = "right")
 
-  saveRDS(simulated_data, file = "data/simulated_data.RDS")
-  saveRDS(params, file = "data/simulation_parameters.RDS")
-  saveRDS(freq_bands, file = "data/freq_bands.RDS")
+  # Plot 3: Ground-truth spectral proportion dynamics
+  p3 <- melt(sim_data$data,
+             id = "t",
+             measure.vars = c("p_vlf","p_lf","p_hf")
+  )[, variable := factor(variable,
+                         levels = c("p_vlf","p_lf","p_hf"),
+                         labels = c("VLF","LF","HF"))][] |>
+    ggplot(aes(x = t, y = value, fill = variable, color = variable)) +
+    geom_area(alpha = 0.8, show.legend = legend) +
+    scale_fill_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
+                      aesthetics = c("fill", "color")) +
+    labs(subtitle = ifelse(i==1,"Spectral signatures",""),
+         x = "Time (minutes)", y = "Proportion of Power", fill = "Band", color = "Band") +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0)) +
+    theme_classic(base_size = 12) +
+    theme(legend.position = "right")
+
+  # Combine plots into a single figure
+  plots[[i]] <- ggpubr::ggarrange(p1, p2, p3, ncol = 1, align = "v")
 }
+
+fig <- ggpubr::ggarrange(plotlist = plots,
+                         ncol = 3,
+                         widths = c(2,2,3),
+                         align = "hv",
+                         labels = c("(A)","(B)","(C)"))
+
+ggsave(filename = "figures/fig-generated-data.svg", fig,
+       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-generated-data.pdf", fig,
+       device = "pdf", width = 9, height = 9)
+
+saveRDS(simulated_data, file = "data/simulated_data.RDS")
+saveRDS(params, file = "data/simulation_parameters.RDS")
+saveRDS(freq_bands, file = "data/freq_bands.RDS")
