@@ -51,17 +51,17 @@ freq_bands <- list(
 # from high-frequency (HF) to low-frequency (LF) power and back.
 params <- list(
   # Double-logistic timing
-  lambda = 2, phi = 3, tau = 6, delta = 3,
+  lambda = 3, phi = 2, tau = 6, delta = 3,
   # RR(t) params
   alpha_r = 800, beta_r = 400, c_r = 1.0,
   # SDNN(t) params
   alpha_s = 50, beta_s = 40, c_s = 1.0,
   # Spectral & Noise params
-  c_c = 0.8, w = 0.80, # 90% structured variance
+  c_c = 0.8, w = 0.80, # 80% structured variance
   # p(t) params
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest (HF dominant)
   pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress (LF dominant)
-  rho_gp = c(1, 1, 1) * 0.5
+  rho_gp = c(1, 1, 1)
 )
 
 # -------------------------------------------------------------------------
@@ -77,8 +77,8 @@ sim_data <-
     t_max = SIM_DURATION_MIN,
     params = params,
     N_sin = N_SINUSOIDS,
-    seed = 123,
     t_dist = TRUE,
+    seed = 1,
     nu = 3
   )
 
@@ -132,7 +132,6 @@ p3 <- melt(sim_data$data,
 
 # Combine plots into a single figure
 fig_left <- ggpubr::ggarrange(p1, p2, p3, ncol = 1, align = "v")
-
 
 # -------------------------------------------------------------------------
 
@@ -251,3 +250,4 @@ ggsave(filename = "figures/fig-student-t.svg", fig,
        device = "svg", width = 9, height = 9)
 ggsave(filename = "figures/fig-student-t.pdf", fig,
        device = "pdf", width = 9, height = 9)
+

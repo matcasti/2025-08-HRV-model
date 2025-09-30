@@ -11,6 +11,7 @@
 #' @param seed An integer for reproducibility.
 #' @param ... Currently not used.
 #' @param t_dist Logical. Use a t-distribution instead of a normal to generate the data. Default is FALSE.
+#' @param nu Numeric. Nu parameter of the Student-t distribution controlling the tails of the distribution. Only used when `t_dist` is TRUE.
 #'
 #' @return A data frame containing the time vector 't', the final generated
 #'   'RR' series, the underlying mean 'mu', and other key components.

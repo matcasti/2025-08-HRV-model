@@ -518,6 +518,7 @@ We generated synthetic data using a Student's-t distributed noise term (with 3 d
 The R code used to generate the data is presented next
 
 ```r
+# 1. --- Simulation Setup ---
 # Define shared simulation parameters
 SIM_DURATION_MIN <- 15 # Total duration in minutes
 SAMPLING_RATE_HZ <- 2  # Sampling rate for RRi series
@@ -538,23 +539,23 @@ freq_bands <- list(
 # from high-frequency (HF) to low-frequency (LF) power and back.
 params <- list(
   # Double-logistic timing
-  lambda = 2, phi = 3, tau = 6, delta = 3,
+  lambda = 3, phi = 2, tau = 6, delta = 3,
   # RR(t) params
   alpha_r = 800, beta_r = 400, c_r = 1.0,
   # SDNN(t) params
   alpha_s = 50, beta_s = 40, c_s = 1.0,
   # Spectral & Noise params
-  c_c = 0.8, w = 0.80, # 90% structured variance
+  c_c = 0.8, w = 0.80, # 80% structured variance
   # p(t) params
   pi_base = c(0.2, 0.2, 0.6), # VLF, LF, HF - Rest (HF dominant)
   pi_pert = c(0.4, 0.4, 0.2), # VLF, LF, HF - Stress (LF dominant)
-  rho_gp = c(1, 1, 1) * 0.1
+  rho_gp = c(1, 1, 1)
 )
 
 # -------------------------------------------------------------------------
 
 
-# --- Generate and Visualize Data ---
+# 2. --- Generate and Visualize Data ---
 # This block demonstrates how to use the function and visualize the output.
 
 # --- Generate data for Scenario i ---
@@ -564,8 +565,8 @@ sim_data <-
     t_max = SIM_DURATION_MIN,
     params = params,
     N_sin = N_SINUSOIDS,
-    seed = 12345,
     t_dist = TRUE,
+    seed = 1,
     nu = 3
   )
 ```
@@ -584,8 +585,9 @@ And the components from the R function `generate_rri_simulation`, used to simula
 #' @param N_sin Number of sinusoids per frequency band.
 #' @param params Named list with model parameters.
 #' @param seed An integer for reproducibility.
-#' @param nu Degrees of freedom for Student-t distribution. Only used if `t_dist` is TRUE.
+#' @param ... Currently not used.
 #' @param t_dist Logical. Use a t-distribution instead of a normal to generate the data. Default is FALSE.
+#' @param nu Numeric. Nu parameter of the Student-t distribution controlling the tails of the distribution. Only used when `t_dist` is TRUE.
 #'
 #' @return A data frame containing the time vector 't', the final generated
 #'   'RR' series, the underlying mean 'mu', and other key components.
@@ -593,7 +595,7 @@ generate_rri_simulation <- function(N,
                                     t_max,
                                     params,
                                     N_sin,
-                                    seed = 12345,
+                                    seed = 123,
                                     nu = NULL,
                                     t_dist = FALSE) {
 
@@ -761,15 +763,15 @@ generate_rri_simulation <- function(N,
 
 # S3: Full Empirical Analysis Diagnostics
 
-This section provides a complete set of diagnostic checks for the MCMC analysis of the empirical N-of-1 dataset to ensure the reliability of the inference.
+This section provides a complete set of diagnostic checks for the HMC analysis of the empirical N-of-1 dataset to ensure the reliability of the inference.
 
-## S3.1: Complete Posterior Distributions
+## S3.1: Posterior Distributions
 
-Supplementary Figure S5 shows the marginal posterior distributions (histograms) and MCMC traceplots for all key parameters from the empirical model fit.
+Supplementary Figure S5 shows the traceplots for all key parameters from the empirical model fit.
 
-**[Insert Figure S5 Here]**
+![](figures/fig-poc-traceplot.svg){width=100%}
 
-**Supplementary Figure S5: Full Posterior Distributions and Traceplots for Empirical Analysis.** The left column shows posterior histograms for each parameter. The right column shows the MCMC traceplots for four chains, showing stationary, well-mixed chains.
+**Supplementary Figure S5: Full Traceplots for Empirical Analysis.** MCMC traceplots for four chains, showing stationary, well-mixed chains.
 
 ## S3.2: MCMC Diagnostic Statistics
 

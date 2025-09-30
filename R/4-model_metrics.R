@@ -294,7 +294,7 @@ for (i in 1:3) {
                        aesthetics = c("color", "fill")) +
     scale_linetype_manual(values = c("Ground truth" = 6, "Model estimate" = 1)) +
     scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(n.breaks = 5) +
+    scale_y_continuous(n.breaks = 5, limits = c(0,1)) +
     labs(subtitle = ifelse(i == 1, "Spectral signature", ""),
          x = "Time (minutes)", y = "Proportion of Power",
          color = "Color", linetype = "Line", fill = "Color") +
