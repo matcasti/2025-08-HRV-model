@@ -68,27 +68,36 @@ We first test the model's internal consistency by assessing its ability to recov
 
 To establish the model's internal consistency and the identifiability of its parameters, we first assessed its ability to perform inference on synthetic data generated from its own structure. This in-silico procedure serves as a necessary check of the model's self-consistency and the estimation algorithm's ability to navigate the complex posterior geometry. To test the model's performance, designed three distinct scenarios: (A) a canonical response with complete recovery; (B) an incomplete recovery with persistence in both time and frequency domains; and (C) a high-noise condition with a low structured variance fraction ($w$ = 0.6). The ground-truth dynamics are illustrated in Figure 1, with corresponding generative parameter values listed in Table 1. This procedure tests for inferential integrity under the assumption that the model is correctly specified; it does not test for robustness to model misspecification, a challenge inherent to all empirical data.
 
+::: {.content-visible when-format="html"}
 ![](figures/fig-generated-data.svg){width=100%}
+:::
+
 **Figure 1. Ground-truth dynamics of three synthetic scenarios.** The scenarios were designed to test model performance under diverse conditions: (A) a classic sympatho-vagal response, (B) an incomplete recovery with persistence in both time and frequency domains, and (C) a high-noise condition with dissonant (complete time-domain, incomplete spectral) recovery. Panels show the generated RRi data with the true mean signal, the underlying time-domain trajectories for baseline RRi and total SDNN, and the time-varying spectral proportions.
 
+::: {.content-visible when-format="html"}
 ```{r}
 readRDS(file = "tables/tbl-1.RDS")
 ```
+:::
 
 **Table 1. Ground-truth parameter values for simulation scenarios.** Ground-truth parameter values used in the generation of three simulation scenarios. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with time-domain and spectral persistence, and (C) an incomplete spectral but complete time-domain recovery with high noise.
 
 When fit to this synthetic data, the model demonstrated a high-fidelity reconstruction of the generative process across all three scenarios. Figure 2 presents a visual summary of these results, plotting the model's posterior estimates against the known ground-truth trajectories. The posterior means for the baseline RRi, total SDNN, and the time-varying spectral proportions closely track the true underlying dynamics. The 95% credible intervals, which represent the range of plausible parameter values given the data, consistently envelop the ground-truth trajectories.
 
+::: {.content-visible when-format="html"}
 ![](figures/fig-model-method.svg){width=100%}
+:::
 
 **Figure 2. High-fidelity reconstruction of synthetic data by the generative model.** The model's posterior mean estimates (solid lines) and 95% credible intervals (shaded ribbons) are overlaid on the known ground-truth dynamics (dashed lines) for all three scenarios (A, B, C). The model accurately recovers the continuous trajectories for baseline RRi, total SDNN, and spectral proportions across all conditions.
 
 Beyond recovering the continuous dynamic trajectories, the model also recovered the discrete parameters that govern the shape and timing of these dynamics. Table 2 presents the posterior summaries for these key parameters, comparing the posterior median and 95% credible intervals against their true values. For all parameters across all scenarios, the 95% credible intervals successfully contained the ground-truth values. Successfully recovering all parameters confirms that they are practically identifiable from this type of data, at least when the data-generating process aligns with the model's structural assumptions.
 
+::: {.content-visible when-format="html"}
 ```{r}
 #| column: screen-inset-left
 readRDS(file = "tables/tbl-2.RDS")
 ```
+:::
 
 **Table 2. Posterior recovery of ground-truth parameters.** This table compares the known ground-truth parameter values to the model's posterior estimates (median and 95% credible interval). The model successfully recovers all parameters, with the true values consistently falling within the credible intervals.
 
@@ -98,16 +107,20 @@ Having established the model's internal consistency, we next benchmarked its des
 
 The results of this comparative analysis highlights the descriptive distortions that are inherent to any method that relies on assumptions of local stationarity when applied to a continuously varying, non-stationary signal. Figure 3 illustrates the outputs from the windowed methods. Visually, these methods produced a delayed and morphologically blunted approximation of the underlying dynamics. The sharp, non-linear transitions that characterize the onset and recovery phases of the signal are smeared and flattened by the averaging process inherent in the windowed calculation. Consequently, the windowed approach failed to accurately capture both the shape and the precise timing of the recovery process. Instead of reflecting the smooth, logistic curve defined by the ground-truth process, the windowed analysis superimposed the square-wave artifacts of its own computational structure onto the data, a clear instance of the analytical method distorting the phenomenon it is intended to measure.
 
+::: {.content-visible when-format="html"}
 ![](figures/fig-windowed-method.svg){width=100%}
+:::
 
 **Figure 3. Distorted reconstruction of synthetic data by conventional windowed Methods.** The estimates from a 60-second sliding window (for RRi and SDNN) and an STFT (for spectral proportions) are shown as solid lines overlaid on the ground-truth dynamics (dashed lines). The methods introduce significant lag, blunting, and temporal smearing, failing to capture the true non-linear dynamics.
 
 A formal quantitative analysis confirms the descriptive efficiency and accuracy of the generative approach for signals of this particular nature. Table 3 provides a summary of key performance metrics. Across all scenarios and all signal components, the generative model consistently provided a more accurate and parsimonious description of the data. It achieved substantially lower error (RMSE and Bias) and captured a significantly higher proportion of the signal's variance, with $R^2$ values typically exceeding 0.90. It is important to interpret this result with caution. The model's performance is, in one sense, expected, as the synthetic data were generated from its own structure. However, it illustrates a core theoretical argument of this work: for signals that are plausibly characterized by smooth, continuous transitions between distinct physiological states, a model whose parametric form explicitly encodes this structure will naturally provide a more efficient, less distorted, and more interpretable quantitative summary than a non-parametric, windowed approach that was designed for stationary or quasi-stationary signals.
 
+::: {.content-visible when-format="html"}
 ```{r}
 #| column: screen-inset-left
 readRDS(file = "tables/tbl-3.RDS")
 ```
+:::
 
 **Table 3. Quantitative Performance Metrics for the Generative Model versus Windowed Methods.** This table presents the root mean squared error (RMSE) and mean absolute error (MAE) as measures of the average magnitude of the estimation error; Bias (mean error) identify any systematic tendency for over- or underestimation; and the coefficient of determination ($R^2$) to assess the proportion of variance in the true signal captured by the estimate.
 
@@ -119,13 +132,17 @@ To illustrate the framework's intended application in a real-world context, we a
 
 Upon fitting the model to the empirical data, it yields a phenomenological decomposition of the entire exercise-recovery response, as depicted in Figure 4. The framework parses the signal into its constituent components, describing the physiological process as a rapid initial tachycardia (a decrease in the baseline RRi component) and a concurrent suppression of total heart rate variability (a decrease in the SDNN component). This initial response is followed by a slower, more gradual recovery phase after the cessation of the exercise stimulus. From a spectral perspective, the model attributes the signature of this response to a near-complete withdrawal of power in the high-frequency (HF) band, a correlate of parasympathetic activity, and a corresponding surge in the proportion of very-low-frequency (VLF) power, a band whose physiological interpretation remains debated but is often associated with sympathetic and other systemic influences. The model captures these dynamics as continuous, smooth trajectories, providing an integrated narrative of the entire physiological event.
 
+::: {.content-visible when-format="html"}
 ![](figures/fig-poc.svg){width=100%}
+:::
 
 **Figure 4. Phenomenological decomposition of an empirical exercise-recovery response.** (A) The reconstructed $\mu(t_i)$ RRi signal (red line) overlaid on top of the observed RRi signal (gray). (B-C) time-domain components: the baseline RRi trend ($\mathrm{RR_{base}}$, blue) and the total instantaneous variability ($\mathrm{SDNN}$, orange). (D) The inferred dynamics of the spectral proportions. Shaded regions are 95% highest density intervals.
 
 The framework's primary scientific utility, however, lies in generating quantitative, testable claims, which are encapsulated by the posterior distributions of its parameters (Figure 5). A key feature of the model is its separate parameterization of the recovery dynamics of the signal's first moment (mean RRi, via the coefficient $c_r$) and its second moment (total variability, or SDNN, via the coefficient $c_s$). This explicit separation allows for a direct, quantitative description of their potential divergence. In this particular recording, the posterior distributions for these two recovery parameters were credibly distinct; the 95% credible interval for $c_r$ was clearly separated from that for $c_s$. This descriptive feature of the model's output, which we term model-inferred dissonance, provides a data-driven and falsifiable hypothesis: that the recovery of mean heart rate and the recovery of its variability can follow distinct and dissociable time courses in response to an acute exercise stressor. This hypothesis is a quantitative statement, grounded in the posterior probability distributions of the model's parameters.
 
+::: {.content-visible when-format="html"}
 ![](figures/fig-poc-posterior.svg){width=100%}
+:::
 
 **Figure 5. Posterior distribution of phenomenological recovery parameters from the empirical analysis.** The posterior distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance, alongside the structured variance fraction ($w$). The posterior distribution allows for visual inspection of model convergence of model parameters.
 
