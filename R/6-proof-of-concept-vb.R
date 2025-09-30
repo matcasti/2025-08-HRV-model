@@ -27,13 +27,13 @@ points(poc_data, pch = 16, cex = 0.5)
 # Model fitting process ---------------------------------------------------
 # -------------------------------------------------------------------------
 
-if (!file.exists("models/model_fit_poc_2.RDS")) {
+if (!file.exists("models/model_fit_poc_vb.RDS")) {
 
   # Prepare data ------------------------------------------------------------
 
   prior_params <- with(poc_data, estimate_RRi_curve(time, RRi))$parameters |> abs()
 
-  N_sin <- 100
+  N_sin <- 50
   stan_data <- list(
     N = length(poc_data$time),
     t = poc_data$time,
@@ -63,9 +63,9 @@ if (!file.exists("models/model_fit_poc_2.RDS")) {
     adapt_iter = 5000,
     tol_rel_obj = 0.001,
   )
-  saveRDS(model_fit, file = "models/model_fit_poc_2.RDS")
+  saveRDS(model_fit, file = "models/model_fit_poc_vb.RDS")
 } else {
-  model_fit <- readRDS(file = "models/model_fit_poc_2.RDS")
+  model_fit <- readRDS(file = "models/model_fit_poc_vb.RDS")
 }
 
 # Reconstructed signal ----------------------------------------------------
@@ -83,62 +83,6 @@ mu_hat[, time := gsub("mu.V", "", time) |> as.numeric()]
 mu_hat[, draw := gsub("V", "", draw) |> as.numeric()]
 
 mu_hat <- mu_hat[, list(mu = median(value)), keyby = time]
-
-# SDNN extraction ---------------------------------------------------------
-
-sd_hat <- extract(model_fit, pars = "SDNN_t") |>
-  as.data.table()
-
-sd_hat <- transpose(sd_hat, keep.names = "time") |>
-  melt.data.table(id.vars = "time",
-                  variable.name = "draw")
-
-sd_hat[, time := gsub("SDNN_t.V", "", time) |> as.numeric()]
-sd_hat[, draw := gsub("V", "", draw) |> as.numeric()]
-
-sd_hat <- sd_hat[, list(sdnn = median(value)), keyby = time]
-
-# RR extraction ---------------------------------------------------------
-
-rr_base_hat <- extract(model_fit, pars = "RR_baseline") |>
-  as.data.table()
-
-rr_base_hat <- transpose(rr_base_hat, keep.names = "time") |>
-  melt.data.table(id.vars = "time",
-                  variable.name = "draw")
-
-rr_base_hat[, time := gsub("RR_baseline.V", "", time) |> as.numeric()]
-rr_base_hat[, draw := gsub("V", "", draw) |> as.numeric()]
-
-rr_base_hat <- rr_base_hat[, list(rr = median(value)), keyby = time]
-
-
-# Spectral proportions ----------------------------------------------------
-
-p_t_hat <- extract(model_fit, pars = "p_t")$p_t
-
-p_t_bands <- vector("list", length = 3)
-for(j in 1:3) {
-  j_band <- p_t_hat[, , j] |>
-    as.data.table() |>
-    transpose(keep.names = "time") |>
-    melt.data.table(id.vars = "time",
-                    variable.name = "draw")
-
-  j_band[, time := gsub("V", "", time) |> as.numeric()]
-  j_band[, draw := gsub("V", "", draw) |> as.numeric()]
-
-  p_t_bands[[j]] <- j_band[, list(estimate = median(value)), keyby = time]
-}
-
-p_t_bands <- p_t_bands |>
-  rbindlist(idcol = "band")
-
-p_t_bands[, band := factor(band, levels = 1:3, labels = c("VLF","LF","HF"))]
-
-# Combining the datasets --------------------------------------------------
-
-pred_data <- rr_base_hat[sd_hat, on = "time"][mu_hat, on = "time"]
 
 # Generate plot -----------------------------------------------------------
 

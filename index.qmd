@@ -25,14 +25,11 @@ format:
     comments: 
       hypothesis: 
         theme: clean
-    include-in-header: "includes/hypothesis-config.html"
+  docx: default
 other-links: 
   - text: "Supplementary Material"
     href: "supplementary.html"
     icon: folder
-  - text: "Stan Model"
-    href: "models/rri_model.stan"
-    icon: file-code
 fig-width: 8
 fig-height: 6
 editor_options: 
@@ -282,7 +279,7 @@ $${#eq-multi-sine-fun}
 The key innovation is the GP prior placed on the log-amplitude envelope, a vector denoted $\vec{v}_j$. To make the prior on the GP's smoothness parameter stable and interpretable, the GP is defined over a log-frequency axis that has been scaled to the unit interval for each band. Let this scaled log-frequency be denoted $\tilde{f}_{j,k}$. The log-amplitude envelope is modeled as a single draw from a GP with a zero-mean function and a squared exponential covariance kernel ($\mathbf{K}_j$), defined in @eq-gp-kernel.
 
 $$
-\vec{v}_j \sim \mathcal{GP}(\vec{0}, \mathbf{K}_j), \quad \text{where } (\mathbf{K}_j)_{kl} = \exp\left(-\frac{(\tilde{f}_{j,k} - \tilde{f}_{j,l})^2}{2\,\rho_{gp,j}^2}\right)
+\vec{v}_j \sim \mathcal{GP}(\vec{0}, \mathbf{K}_j), \quad \text{where } \mathbf{K}_j = \exp\left(-\frac{(\tilde{f}_{j} - \tilde{f}_{j}^\prime)^2}{2\,\rho_{gp,j}^2}\right)
 $${#eq-gp-kernel}
 
 The covariance matrix $\mathbf{K}_j$ is controlled by a single hyperparameter, the length-scale $\rho_{gp,j}$. The marginal standard deviation of the GP is fixed to 1. This is because the GP's role is strictly to define the *shape* of the spectrum, not its absolute magnitude; the magnitude is handled by downstream normalization and scaling. The length-scale $\rho_{gp,j}$ is constrained to the [0, 1] interval and controls the smoothness of the function on the unit-scaled input axis. A value near 1 enforces a very smooth, slowly changing shape, while a value near 0 allows for more rapid variations and narrower spectral peaks.

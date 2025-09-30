@@ -421,7 +421,7 @@ To assess the robustness of our conclusions, we performed a sensitivity analysis
 
 ## S1.3: Computational Environment
 
-All analyses were performed using `R` (version 4.5.0) and the `rstan` interface (version 2.32.7) to `Stan` (version 2.32.2). A complete list of packages and their versions is provided in the `renv.lock` file available in the public repository. The MCMC sampler was run with 4 chains for 10,000 iterations each, with the first 5,000 discarded as warmup, resulting in 20,000 posterior samples.
+All analyses were performed using `R` (version 4.5.0) and the `rstan` interface (version 2.32.7) to `Stan` (version 2.32.2). The MCMC sampler was run with 4 chains for 10,000 iterations each, with the first 5,000 discarded as warmup, resulting in 20,000 posterior samples.
 
 # S2: Extended Simulation Studies
 
@@ -775,33 +775,22 @@ Supplementary Figure S5 shows the traceplots for all key parameters from the emp
 
 ## S3.2: MCMC Diagnostic Statistics
 
-All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S2 provides the `R-hat`, effective sample size (`n_eff`), and Monte Carlo Standard Error (MCSE) for all key parameters, confirming the reliability of the posterior estimates.
+All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S1 provides the R-hat, effective sample size (ESS), Monte Carlo Standard Error (MCSE) and Pareto K values for all key parameters, confirming the reliability of the posterior estimates.
 
-**[Insert Table S1 Here]**
+```{r}
+readRDS(file = "tables/tbl-S1.RDS")
+```
 
-**Supplementary Table S2: MCMC Diagnostic Statistics.** All `R-hat` values are 1.00, and `n_eff` is sufficient for all parameters.
+**Supplementary Table S1: MCMC Diagnostic Statistics.** All R-hat values are near 1.00 up to three digits, both tail and bulk ESS are greater than 5,000 and all Pareto K values are lower than 0.5, confirming the reliability of the posterior estimates.
 
 ## S3.3: Posterior Predictive Checks (PPC)
 
 To assess the model's descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S6 overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S7 shows that the distributions of key summary statistics (mean, SD, and autocorrelation at lag 1) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
 
-**[Insert Figure S6 Here]**
+![](figures/fig-poc-ppcheck.svg){width=100%}
 
-**Supplementary Figure S6: Graphical Posterior Predictive Check.** The observed RRi data (black line) is shown with 100 replicated datasets (faint red lines) generated from the fitted model.
+**Supplementary Figure S6: Graphical Posterior Predictive Check.** The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.
 
-**[Insert Figure S7 Here]**
+![](figures/fig-poc-stat-computed.svg){width=100%}
 
-**Supplementary Figure S7: Distributional Posterior Predictive Checks.** The distribution for three summary statistics calculated from the replicated datasets. The vertical black line shows the value of the statistic from the actual observed data.
-
-# S4: Data and Code Availability
-
-To ensure full reproducibility, all data and code used in this study are publicly available at the following repository:
-
-  * **Repository:** [Link to GitHub, OSF, or other public repository]
-  * **Contents:**
-      * `/data/`: Contains the raw and pre-processed RRi data for the empirical N-of-1 example.
-      * `/models/`: Contains the fully commented Stan model file (`rri_model.stan`).
-      * `/scripts/`: Contains the R scripts to perform the simulations, run all analyses, and generate all figures and tables in both the main manuscript and this supplement.
-      * `manuscript.qmd`: The Quarto/R Markdown source file for the main manuscript.
-      * `supplement.qmd`: The Quarto/R Markdown source file for this supplementary document.
-      * `renv.lock`: A lockfile specifying all R package dependencies to ensure a reproducible computational environment.
+**Supplementary Figure S7: Distributional Posterior Predictive Checks.** The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.

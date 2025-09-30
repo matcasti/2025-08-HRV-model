@@ -82,21 +82,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     document.body.classList.add('hypothesis-enabled');
   });
 </script>
-<script>
-window.hypothesisConfig = function () {
-  return {
-    openSidebar: false,
-    showHighlights: true,
-    // default group (use the group's id part from the group URL)
-    group: "g4JPqbk5",
-    // optional: custom login flow (client should call your site's auth)
-    onLoginRequest: function () {
-      // redirect to your site's login endpoint
-      window.location = "/login?next=" + encodeURIComponent(window.location);
-    }
-  };
-};
-</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -194,7 +179,6 @@ window.Quarto = {
   <li><a href="#s3.2-mcmc-diagnostic-statistics" id="toc-s3.2-mcmc-diagnostic-statistics" class="nav-link" data-scroll-target="#s3.2-mcmc-diagnostic-statistics">S3.2: MCMC Diagnostic Statistics</a></li>
   <li><a href="#s3.3-posterior-predictive-checks-ppc" id="toc-s3.3-posterior-predictive-checks-ppc" class="nav-link" data-scroll-target="#s3.3-posterior-predictive-checks-ppc">S3.3: Posterior Predictive Checks (PPC)</a></li>
   </ul></li>
-  <li><a href="#s4-data-and-code-availability" id="toc-s4-data-and-code-availability" class="nav-link" data-scroll-target="#s4-data-and-code-availability">S4: Data and Code Availability</a></li>
   </ul>
 </nav>
 </div>
@@ -581,7 +565,7 @@ window.Quarto = {
 </section>
 <section id="s1.3-computational-environment" class="level2">
 <h2 class="anchored" data-anchor-id="s1.3-computational-environment">S1.3: Computational Environment</h2>
-<p>All analyses were performed using <code>R</code> (version 4.5.0) and the <code>rstan</code> interface (version 2.32.7) to <code>Stan</code> (version 2.32.2). A complete list of packages and their versions is provided in the <code>renv.lock</code> file available in the public repository. The MCMC sampler was run with 4 chains for 10,000 iterations each, with the first 5,000 discarded as warmup, resulting in 20,000 posterior samples.</p>
+<p>All analyses were performed using <code>R</code> (version 4.5.0) and the <code>rstan</code> interface (version 2.32.7) to <code>Stan</code> (version 2.32.2). The MCMC sampler was run with 4 chains for 10,000 iterations each, with the first 5,000 discarded as warmup, resulting in 20,000 posterior samples.</p>
 </section>
 </section>
 <section id="s2-extended-simulation-studies" class="level1">
@@ -916,34 +900,631 @@ window.Quarto = {
 </section>
 <section id="s3.2-mcmc-diagnostic-statistics" class="level2">
 <h2 class="anchored" data-anchor-id="s3.2-mcmc-diagnostic-statistics">S3.2: MCMC Diagnostic Statistics</h2>
-<p>All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S2 provides the <code>R-hat</code>, effective sample size (<code>n_eff</code>), and Monte Carlo Standard Error (MCSE) for all key parameters, confirming the reliability of the posterior estimates.</p>
-<p><strong>[Insert Table S1 Here]</strong></p>
-<p><strong>Supplementary Table S2: MCMC Diagnostic Statistics.</strong> All <code>R-hat</code> values are 1.00, and <code>n_eff</code> is sufficient for all parameters.</p>
+<p>All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S1 provides the R-hat, effective sample size (ESS), Monte Carlo Standard Error (MCSE) and Pareto K values for all key parameters, confirming the reliability of the posterior estimates.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="ixqdbhawib" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ixqdbhawib table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#ixqdbhawib thead, #ixqdbhawib tbody, #ixqdbhawib tfoot, #ixqdbhawib tr, #ixqdbhawib td, #ixqdbhawib th {
+  border-style: none;
+}
+
+#ixqdbhawib p {
+  margin: 0;
+  padding: 0;
+}
+
+#ixqdbhawib .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 3px;
+  border-top-color: #D5D5D5;
+  border-right-style: solid;
+  border-right-width: 3px;
+  border-right-color: #D5D5D5;
+  border-bottom-style: solid;
+  border-bottom-width: 3px;
+  border-bottom-color: #D5D5D5;
+  border-left-style: solid;
+  border-left-width: 3px;
+  border-left-color: #D5D5D5;
+}
+
+#ixqdbhawib .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#ixqdbhawib .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#ixqdbhawib .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#ixqdbhawib .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ixqdbhawib .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D5D5D5;
+}
+
+#ixqdbhawib .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D5D5D5;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D5D5D5;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ixqdbhawib .gt_col_heading {
+  color: #FFFFFF;
+  background-color: #004D80;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#ixqdbhawib .gt_column_spanner_outer {
+  color: #FFFFFF;
+  background-color: #004D80;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#ixqdbhawib .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#ixqdbhawib .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#ixqdbhawib .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D5D5D5;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#ixqdbhawib .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#ixqdbhawib .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D5D5D5;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D5D5D5;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#ixqdbhawib .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D5D5D5;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D5D5D5;
+  vertical-align: middle;
+}
+
+#ixqdbhawib .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#ixqdbhawib .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#ixqdbhawib .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D5D5D5;
+  border-left-style: solid;
+  border-left-width: 1px;
+  border-left-color: #D5D5D5;
+  border-right-style: solid;
+  border-right-width: 1px;
+  border-right-color: #D5D5D5;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#ixqdbhawib .gt_stub {
+  color: #FFFFFF;
+  background-color: #929292;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D5D5D5;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ixqdbhawib .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#ixqdbhawib .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#ixqdbhawib .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#ixqdbhawib .gt_summary_row {
+  color: #FFFFFF;
+  background-color: #5F5F5F;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ixqdbhawib .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D5D5D5;
+}
+
+#ixqdbhawib .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#ixqdbhawib .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D5D5D5;
+}
+
+#ixqdbhawib .gt_grand_summary_row {
+  color: #FFFFFF;
+  background-color: #929292;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ixqdbhawib .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D5D5D5;
+}
+
+#ixqdbhawib .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D5D5D5;
+}
+
+#ixqdbhawib .gt_striped {
+  background-color: #F4F4F4;
+}
+
+#ixqdbhawib .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D5D5D5;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D5D5D5;
+}
+
+#ixqdbhawib .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ixqdbhawib .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ixqdbhawib .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ixqdbhawib .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ixqdbhawib .gt_left {
+  text-align: left;
+}
+
+#ixqdbhawib .gt_center {
+  text-align: center;
+}
+
+#ixqdbhawib .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#ixqdbhawib .gt_font_normal {
+  font-weight: normal;
+}
+
+#ixqdbhawib .gt_font_bold {
+  font-weight: bold;
+}
+
+#ixqdbhawib .gt_font_italic {
+  font-style: italic;
+}
+
+#ixqdbhawib .gt_super {
+  font-size: 65%;
+}
+
+#ixqdbhawib .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#ixqdbhawib .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#ixqdbhawib .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#ixqdbhawib .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#ixqdbhawib .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#ixqdbhawib .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#ixqdbhawib .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#ixqdbhawib .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#ixqdbhawib div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_col_headings header">
+<th id="Parameter" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" style="font-size: small" scope="col">Parameter</th>
+<th id="MCSE-Mean" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" style="font-size: small" scope="col">MCSE Mean</th>
+<th id="Bulk-ESS" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" style="font-size: small" scope="col">Bulk ESS</th>
+<th id="Tail-ESS" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" style="font-size: small" scope="col">Tail ESS</th>
+<th id="R-hat" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" style="font-size: small" scope="col">R-hat</th>
+<th id="Pareto-K-values" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" style="font-size: small" scope="col">Pareto K values</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\lambda\)</span></td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.005</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">7091.051</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">7872.827</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00015</td>
+<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.104</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\phi\)</span></td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.009</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">13317.586</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">13440.705</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00001</td>
+<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.088</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\tau\)</span></td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">7779.119</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">11577.549</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00006</td>
+<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.030</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\delta\)</span></td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.001</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">7668.121</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">10730.402</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00010</td>
+<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.028</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\alpha_r\)</span></td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.042</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">8842.104</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">11107.739</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00012</td>
+<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">0.015</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\beta_r\)</span></td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.066</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">6829.729</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8916.555</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00017</td>
+<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">0.053</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(c_r\)</span></td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">6935.483</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">10900.781</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00009</td>
+<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.030</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\alpha_s\)</span></td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.128</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">5633.284</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8829.174</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00008</td>
+<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.038</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\beta_s\)</span></td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.119</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">5797.431</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">9043.351</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00008</td>
+<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.062</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(c_s\)</span></td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.000</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">18018.409</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">15365.579</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00002</td>
+<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.070</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(c_c\)</span></td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">20799.959</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">12852.079</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00007</td>
+<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">0.038</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(w\)</span></td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.000</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">5837.664</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8897.332</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00006</td>
+<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">0.117</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{base}\)</span> [VLF]</td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">5900.506</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">10344.650</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00005</td>
+<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.081</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{base}\)</span> [LF]</td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.000</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">5878.068</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8035.980</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00010</td>
+<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.031</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{base}\)</span> [HF]</td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">6719.816</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">11368.477</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00004</td>
+<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.053</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{pert}\)</span> [VLF]</td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.001</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">9658.012</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">13793.892</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00001</td>
+<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.108</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{pert}\)</span> [LF]</td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.001</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">9806.651</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">14000.109</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">0.99999</td>
+<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.087</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{pert}\)</span> [HF]</td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.000</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">11777.976</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">9465.015</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00014</td>
+<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.057</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Supplementary Table S1: MCMC Diagnostic Statistics.</strong> All R-hat values are near 1.00 up to three digits, both tail and bulk ESS are greater than 5,000 and all Pareto K values are lower than 0.5, confirming the reliability of the posterior estimates.</p>
 </section>
 <section id="s3.3-posterior-predictive-checks-ppc" class="level2">
 <h2 class="anchored" data-anchor-id="s3.3-posterior-predictive-checks-ppc">S3.3: Posterior Predictive Checks (PPC)</h2>
 <p>To assess the model’s descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S6 overlays the empirical RRi time series with 100 time series simulated from the fitted model’s posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S7 shows that the distributions of key summary statistics (mean, SD, and autocorrelation at lag 1) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.</p>
-<p><strong>[Insert Figure S6 Here]</strong></p>
-<p><strong>Supplementary Figure S6: Graphical Posterior Predictive Check.</strong> The observed RRi data (black line) is shown with 100 replicated datasets (faint red lines) generated from the fitted model.</p>
-<p><strong>[Insert Figure S7 Here]</strong></p>
-<p><strong>Supplementary Figure S7: Distributional Posterior Predictive Checks.</strong> The distribution for three summary statistics calculated from the replicated datasets. The vertical black line shows the value of the statistic from the actual observed data.</p>
+<p><img src="figures/fig-poc-ppcheck.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Supplementary Figure S6: Graphical Posterior Predictive Check.</strong> The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.</p>
+<p><img src="figures/fig-poc-stat-computed.svg" class="img-fluid" style="width:100.0%"></p>
+<p><strong>Supplementary Figure S7: Distributional Posterior Predictive Checks.</strong> The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.</p>
 </section>
-</section>
-<section id="s4-data-and-code-availability" class="level1">
-<h1>S4: Data and Code Availability</h1>
-<p>To ensure full reproducibility, all data and code used in this study are publicly available at the following repository:</p>
-<ul>
-<li><strong>Repository:</strong> [Link to GitHub, OSF, or other public repository]</li>
-<li><strong>Contents:</strong>
-<ul>
-<li><code>/data/</code>: Contains the raw and pre-processed RRi data for the empirical N-of-1 example.</li>
-<li><code>/models/</code>: Contains the fully commented Stan model file (<code>rri_model.stan</code>).</li>
-<li><code>/scripts/</code>: Contains the R scripts to perform the simulations, run all analyses, and generate all figures and tables in both the main manuscript and this supplement.</li>
-<li><code>manuscript.qmd</code>: The Quarto/R Markdown source file for the main manuscript.</li>
-<li><code>supplement.qmd</code>: The Quarto/R Markdown source file for this supplementary document.</li>
-<li><code>renv.lock</code>: A lockfile specifying all R package dependencies to ensure a reproducible computational environment.</li>
-</ul></li>
-</ul>
 </section>
 
 </main>
