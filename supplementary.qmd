@@ -509,11 +509,11 @@ sim_data <- data.frame(
 
 ### S2.2.2: Non-Gaussian Noise Structure
 
-We generated synthetic data using a Student's-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S4 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction ($w$) is biased upwards to compensate the wider tails of the distribution. However, despite sampling from a non-gaussian distribution, the model is able to recover all the other parameters within credible intervals, providing evidence of the robustness of the model to distribution misspecification. Additionally, even though the difference form a $w = 0.80$ and $w = 0.82-0.83$ is statistically significant credible-interval-wise, it could be deemed neglible from a practical stand point.
+We generated synthetic data using a Student's-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S5 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction ($w$) is biased upwards to compensate the wider tails of the distribution. However, despite sampling from a non-gaussian distribution, the model is able to recover all the other parameters within credible intervals, providing evidence of the robustness of the model to distribution misspecification. Additionally, even though the difference form a $w = 0.80$ and $w = 0.82-0.83$ is statistically significant credible-interval-wise, it could be deemed neglible from a practical stand point.
 
 ![](figures/fig-student-t.svg){width=100%}
 
-**Supplementary Figure S4: Impact of Non-Gaussian Noise.** In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student's-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student's-t noise with 3 degrees of freedom. The ground truth parameters are well recovered except for structured variance fraction $w$.
+**Supplementary Figure S5: Impact of Non-Gaussian Noise.** In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student's-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student's-t noise with 3 degrees of freedom. The ground truth parameters are well recovered except for structured variance fraction $w$.
 
 The R code used to generate the data is presented next
 
@@ -767,11 +767,11 @@ This section provides a complete set of diagnostic checks for the HMC analysis o
 
 ## S3.1: Posterior Distributions
 
-Supplementary Figure S5 shows the traceplots for all key parameters from the empirical model fit.
+Supplementary Figure S6 shows the traceplots for all key parameters from the empirical model fit.
 
 ![](figures/fig-poc-traceplot.svg){width=100%}
 
-**Supplementary Figure S5: Full Traceplots for Empirical Analysis.** MCMC traceplots for four chains, showing stationary, well-mixed chains.
+**Supplementary Figure S6: Full Traceplots for Empirical Analysis.** MCMC traceplots for four chains, showing stationary, well-mixed chains.
 
 ## S3.2: MCMC Diagnostic Statistics
 
@@ -785,12 +785,12 @@ readRDS(file = "tables/tbl-S1.RDS")
 
 ## S3.3: Posterior Predictive Checks (PPC)
 
-To assess the model's descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S6 overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S7 shows that the distributions of key summary statistics (mean and SD) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
+To assess the model's descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S7 overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S8 shows that the distributions of key summary statistics (mean and SD) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
 
 ![](figures/fig-poc-ppcheck.svg){width=100%}
 
-**Supplementary Figure S6: Graphical Posterior Predictive Check.** The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.
+**Supplementary Figure S7: Graphical Posterior Predictive Check.** The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.
 
 ![](figures/fig-poc-stat-computed.svg){width=100%}
 
-**Supplementary Figure S7: Distributional Posterior Predictive Checks.** The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.
+**Supplementary Figure S8: Distributional Posterior Predictive Checks.** The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.

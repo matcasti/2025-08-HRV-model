@@ -183,7 +183,7 @@ window.Quarto = {
 <p>Heart rate variability (HRV) is the basis of non-invasive autonomic nervous system assessment, yet its analysis is constrained by the non-stationary nature of physiological signals. Standard analytical methods, which assume stationarity within fixed time windows, fail to capture dynamical effects of interest, such as the response to a physiological stressor. This limitation obstructs the development of mechanistic hypotheses about autonomic control. Here, we address this challenge by introducing a unified probabilistic framework for non-stationary HRV analysis. We propose a hypothesis-driven, generative model that transforms the physiological response as a continuous-time stochastic process controlled by a double-logistic function. This approach deconstructs the R-R interval (RRi) series into a set of interpretable parameters representing the latency, rate, and magnitude of distinct response and recovery phases. Through simulation, we establish the model’s ability to achieve high-fidelity parameter recovery and show its descriptive superiority over conventional fixed-time window methods. We then apply the framework to an empirical exercise-recovery recording, generating a precise, falsifiable hypothesis of “dissonant autonomic recovery”, where mean heart rate and its variability exhibit distinct recovery timescales. This framework provides a formal methodology for translating RRi time series into quantitative, testable estimates of their generative processes.</p>
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
-<p>The central goal in contemporary biomedical science is to mechanistically link the dynamics of physiological systems to human health and disease. A primary obstacle to this goal is the inferential gap between what can be measure with high-temporal resolution via wearable sensors, and the unobservable neurobiological processes that generate these measurements <span class="citation" data-cites="huber2025brain">(<a href="#ref-huber2025brain" role="doc-biblioref">Huber et al. 2025</a>)</span>. This “inverse problem” is specially more evident in the study of the autonomic nervous system (ANS), where heart rate variability (HRV) is the dominant non-invasive proxy <span class="citation" data-cites="shaffer2017overview">(<a href="#ref-shaffer2017overview" role="doc-biblioref">Shaffer and Ginsberg 2017</a>)</span>. The R-R interval (RRi) time-series is an invaluable signal, yet it poses a deep analytical challenge: it is a complex, integrated output reflecting the ceaseless, dynamic interplay of multiple regulatory systems <span class="citation" data-cites="arakaki2023connection">(<a href="#ref-arakaki2023connection" role="doc-biblioref">Arakaki et al. 2023</a>)</span>. Therefore, progress is contingent upon solving this problem of principled inverse inference: the development of a formal methodology to deconstruct this composite signal into quantitative, interpretable, and falsifiable estimates of its underlying generative processes. The urgency of this problem is made more evident by its direct relevance to major public health burdens, as autonomic dysregulation is a core feature of disorders ranging from cardiovascular diseases <span class="citation" data-cites="orini2023long serhiyenko2024post">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>; <a href="#ref-serhiyenko2024post" role="doc-biblioref">Serhiyenko et al. 2024</a>)</span>, to anxiety and post-traumatic stress <span class="citation" data-cites="schneider2020autonomic cheng2022heart tomasi2024heart">(<a href="#ref-schneider2020autonomic" role="doc-biblioref">Schneider and Schwerdtfeger 2020</a>; <a href="#ref-cheng2022heart" role="doc-biblioref">Cheng et al. 2022</a>; <a href="#ref-tomasi2024heart" role="doc-biblioref">Tomasi et al. 2024</a>)</span>, where a precise characterization of system dynamics is essential for diagnosis and treatment <span class="citation" data-cites="orini2023long">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>)</span>.</p>
+<p>The central goal in contemporary biomedical science is to mechanistically link the dynamics of physiological systems to human health and disease. A primary obstacle to this goal is the inferential gap between what can be measure with high-temporal resolution via wearable sensors, and the unobservable neurobiological processes that generate these measurements <span class="citation" data-cites="huber2025brain">(<a href="#ref-huber2025brain" role="doc-biblioref">Huber et al. 2025</a>)</span>. This “inverse problem” is specially more evident in the study of the autonomic nervous system (ANS), where heart rate variability (HRV) is the dominant non-invasive proxy <span class="citation" data-cites="shaffer2017overview castillo2023cardiac castillo2023validity">(<a href="#ref-shaffer2017overview" role="doc-biblioref">Shaffer and Ginsberg 2017</a>; <a href="#ref-castillo2023cardiac" role="doc-biblioref">Castillo-Aguilar, Mabe-Castro, et al. 2023</a>; <a href="#ref-castillo2023validity" role="doc-biblioref">Castillo-Aguilar, Mabe Castro, et al. 2023</a>)</span>. The R-R interval (RRi) time-series is an invaluable signal, yet it poses a deep analytical challenge: it is a complex, integrated output reflecting the ceaseless, dynamic interplay of multiple regulatory systems <span class="citation" data-cites="arakaki2023connection">(<a href="#ref-arakaki2023connection" role="doc-biblioref">Arakaki et al. 2023</a>)</span>. Therefore, progress is contingent upon solving this problem of principled inverse inference: the development of a formal methodology to deconstruct this composite signal into quantitative, interpretable, and falsifiable estimates of its underlying generative processes. The urgency of this problem is made more evident by its direct relevance to major public health burdens, as autonomic dysregulation is a core feature of disorders ranging from cardiovascular diseases <span class="citation" data-cites="orini2023long serhiyenko2024post">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>; <a href="#ref-serhiyenko2024post" role="doc-biblioref">Serhiyenko et al. 2024</a>)</span>, to anxiety and post-traumatic stress <span class="citation" data-cites="schneider2020autonomic cheng2022heart tomasi2024heart">(<a href="#ref-schneider2020autonomic" role="doc-biblioref">Schneider and Schwerdtfeger 2020</a>; <a href="#ref-cheng2022heart" role="doc-biblioref">Cheng et al. 2022</a>; <a href="#ref-tomasi2024heart" role="doc-biblioref">Tomasi et al. 2024</a>)</span>, where a precise characterization of system dynamics is essential for diagnosis and treatment <span class="citation" data-cites="orini2023long">(<a href="#ref-orini2023long" role="doc-biblioref">Orini et al. 2023</a>)</span>.</p>
 <p>The analytical tools currently employed by the majority of researchers are unsuited for this task. The prevailing paradigm, which relies on calculating summary statistics within fixed temporal windows, imposes a static, linear worldview on a system that is intrinsically dynamic and non-linear. The use of fixed temporal windows is made on the assumption of stationarity that is inherently violated during any physiological transition of scientific or clinical interest <span class="citation" data-cites="shaffer2020critical kim2021ultra">(<a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. A core limitation for mechanistic inference is relying on static assumptions, producing misleading and often uninterpretable results <span class="citation" data-cites="kim2021ultra">(<a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. For instance, by averaging across a period of stress recovery, such methods conflate the initial sympathetic response with the subsequent parasympathetic rebound, yielding a single, opaque number that masks the system’s adaptive capacity <span class="citation" data-cites="shaffer2020critical kim2021ultra">(<a href="#ref-shaffer2020critical" role="doc-biblioref">Shaffer, Meehan, and Zerr 2020</a>; <a href="#ref-kim2021ultra" role="doc-biblioref">Kim, Seok, and Shin 2021</a>)</span>. The unavoidable distortion of RRi signals under non-stationary conditions, where their inherent assumptions are not met, can make it impossible to distinguish between a resilient individual who exhibits a rapid and robust recovery from a vulnerable one, with a dampened recovery, a critical biomarker of pathology <span class="citation" data-cites="lu2023uncertainties">(<a href="#ref-lu2023uncertainties" role="doc-biblioref">Lu et al. 2023</a>)</span>. This “discretize-and-summarize” approach systematically discards the temporal structure of the data, thereby precluding the direct estimation of core mechanistic properties such as response latencies, rates of change, and adaptive magnitudes, which constitute the very essence of the physiological process <span class="citation" data-cites="tiwari2021analysis">(<a href="#ref-tiwari2021analysis" role="doc-biblioref">Tiwari et al. 2021</a>)</span>.</p>
 <p>Nonetheless, more sophisticated signal processing and modeling techniques have been proposed, yet these too often fail to resolve the core inferential challenge. They present a false choice between phenomenological description and non-interpretable abstraction. On one hand, time-frequency decompositions, such as the wavelet transform, excel at providing detailed visualizations of spectral dynamics, making them useful for exploratory analysis <span class="citation" data-cites="german2014wavelet">(<a href="#ref-german2014wavelet" role="doc-biblioref">German-Sallo 2014</a>)</span>. However, they are fundamentally descriptive; they do not instantiate a formal, generative model of the underlying biology. They can show that a change occurred, but they cannot provide a parameterized, testable estimate of what changed <span class="citation" data-cites="guo2022review">(<a href="#ref-guo2022review" role="doc-biblioref">Guo et al. 2022</a>)</span>.</p>
 <p>On the other hand, more advanced modeling traditions like state-space models (SSMs) offer mathematical intricacy for tracking and forecasting a system’s evolution <span class="citation" data-cites="martin2018improving rosas2024bayesian">(<a href="#ref-martin2018improving" role="doc-biblioref">Martı́n-González et al. 2018</a>; <a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>)</span>. While powerful, their typical formulations trade physiological fidelity for mathematical convenience; the latent states they infer are often defined by statistical properties rather than direct biological identity <span class="citation" data-cites="rosas2024bayesian liu2024efficient">(<a href="#ref-rosas2024bayesian" role="doc-biblioref">Rosas et al. 2024</a>; <a href="#ref-liu2024efficient" role="doc-biblioref">Liu, Perley, and Coleman 2024</a>)</span>. Even in more tailored applications designed to enhance interpretability, SSMs excel at tracking continuously varying processes but are not explicitly structured to parameterize the distinct phases of a discrete physiological event, such as the specific onset rate, recovery latency, and adaptive magnitude of a stress response. Consequently, the field remains methodologically stalled, caught between descriptive tools that cannot test mechanisms and abstract models whose parameters do not directly map onto the discrete, event-driven components of a physiological hypothesis.</p>
@@ -199,23 +199,23 @@ window.Quarto = {
 <p><img src="figures/fig-generated-data.svg" class="img-fluid" style="width:100.0%"> <strong>Figure 1. Ground-truth dynamics of three synthetic scenarios.</strong> The scenarios were designed to test model performance under diverse conditions: (A) a classic sympatho-vagal response, (B) an incomplete recovery with persistence in both time and frequency domains, and (C) a high-noise condition with dissonant (complete time-domain, incomplete spectral) recovery. Panels show the generated RRi data with the true mean signal, the underlying time-domain trajectories for baseline RRi and total SDNN, and the time-varying spectral proportions.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="uyplrhczto" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#uyplrhczto table {
+<div id="zhjarhwpib" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#zhjarhwpib table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#uyplrhczto thead, #uyplrhczto tbody, #uyplrhczto tfoot, #uyplrhczto tr, #uyplrhczto td, #uyplrhczto th {
+#zhjarhwpib thead, #zhjarhwpib tbody, #zhjarhwpib tfoot, #zhjarhwpib tr, #zhjarhwpib td, #zhjarhwpib th {
   border-style: none;
 }
 
-#uyplrhczto p {
+#zhjarhwpib p {
   margin: 0;
   padding: 0;
 }
 
-#uyplrhczto .gt_table {
+#zhjarhwpib .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -241,12 +241,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#uyplrhczto .gt_caption {
+#zhjarhwpib .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#uyplrhczto .gt_title {
+#zhjarhwpib .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -258,7 +258,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#uyplrhczto .gt_subtitle {
+#zhjarhwpib .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -270,7 +270,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#uyplrhczto .gt_heading {
+#zhjarhwpib .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -282,13 +282,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#uyplrhczto .gt_bottom_border {
+#zhjarhwpib .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#uyplrhczto .gt_col_headings {
+#zhjarhwpib .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -303,7 +303,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#uyplrhczto .gt_col_heading {
+#zhjarhwpib .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -323,7 +323,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#uyplrhczto .gt_column_spanner_outer {
+#zhjarhwpib .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -335,15 +335,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#uyplrhczto .gt_column_spanner_outer:first-child {
+#zhjarhwpib .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#uyplrhczto .gt_column_spanner_outer:last-child {
+#zhjarhwpib .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#uyplrhczto .gt_column_spanner {
+#zhjarhwpib .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -355,11 +355,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#uyplrhczto .gt_spanner_row {
+#zhjarhwpib .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#uyplrhczto .gt_group_heading {
+#zhjarhwpib .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -385,7 +385,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#uyplrhczto .gt_empty_group_heading {
+#zhjarhwpib .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -400,15 +400,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#uyplrhczto .gt_from_md > :first-child {
+#zhjarhwpib .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#uyplrhczto .gt_from_md > :last-child {
+#zhjarhwpib .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#uyplrhczto .gt_row {
+#zhjarhwpib .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -427,7 +427,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#uyplrhczto .gt_stub {
+#zhjarhwpib .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -440,7 +440,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uyplrhczto .gt_stub_row_group {
+#zhjarhwpib .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -454,15 +454,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#uyplrhczto .gt_row_group_first td {
+#zhjarhwpib .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#uyplrhczto .gt_row_group_first th {
+#zhjarhwpib .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#uyplrhczto .gt_summary_row {
+#zhjarhwpib .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -472,16 +472,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uyplrhczto .gt_first_summary_row {
+#zhjarhwpib .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#uyplrhczto .gt_first_summary_row.thick {
+#zhjarhwpib .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#uyplrhczto .gt_last_summary_row {
+#zhjarhwpib .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -491,7 +491,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#uyplrhczto .gt_grand_summary_row {
+#zhjarhwpib .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -501,7 +501,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uyplrhczto .gt_first_grand_summary_row {
+#zhjarhwpib .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -511,7 +511,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#uyplrhczto .gt_last_grand_summary_row_top {
+#zhjarhwpib .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -521,11 +521,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#uyplrhczto .gt_striped {
+#zhjarhwpib .gt_striped {
   background-color: #F4F4F4;
 }
 
-#uyplrhczto .gt_table_body {
+#zhjarhwpib .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -534,7 +534,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#uyplrhczto .gt_footnotes {
+#zhjarhwpib .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -548,7 +548,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#uyplrhczto .gt_footnote {
+#zhjarhwpib .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -557,7 +557,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uyplrhczto .gt_sourcenotes {
+#zhjarhwpib .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -571,7 +571,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#uyplrhczto .gt_sourcenote {
+#zhjarhwpib .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -579,72 +579,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#uyplrhczto .gt_left {
+#zhjarhwpib .gt_left {
   text-align: left;
 }
 
-#uyplrhczto .gt_center {
+#zhjarhwpib .gt_center {
   text-align: center;
 }
 
-#uyplrhczto .gt_right {
+#zhjarhwpib .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#uyplrhczto .gt_font_normal {
+#zhjarhwpib .gt_font_normal {
   font-weight: normal;
 }
 
-#uyplrhczto .gt_font_bold {
+#zhjarhwpib .gt_font_bold {
   font-weight: bold;
 }
 
-#uyplrhczto .gt_font_italic {
+#zhjarhwpib .gt_font_italic {
   font-style: italic;
 }
 
-#uyplrhczto .gt_super {
+#zhjarhwpib .gt_super {
   font-size: 65%;
 }
 
-#uyplrhczto .gt_footnote_marks {
+#zhjarhwpib .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#uyplrhczto .gt_asterisk {
+#zhjarhwpib .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#uyplrhczto .gt_indent_1 {
+#zhjarhwpib .gt_indent_1 {
   text-indent: 5px;
 }
 
-#uyplrhczto .gt_indent_2 {
+#zhjarhwpib .gt_indent_2 {
   text-indent: 10px;
 }
 
-#uyplrhczto .gt_indent_3 {
+#zhjarhwpib .gt_indent_3 {
   text-indent: 15px;
 }
 
-#uyplrhczto .gt_indent_4 {
+#zhjarhwpib .gt_indent_4 {
   text-indent: 20px;
 }
 
-#uyplrhczto .gt_indent_5 {
+#zhjarhwpib .gt_indent_5 {
   text-indent: 25px;
 }
 
-#uyplrhczto .katex-display {
+#zhjarhwpib .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#uyplrhczto div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#zhjarhwpib div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -771,23 +771,23 @@ window.Quarto = {
 <p>Beyond recovering the continuous dynamic trajectories, the model also recovered the discrete parameters that govern the shape and timing of these dynamics. Table 2 presents the posterior summaries for these key parameters, comparing the posterior median and 95% credible intervals against their true values. For all parameters across all scenarios, the 95% credible intervals successfully contained the ground-truth values. Successfully recovering all parameters confirms that they are practically identifiable from this type of data, at least when the data-generating process aligns with the model’s structural assumptions.</p>
 <div class="cell page-columns page-full">
 <div class="cell-output-display column-screen-inset-left">
-<div id="biplfqnqul" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#biplfqnqul table {
+<div id="csoojainch" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#csoojainch table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#biplfqnqul thead, #biplfqnqul tbody, #biplfqnqul tfoot, #biplfqnqul tr, #biplfqnqul td, #biplfqnqul th {
+#csoojainch thead, #csoojainch tbody, #csoojainch tfoot, #csoojainch tr, #csoojainch td, #csoojainch th {
   border-style: none;
 }
 
-#biplfqnqul p {
+#csoojainch p {
   margin: 0;
   padding: 0;
 }
 
-#biplfqnqul .gt_table {
+#csoojainch .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -813,12 +813,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#biplfqnqul .gt_caption {
+#csoojainch .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#biplfqnqul .gt_title {
+#csoojainch .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -830,7 +830,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#biplfqnqul .gt_subtitle {
+#csoojainch .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -842,7 +842,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#biplfqnqul .gt_heading {
+#csoojainch .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -854,13 +854,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#biplfqnqul .gt_bottom_border {
+#csoojainch .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#biplfqnqul .gt_col_headings {
+#csoojainch .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -875,7 +875,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#biplfqnqul .gt_col_heading {
+#csoojainch .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -895,7 +895,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#biplfqnqul .gt_column_spanner_outer {
+#csoojainch .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -907,15 +907,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#biplfqnqul .gt_column_spanner_outer:first-child {
+#csoojainch .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#biplfqnqul .gt_column_spanner_outer:last-child {
+#csoojainch .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#biplfqnqul .gt_column_spanner {
+#csoojainch .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -927,11 +927,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#biplfqnqul .gt_spanner_row {
+#csoojainch .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#biplfqnqul .gt_group_heading {
+#csoojainch .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -957,7 +957,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#biplfqnqul .gt_empty_group_heading {
+#csoojainch .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -972,15 +972,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#biplfqnqul .gt_from_md > :first-child {
+#csoojainch .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#biplfqnqul .gt_from_md > :last-child {
+#csoojainch .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#biplfqnqul .gt_row {
+#csoojainch .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -999,7 +999,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#biplfqnqul .gt_stub {
+#csoojainch .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -1012,7 +1012,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#biplfqnqul .gt_stub_row_group {
+#csoojainch .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1026,15 +1026,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#biplfqnqul .gt_row_group_first td {
+#csoojainch .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#biplfqnqul .gt_row_group_first th {
+#csoojainch .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#biplfqnqul .gt_summary_row {
+#csoojainch .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -1044,16 +1044,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#biplfqnqul .gt_first_summary_row {
+#csoojainch .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#biplfqnqul .gt_first_summary_row.thick {
+#csoojainch .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#biplfqnqul .gt_last_summary_row {
+#csoojainch .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1063,7 +1063,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#biplfqnqul .gt_grand_summary_row {
+#csoojainch .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -1073,7 +1073,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#biplfqnqul .gt_first_grand_summary_row {
+#csoojainch .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1083,7 +1083,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#biplfqnqul .gt_last_grand_summary_row_top {
+#csoojainch .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1093,11 +1093,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#biplfqnqul .gt_striped {
+#csoojainch .gt_striped {
   background-color: #F4F4F4;
 }
 
-#biplfqnqul .gt_table_body {
+#csoojainch .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1106,7 +1106,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#biplfqnqul .gt_footnotes {
+#csoojainch .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1120,7 +1120,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#biplfqnqul .gt_footnote {
+#csoojainch .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1129,7 +1129,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#biplfqnqul .gt_sourcenotes {
+#csoojainch .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1143,7 +1143,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#biplfqnqul .gt_sourcenote {
+#csoojainch .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1151,72 +1151,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#biplfqnqul .gt_left {
+#csoojainch .gt_left {
   text-align: left;
 }
 
-#biplfqnqul .gt_center {
+#csoojainch .gt_center {
   text-align: center;
 }
 
-#biplfqnqul .gt_right {
+#csoojainch .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#biplfqnqul .gt_font_normal {
+#csoojainch .gt_font_normal {
   font-weight: normal;
 }
 
-#biplfqnqul .gt_font_bold {
+#csoojainch .gt_font_bold {
   font-weight: bold;
 }
 
-#biplfqnqul .gt_font_italic {
+#csoojainch .gt_font_italic {
   font-style: italic;
 }
 
-#biplfqnqul .gt_super {
+#csoojainch .gt_super {
   font-size: 65%;
 }
 
-#biplfqnqul .gt_footnote_marks {
+#csoojainch .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#biplfqnqul .gt_asterisk {
+#csoojainch .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#biplfqnqul .gt_indent_1 {
+#csoojainch .gt_indent_1 {
   text-indent: 5px;
 }
 
-#biplfqnqul .gt_indent_2 {
+#csoojainch .gt_indent_2 {
   text-indent: 10px;
 }
 
-#biplfqnqul .gt_indent_3 {
+#csoojainch .gt_indent_3 {
   text-indent: 15px;
 }
 
-#biplfqnqul .gt_indent_4 {
+#csoojainch .gt_indent_4 {
   text-indent: 20px;
 }
 
-#biplfqnqul .gt_indent_5 {
+#csoojainch .gt_indent_5 {
   text-indent: 25px;
 }
 
-#biplfqnqul .katex-display {
+#csoojainch .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#biplfqnqul div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#csoojainch div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1492,23 +1492,23 @@ window.Quarto = {
 <p>A formal quantitative analysis confirms the descriptive efficiency and accuracy of the generative approach for signals of this particular nature. Table 3 provides a summary of key performance metrics. Across all scenarios and all signal components, the generative model consistently provided a more accurate and parsimonious description of the data. It achieved substantially lower error (RMSE and Bias) and captured a significantly higher proportion of the signal’s variance, with <span class="math inline">\(R^2\)</span> values typically exceeding 0.90. It is important to interpret this result with caution. The model’s performance is, in one sense, expected, as the synthetic data were generated from its own structure. However, it illustrates a core theoretical argument of this work: for signals that are plausibly characterized by smooth, continuous transitions between distinct physiological states, a model whose parametric form explicitly encodes this structure will naturally provide a more efficient, less distorted, and more interpretable quantitative summary than a non-parametric, windowed approach that was designed for stationary or quasi-stationary signals.</p>
 <div class="cell page-columns page-full">
 <div class="cell-output-display column-screen-inset-left">
-<div id="fwfswjhgsk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#fwfswjhgsk table {
+<div id="psqlwnhogf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#psqlwnhogf table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#fwfswjhgsk thead, #fwfswjhgsk tbody, #fwfswjhgsk tfoot, #fwfswjhgsk tr, #fwfswjhgsk td, #fwfswjhgsk th {
+#psqlwnhogf thead, #psqlwnhogf tbody, #psqlwnhogf tfoot, #psqlwnhogf tr, #psqlwnhogf td, #psqlwnhogf th {
   border-style: none;
 }
 
-#fwfswjhgsk p {
+#psqlwnhogf p {
   margin: 0;
   padding: 0;
 }
 
-#fwfswjhgsk .gt_table {
+#psqlwnhogf .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1534,12 +1534,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#fwfswjhgsk .gt_caption {
+#psqlwnhogf .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#fwfswjhgsk .gt_title {
+#psqlwnhogf .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1551,7 +1551,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#fwfswjhgsk .gt_subtitle {
+#psqlwnhogf .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1563,7 +1563,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#fwfswjhgsk .gt_heading {
+#psqlwnhogf .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1575,13 +1575,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#fwfswjhgsk .gt_bottom_border {
+#psqlwnhogf .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#fwfswjhgsk .gt_col_headings {
+#psqlwnhogf .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1596,7 +1596,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#fwfswjhgsk .gt_col_heading {
+#psqlwnhogf .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1616,7 +1616,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#fwfswjhgsk .gt_column_spanner_outer {
+#psqlwnhogf .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1628,15 +1628,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#fwfswjhgsk .gt_column_spanner_outer:first-child {
+#psqlwnhogf .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#fwfswjhgsk .gt_column_spanner_outer:last-child {
+#psqlwnhogf .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#fwfswjhgsk .gt_column_spanner {
+#psqlwnhogf .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -1648,11 +1648,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#fwfswjhgsk .gt_spanner_row {
+#psqlwnhogf .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#fwfswjhgsk .gt_group_heading {
+#psqlwnhogf .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1678,7 +1678,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#fwfswjhgsk .gt_empty_group_heading {
+#psqlwnhogf .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1693,15 +1693,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#fwfswjhgsk .gt_from_md > :first-child {
+#psqlwnhogf .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#fwfswjhgsk .gt_from_md > :last-child {
+#psqlwnhogf .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#fwfswjhgsk .gt_row {
+#psqlwnhogf .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1720,7 +1720,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#fwfswjhgsk .gt_stub {
+#psqlwnhogf .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -1733,7 +1733,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#fwfswjhgsk .gt_stub_row_group {
+#psqlwnhogf .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1747,15 +1747,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#fwfswjhgsk .gt_row_group_first td {
+#psqlwnhogf .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#fwfswjhgsk .gt_row_group_first th {
+#psqlwnhogf .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#fwfswjhgsk .gt_summary_row {
+#psqlwnhogf .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -1765,16 +1765,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#fwfswjhgsk .gt_first_summary_row {
+#psqlwnhogf .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#fwfswjhgsk .gt_first_summary_row.thick {
+#psqlwnhogf .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#fwfswjhgsk .gt_last_summary_row {
+#psqlwnhogf .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1784,7 +1784,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#fwfswjhgsk .gt_grand_summary_row {
+#psqlwnhogf .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -1794,7 +1794,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#fwfswjhgsk .gt_first_grand_summary_row {
+#psqlwnhogf .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1804,7 +1804,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#fwfswjhgsk .gt_last_grand_summary_row_top {
+#psqlwnhogf .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1814,11 +1814,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#fwfswjhgsk .gt_striped {
+#psqlwnhogf .gt_striped {
   background-color: #F4F4F4;
 }
 
-#fwfswjhgsk .gt_table_body {
+#psqlwnhogf .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1827,7 +1827,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#fwfswjhgsk .gt_footnotes {
+#psqlwnhogf .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1841,7 +1841,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#fwfswjhgsk .gt_footnote {
+#psqlwnhogf .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1850,7 +1850,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#fwfswjhgsk .gt_sourcenotes {
+#psqlwnhogf .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1864,7 +1864,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#fwfswjhgsk .gt_sourcenote {
+#psqlwnhogf .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1872,72 +1872,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#fwfswjhgsk .gt_left {
+#psqlwnhogf .gt_left {
   text-align: left;
 }
 
-#fwfswjhgsk .gt_center {
+#psqlwnhogf .gt_center {
   text-align: center;
 }
 
-#fwfswjhgsk .gt_right {
+#psqlwnhogf .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#fwfswjhgsk .gt_font_normal {
+#psqlwnhogf .gt_font_normal {
   font-weight: normal;
 }
 
-#fwfswjhgsk .gt_font_bold {
+#psqlwnhogf .gt_font_bold {
   font-weight: bold;
 }
 
-#fwfswjhgsk .gt_font_italic {
+#psqlwnhogf .gt_font_italic {
   font-style: italic;
 }
 
-#fwfswjhgsk .gt_super {
+#psqlwnhogf .gt_super {
   font-size: 65%;
 }
 
-#fwfswjhgsk .gt_footnote_marks {
+#psqlwnhogf .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#fwfswjhgsk .gt_asterisk {
+#psqlwnhogf .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#fwfswjhgsk .gt_indent_1 {
+#psqlwnhogf .gt_indent_1 {
   text-indent: 5px;
 }
 
-#fwfswjhgsk .gt_indent_2 {
+#psqlwnhogf .gt_indent_2 {
   text-indent: 10px;
 }
 
-#fwfswjhgsk .gt_indent_3 {
+#psqlwnhogf .gt_indent_3 {
   text-indent: 15px;
 }
 
-#fwfswjhgsk .gt_indent_4 {
+#psqlwnhogf .gt_indent_4 {
   text-indent: 20px;
 }
 
-#fwfswjhgsk .gt_indent_5 {
+#psqlwnhogf .gt_indent_5 {
   text-indent: 25px;
 }
 
-#fwfswjhgsk .katex-display {
+#psqlwnhogf .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#fwfswjhgsk div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#psqlwnhogf div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -2211,6 +2211,7 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 3. Quantitative Performance Metrics for the Generative Model versus Windowed Methods.</strong> This table presents the root mean squared error (RMSE) and mean absolute error (MAE) as measures of the average magnitude of the estimation error; Bias (mean error) identify any systematic tendency for over- or underestimation; and the coefficient of determination (<span class="math inline">\(R^2\)</span>) to assess the proportion of variance in the true signal captured by the estimate.</p>
+<p>Further model diagnostics testing the model overall stability and reliability can be seen in the supplementary material. Prior predictive checks can be seen in Figure S1; prior sensitivity analysis in Figure S2; full posterior distributions in Figure S3; model fit to asymmetric recovery data from a different data generation processess can be seen in Figure S4 and non-gaussian distributions in Figure S5.</p>
 </section>
 </section>
 <section id="a-phenomenological-description-of-an-empirical-exercise-response" class="level2">
@@ -2222,6 +2223,7 @@ window.Quarto = {
 <p>The framework’s primary scientific utility, however, lies in generating quantitative, testable claims, which are encapsulated by the posterior distributions of its parameters (Figure 5). A key feature of the model is its separate parameterization of the recovery dynamics of the signal’s first moment (mean RRi, via the coefficient <span class="math inline">\(c_r\)</span>) and its second moment (total variability, or SDNN, via the coefficient <span class="math inline">\(c_s\)</span>). This explicit separation allows for a direct, quantitative description of their potential divergence. In this particular recording, the posterior distributions for these two recovery parameters were credibly distinct; the 95% credible interval for <span class="math inline">\(c_r\)</span> was clearly separated from that for <span class="math inline">\(c_s\)</span>. This descriptive feature of the model’s output, which we term model-inferred dissonance, provides a data-driven and falsifiable hypothesis: that the recovery of mean heart rate and the recovery of its variability can follow distinct and dissociable time courses in response to an acute exercise stressor. This hypothesis is a quantitative statement, grounded in the posterior probability distributions of the model’s parameters.</p>
 <p><img src="figures/fig-poc-posterior.svg" class="img-fluid" style="width:100.0%"></p>
 <p><strong>Figure 5. Posterior distribution of phenomenological recovery parameters from the empirical analysis.</strong> The posterior distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance, alongside the structured variance fraction (<span class="math inline">\(w\)</span>). The posterior distribution allows for visual inspection of model convergence of model parameters.</p>
+<p>Additional model diagnostics can be seen in the supplementary material, where complete traceplots and MCMC diagnostics can be seen in Figure S6 and Table S1, respectively. Posterior predictive checks can be seen in Figure S7 and S8.</p>
 </section>
 </section>
 <section id="discussion" class="level1">
@@ -2409,6 +2411,12 @@ Betancourt, Michael, and Mark Girolami. 2015. <span>“Hamiltonian Monte Carlo f
 </div>
 <div id="ref-binois2022survey" class="csl-entry" role="listitem">
 Binois, Mickael, and Nathan Wycoff. 2022. <span>“A Survey on High-Dimensional Gaussian Process Modeling with Application to Bayesian Optimization.”</span> <em>ACM Transactions on Evolutionary Learning and Optimization</em> 2 (2): 1–26.
+</div>
+<div id="ref-castillo2023validity" class="csl-entry" role="listitem">
+Castillo-Aguilar, Matı́as, Matı́as Mabe Castro, Diego Mabe Castro, Pablo Valdés-Badilla, Tomás Herrera-Valenzuela, Eduardo Guzmán-Muñoz, Morin Lang, Oscar Niño Méndez, and Cristian Núñez-Espinosa. 2023. <span>“Validity and Reliability of Short-Term Heart Rate Variability Parameters in Older People in Response to Physical Exercise.”</span> <em>International Journal of Environmental Research and Public Health</em> 20 (5): 4456.
+</div>
+<div id="ref-castillo2023cardiac" class="csl-entry" role="listitem">
+Castillo-Aguilar, Matı́as, Diego Mabe-Castro, M Mabe-Castro, V Oyarzo, K Harris King, P Valdés-Badilla, P Delgado-Floody, J González-Puelma, and C Núñez-Espinosa. 2023. <span>“Cardiac Autonomic Regulation in Response to Functional Power Threshold Testing in Elite Cyclists.”</span> <em>Revista Andaluza de Medicina Del Deporte</em> 16.
 </div>
 <div id="ref-castillo2025enhancing" class="csl-entry" role="listitem">
 Castillo-Aguilar, Matı́as, Diego Mabe-Castro, David Medina, and Cristian Núñez-Espinosa. 2025. <span>“Enhancing Cardiovascular Monitoring: A Non-Linear Model for Characterizing RR Interval Fluctuations in Exercise and Recovery.”</span> <em>Scientific Reports</em> 15 (1): 8628.

@@ -645,9 +645,9 @@ window.Quarto = {
 </section>
 <section id="s2.2.2-non-gaussian-noise-structure" class="level3">
 <h3 class="anchored" data-anchor-id="s2.2.2-non-gaussian-noise-structure">S2.2.2: Non-Gaussian Noise Structure</h3>
-<p>We generated synthetic data using a Student’s-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S4 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction (<span class="math inline">\(w\)</span>) is biased upwards to compensate the wider tails of the distribution. However, despite sampling from a non-gaussian distribution, the model is able to recover all the other parameters within credible intervals, providing evidence of the robustness of the model to distribution misspecification. Additionally, even though the difference form a <span class="math inline">\(w = 0.80\)</span> and <span class="math inline">\(w = 0.82-0.83\)</span> is statistically significant credible-interval-wise, it could be deemed neglible from a practical stand point.</p>
+<p>We generated synthetic data using a Student’s-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S5 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction (<span class="math inline">\(w\)</span>) is biased upwards to compensate the wider tails of the distribution. However, despite sampling from a non-gaussian distribution, the model is able to recover all the other parameters within credible intervals, providing evidence of the robustness of the model to distribution misspecification. Additionally, even though the difference form a <span class="math inline">\(w = 0.80\)</span> and <span class="math inline">\(w = 0.82-0.83\)</span> is statistically significant credible-interval-wise, it could be deemed neglible from a practical stand point.</p>
 <p><img src="figures/fig-student-t.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Supplementary Figure S4: Impact of Non-Gaussian Noise.</strong> In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student’s-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student’s-t noise with 3 degrees of freedom. The ground truth parameters are well recovered except for structured variance fraction <span class="math inline">\(w\)</span>.</p>
+<p><strong>Supplementary Figure S5: Impact of Non-Gaussian Noise.</strong> In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student’s-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student’s-t noise with 3 degrees of freedom. The ground truth parameters are well recovered except for structured variance fraction <span class="math inline">\(w\)</span>.</p>
 <p>The R code used to generate the data is presented next</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. --- Simulation Setup ---</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Define shared simulation parameters</span></span>
@@ -894,32 +894,32 @@ window.Quarto = {
 <p>This section provides a complete set of diagnostic checks for the HMC analysis of the empirical N-of-1 dataset to ensure the reliability of the inference.</p>
 <section id="s3.1-posterior-distributions" class="level2">
 <h2 class="anchored" data-anchor-id="s3.1-posterior-distributions">S3.1: Posterior Distributions</h2>
-<p>Supplementary Figure S5 shows the traceplots for all key parameters from the empirical model fit.</p>
+<p>Supplementary Figure S6 shows the traceplots for all key parameters from the empirical model fit.</p>
 <p><img src="figures/fig-poc-traceplot.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Supplementary Figure S5: Full Traceplots for Empirical Analysis.</strong> MCMC traceplots for four chains, showing stationary, well-mixed chains.</p>
+<p><strong>Supplementary Figure S6: Full Traceplots for Empirical Analysis.</strong> MCMC traceplots for four chains, showing stationary, well-mixed chains.</p>
 </section>
 <section id="s3.2-mcmc-diagnostic-statistics" class="level2">
 <h2 class="anchored" data-anchor-id="s3.2-mcmc-diagnostic-statistics">S3.2: MCMC Diagnostic Statistics</h2>
 <p>All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S1 provides the R-hat, effective sample size (ESS), Monte Carlo Standard Error (MCSE) and Pareto K values for all key parameters, confirming the reliability of the posterior estimates.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="yadnhtwibn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#yadnhtwibn table {
+<div id="hrqnqqkfxj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#hrqnqqkfxj table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#yadnhtwibn thead, #yadnhtwibn tbody, #yadnhtwibn tfoot, #yadnhtwibn tr, #yadnhtwibn td, #yadnhtwibn th {
+#hrqnqqkfxj thead, #hrqnqqkfxj tbody, #hrqnqqkfxj tfoot, #hrqnqqkfxj tr, #hrqnqqkfxj td, #hrqnqqkfxj th {
   border-style: none;
 }
 
-#yadnhtwibn p {
+#hrqnqqkfxj p {
   margin: 0;
   padding: 0;
 }
 
-#yadnhtwibn .gt_table {
+#hrqnqqkfxj .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -945,12 +945,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#yadnhtwibn .gt_caption {
+#hrqnqqkfxj .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#yadnhtwibn .gt_title {
+#hrqnqqkfxj .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -962,7 +962,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#yadnhtwibn .gt_subtitle {
+#hrqnqqkfxj .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -974,7 +974,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#yadnhtwibn .gt_heading {
+#hrqnqqkfxj .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -986,13 +986,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#yadnhtwibn .gt_bottom_border {
+#hrqnqqkfxj .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#yadnhtwibn .gt_col_headings {
+#hrqnqqkfxj .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1007,7 +1007,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#yadnhtwibn .gt_col_heading {
+#hrqnqqkfxj .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1027,7 +1027,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#yadnhtwibn .gt_column_spanner_outer {
+#hrqnqqkfxj .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1039,15 +1039,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#yadnhtwibn .gt_column_spanner_outer:first-child {
+#hrqnqqkfxj .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#yadnhtwibn .gt_column_spanner_outer:last-child {
+#hrqnqqkfxj .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#yadnhtwibn .gt_column_spanner {
+#hrqnqqkfxj .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -1059,11 +1059,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#yadnhtwibn .gt_spanner_row {
+#hrqnqqkfxj .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#yadnhtwibn .gt_group_heading {
+#hrqnqqkfxj .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1089,7 +1089,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#yadnhtwibn .gt_empty_group_heading {
+#hrqnqqkfxj .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1104,15 +1104,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#yadnhtwibn .gt_from_md > :first-child {
+#hrqnqqkfxj .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#yadnhtwibn .gt_from_md > :last-child {
+#hrqnqqkfxj .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#yadnhtwibn .gt_row {
+#hrqnqqkfxj .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1131,7 +1131,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#yadnhtwibn .gt_stub {
+#hrqnqqkfxj .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -1144,7 +1144,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#yadnhtwibn .gt_stub_row_group {
+#hrqnqqkfxj .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1158,15 +1158,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#yadnhtwibn .gt_row_group_first td {
+#hrqnqqkfxj .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#yadnhtwibn .gt_row_group_first th {
+#hrqnqqkfxj .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#yadnhtwibn .gt_summary_row {
+#hrqnqqkfxj .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -1176,16 +1176,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#yadnhtwibn .gt_first_summary_row {
+#hrqnqqkfxj .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#yadnhtwibn .gt_first_summary_row.thick {
+#hrqnqqkfxj .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#yadnhtwibn .gt_last_summary_row {
+#hrqnqqkfxj .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1195,7 +1195,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#yadnhtwibn .gt_grand_summary_row {
+#hrqnqqkfxj .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -1205,7 +1205,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#yadnhtwibn .gt_first_grand_summary_row {
+#hrqnqqkfxj .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1215,7 +1215,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#yadnhtwibn .gt_last_grand_summary_row_top {
+#hrqnqqkfxj .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1225,11 +1225,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#yadnhtwibn .gt_striped {
+#hrqnqqkfxj .gt_striped {
   background-color: #F4F4F4;
 }
 
-#yadnhtwibn .gt_table_body {
+#hrqnqqkfxj .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1238,7 +1238,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#yadnhtwibn .gt_footnotes {
+#hrqnqqkfxj .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1252,7 +1252,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#yadnhtwibn .gt_footnote {
+#hrqnqqkfxj .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1261,7 +1261,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#yadnhtwibn .gt_sourcenotes {
+#hrqnqqkfxj .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1275,7 +1275,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#yadnhtwibn .gt_sourcenote {
+#hrqnqqkfxj .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1283,72 +1283,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#yadnhtwibn .gt_left {
+#hrqnqqkfxj .gt_left {
   text-align: left;
 }
 
-#yadnhtwibn .gt_center {
+#hrqnqqkfxj .gt_center {
   text-align: center;
 }
 
-#yadnhtwibn .gt_right {
+#hrqnqqkfxj .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#yadnhtwibn .gt_font_normal {
+#hrqnqqkfxj .gt_font_normal {
   font-weight: normal;
 }
 
-#yadnhtwibn .gt_font_bold {
+#hrqnqqkfxj .gt_font_bold {
   font-weight: bold;
 }
 
-#yadnhtwibn .gt_font_italic {
+#hrqnqqkfxj .gt_font_italic {
   font-style: italic;
 }
 
-#yadnhtwibn .gt_super {
+#hrqnqqkfxj .gt_super {
   font-size: 65%;
 }
 
-#yadnhtwibn .gt_footnote_marks {
+#hrqnqqkfxj .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#yadnhtwibn .gt_asterisk {
+#hrqnqqkfxj .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#yadnhtwibn .gt_indent_1 {
+#hrqnqqkfxj .gt_indent_1 {
   text-indent: 5px;
 }
 
-#yadnhtwibn .gt_indent_2 {
+#hrqnqqkfxj .gt_indent_2 {
   text-indent: 10px;
 }
 
-#yadnhtwibn .gt_indent_3 {
+#hrqnqqkfxj .gt_indent_3 {
   text-indent: 15px;
 }
 
-#yadnhtwibn .gt_indent_4 {
+#hrqnqqkfxj .gt_indent_4 {
   text-indent: 20px;
 }
 
-#yadnhtwibn .gt_indent_5 {
+#hrqnqqkfxj .gt_indent_5 {
   text-indent: 25px;
 }
 
-#yadnhtwibn .katex-display {
+#hrqnqqkfxj .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#yadnhtwibn div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#hrqnqqkfxj div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1519,11 +1519,11 @@ window.Quarto = {
 </section>
 <section id="s3.3-posterior-predictive-checks-ppc" class="level2">
 <h2 class="anchored" data-anchor-id="s3.3-posterior-predictive-checks-ppc">S3.3: Posterior Predictive Checks (PPC)</h2>
-<p>To assess the model’s descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S6 overlays the empirical RRi time series with 100 time series simulated from the fitted model’s posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S7 shows that the distributions of key summary statistics (mean and SD) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.</p>
+<p>To assess the model’s descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S7 overlays the empirical RRi time series with 100 time series simulated from the fitted model’s posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S8 shows that the distributions of key summary statistics (mean and SD) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.</p>
 <p><img src="figures/fig-poc-ppcheck.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Supplementary Figure S6: Graphical Posterior Predictive Check.</strong> The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.</p>
+<p><strong>Supplementary Figure S7: Graphical Posterior Predictive Check.</strong> The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.</p>
 <p><img src="figures/fig-poc-stat-computed.svg" class="img-fluid" style="width:100.0%"></p>
-<p><strong>Supplementary Figure S7: Distributional Posterior Predictive Checks.</strong> The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.</p>
+<p><strong>Supplementary Figure S8: Distributional Posterior Predictive Checks.</strong> The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.</p>
 </section>
 </section>
 
