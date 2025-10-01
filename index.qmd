@@ -70,7 +70,7 @@ The core components of the model, related the underlying data generation process
 ![](figures/main-fig/main-fig.svg){width=100%}
 :::
 
-**Figure 1. Core components underlying observed RRi signals captured by the model**. The data generation process being modeled is illustrated for a linear combination of time and frequency components that build the underlying observed RRi signal. In the top of the figure lies the model with each component separated in the subsequent bottom panels.
+**Figure 1. Core components underlying observed RRi signals captured by the model**. The data generation process being modeled is represented as a linear combination of time and frequency components that build the underlying observed RRi signal as a dynamical and continuous process. In the top of the figure lies the model with each component separated in the subsequent bottom panels.
 
 ## Model validation and parameter recovery on synthetic data
 
