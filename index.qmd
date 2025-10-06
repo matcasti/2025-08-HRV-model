@@ -243,26 +243,26 @@ The baseline heart period, $\mathrm{RR_{base}}(t_i)$, which quantifies the gross
 $$
 \mathrm{RR_{base}}(t_i) =
 \underbrace{\alpha_r}_{\substack{\text{Resting RRi}}}
--
-\underbrace{\beta_r \cdot \mathcal{D}_{1}(t_i)}_{\substack{\text{Perturbation-induced}\\\text{RRi Drop}}}
 +
+\underbrace{\beta_r \cdot \mathcal{D}_{1}(t_i)}_{\substack{\text{Perturbation-induced}\\\text{RRi Drop}}}
+-
 \underbrace{c_r \beta_r \cdot \mathcal{D}_{2}(t_i)}_{\substack{\text{Post-perturbation}\\\text{RRi Recovery}}}
 $${#eq-rri-baseline-model}
 
-In this formulation, $\alpha_r$ represents the initial, stable heart period. The parameter $\beta_r$ signifies the magnitude of the decline in RRi induced by the perturbation. The fractional recovery amplitude is denoted by $c_r$, where $c_r > 1$ indicates an overshoot.
+In this formulation, $\alpha_r$ represents the initial, stable heart period. The parameter $\beta_r$ signifies the magnitude of the decline or increase in RRi induced by the perturbation. The fractional recovery amplitude is denoted by $c_r$, where $c_r > 1$ indicates an overshoot.
 
 Concurrently, the total instantaneous variability, $\mathrm{SDNN}(t_i)$, follows a parallel dynamic trajectory, as defined in @eq-sdnn-model.
 
 $$
 \mathrm{SDNN}(t_i) =
 \underbrace{\alpha_s}_{\substack{\text{Resting SDNN}}}
--
-\underbrace{\beta_s \cdot \mathcal{D}_{1}(t_i)}_{\substack{\text{Perturbation-induced}\\\text{SDNN Drop}}}
 +
+\underbrace{\beta_s \cdot \mathcal{D}_{1}(t_i)}_{\substack{\text{Perturbation-induced}\\\text{SDNN Drop}}}
+-
 \underbrace{c_s \beta_s \cdot \mathcal{D}_{2}(t_i)}_{\substack{\text{Post-perturbation}\\\text{SDNN Recovery}}}
 $${#eq-sdnn-model}
 
-Here, $\alpha_s$, $\beta_s$, and $c_s$ are analogous to their counterparts in the baseline model, representing the resting total SDNN, the magnitude of its suppression, and its fractional recovery, respectively. The dynamics for both trajectories are driven by a shared pair of logistic transition functions, $\mathcal{D}_{1}(t_i)$ and $\mathcal{D}_{2}(t_i)$, defined in @eq-logistic-components.
+Here, $\alpha_s$, $\beta_s$, and $c_s$ are analogous to their counterparts in the baseline model, representing the resting total SDNN, the magnitude of its suppression or increase, and its fractional recovery, respectively. The dynamics for both trajectories are driven by a shared pair of logistic transition functions, $\mathcal{D}_{1}(t_i)$ and $\mathcal{D}_{2}(t_i)$, defined in @eq-logistic-components.
 
 $$
 \begin{aligned}

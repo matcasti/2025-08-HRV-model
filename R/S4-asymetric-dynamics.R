@@ -38,7 +38,7 @@ phi    <- 0.8    # Rate of the exponential recovery (lower = slower recovery)
 
 # RRi amplitude parameters
 alpha  <- 1000   # Initial baseline RRi (ms)
-beta   <- 300    # Magnitude of the RRi drop (ms)
+beta   <- -300    # Magnitude of the RRi drop (ms)
 c_r    <- 0.90   # Fractional recovery (0.9 = 90% recovery of the drop)
 
 # Noise parameter
@@ -53,7 +53,7 @@ recovery     <- exponential_recovery(t, start_time = tau + delta, rate = phi)
 
 # Combine the components to create the true mean RRi trajectory
 # The logic follows the manuscript's model: Baseline - Drop + Recovery
-mean_rri <- alpha - (beta * perturbation) + (c_r * beta * recovery)
+mean_rri <- alpha + (beta * perturbation) - (c_r * beta * recovery)
 
 # Add Gaussian noise to create the final observed signal
 set.seed(123) # for reproducibility

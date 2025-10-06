@@ -34,8 +34,7 @@ diagnostic_tbl <- posterior_long[, list(
   `MCSE Mean` = round(posterior::mcse_mean(value), 3),
   `Bulk ESS` = posterior::ess_bulk(value),
   `Tail ESS` = posterior::ess_tail(value),
-  `R-hat` = round(posterior::rhat(value), 5),
-  `Pareto K values` = round(posterior::pareto_khat(value, tail = "both"), 3)
+  `R-hat` = round(posterior::rhat(value), 5)
 ), keyby = Parameter]
 
 gt(diagnostic_tbl) |>

@@ -41,9 +41,9 @@ params[[1]] <- list(
   # Double-logistic timing
   lambda = 2, phi = 3, tau = 6, delta = 3,
   # RR(t) params
-  alpha_r = 800, beta_r = 400, c_r = 1.0,
+  alpha_r = 800, beta_r = -400, c_r = 1.0,
   # SDNN(t) params
-  alpha_s = 50, beta_s = 40, c_s = 1.0,
+  alpha_s = 50, beta_s = -40, c_s = 1.0,
   # Spectral & Noise params
   c_c = 0.8, w = 0.90, # 90% structured variance
   # p(t) params
@@ -59,9 +59,9 @@ params[[2]] <- list(
   # Double-logistic timing
   lambda = 2, phi = 3, tau = 6, delta = 3,
   # RR(t) params - c_r < 1 means incomplete mean recovery
-  alpha_r = 700, beta_r = 350, c_r = 0.6,
+  alpha_r = 700, beta_r = -350, c_r = 0.6,
   # SDNN(t) params - c_s < 1 means incomplete variability recovery
-  alpha_s = 40, beta_s = 20, c_s = 0.6,
+  alpha_s = 40, beta_s = -20, c_s = 0.6,
   # Spectral & Noise params
   c_c = 0.4, w = 0.90,
   # p(t) params - c_c < 1 means spectral signature persists
@@ -78,9 +78,9 @@ params[[3]] <- list(
   # Double-logistic timing (less dramatic transition)
   lambda = 2, phi = 3, tau = 6, delta = 3,
   # RR(t) params
-  alpha_r = 800, beta_r = 400, c_r = 1.0,
+  alpha_r = 800, beta_r = -400, c_r = 1.0,
   # SDNN(t) params - High baseline variability
-  alpha_s = 50, beta_s = 25, c_s = 1.0,
+  alpha_s = 50, beta_s = -25, c_s = 1.0,
   # p(t) params - Stable spectrum (base and pert are similar)
   c_c = 0.4, w = 0.60, # 60% structured variance
   pi_base = c(0.20, 0.20, 0.60), # VLF, LF, HF - Rest
@@ -114,10 +114,10 @@ params_table$Interpretation <- c(
   "Time onset",
   "Stimulus durantion",
   "Resting RRi",
-  "Magnitude of RRi decay",
+  "Magnitude of RRi change",
   "RRi recovery proportion",
   "Resting SDNN",
-  "Magnitude of SDNN decay",
+  "Magnitude of SDNN change",
   "SDNN recovery proportion",
   "Spectral recovery proportion",
   "Proportion of structured variance",

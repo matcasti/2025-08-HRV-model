@@ -20,7 +20,7 @@ models <- list(
 )
 
 ## Import parameters used for simulation
-simulation_parameters <- readRDS("~/Research/2025-08 HRV-model/data/simulation_parameters.RDS")
+simulation_parameters <- readRDS("data/simulation_parameters.RDS")
 figures <- vector("list", length = 3)
 for(i in 1:3) {
   sim <- models[[i]][, lambda:pi_pert.V3]

@@ -142,7 +142,7 @@ window.Quarto = {
                 <div>
             <div class="quarto-title-meta-heading">Modified</div>
             <div class="quarto-title-meta-contents">
-              <p class="date-modified">September 30, 2025</p>
+              <p class="date-modified">October 5, 2025</p>
             </div>
           </div>
                 
@@ -381,11 +381,11 @@ window.Quarto = {
 <span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> phi    = exp(phi_log);</span>
 <span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> alpha_r = inv_logit(alpha_r_logit) * <span class="dv">2</span> * rr_range + rr_min;</span>
-<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> beta_r  = inv_logit(beta_r_logit) * alpha_r; <span class="co">// Beta is a fraction of Alpha.</span></span>
+<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> beta_r  = (inv_logit(beta_r_logit) * <span class="dv">2</span> - <span class="dv">1</span>) * alpha_r; <span class="co">// Beta is a fraction of Alpha.</span></span>
 <span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> c_r     = inv_logit(c_r_logit) * <span class="dv">2</span>; <span class="co">// Recovery can be up to 200% (overshoot).</span></span>
 <span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> alpha_s = inv_logit(alpha_s_logit) * rr_sd;</span>
-<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> beta_s  = inv_logit(beta_s_logit) * alpha_s; <span class="co">// Beta is a fraction of Alpha.</span></span>
+<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> beta_s  = (inv_logit(beta_s_logit) * <span class="dv">2</span> - <span class="dv">1</span>) * alpha_s; <span class="co">// Beta is a fraction of Alpha.</span></span>
 <span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> c_s     = inv_logit(c_s_logit) * <span class="dv">2</span>; <span class="co">// Recovery can be up to 200% (overshoot).</span></span>
 <span id="cb1-192"><a href="#cb1-192" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-193"><a href="#cb1-193" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> c_c = inv_logit(c_c_logit); <span class="co">// Spectral recovery is between 0-100%.</span></span>
@@ -403,8 +403,8 @@ window.Quarto = {
 <span id="cb1-205"><a href="#cb1-205" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-206"><a href="#cb1-206" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 2. Construct the baseline and SDNN trajectories ---</span></span>
 <span id="cb1-207"><a href="#cb1-207" aria-hidden="true" tabindex="-1"></a>  <span class="co">// These define the time-varying mean and total standard deviation of the RR signal.</span></span>
-<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] RR_baseline = alpha_r - beta_r .* D1 + (c_r * beta_r) .* D2;</span>
-<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] SDNN_t      = alpha_s - beta_s .* D1 + (c_s * beta_s) .* D2;</span>
+<span id="cb1-208"><a href="#cb1-208" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] RR_baseline = fmax(<span class="fl">1e-8</span>, alpha_r + beta_r .* D1 - (c_r * beta_r) .* D2);</span>
+<span id="cb1-209"><a href="#cb1-209" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N] SDNN_t      = fmax(<span class="fl">1e-8</span>, alpha_s + beta_s .* D1 - (c_s * beta_s) .* D2);</span>
 <span id="cb1-210"><a href="#cb1-210" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-211"><a href="#cb1-211" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- 3. Construct the master controller C(t) and spectral proportions p_t ---</span></span>
 <span id="cb1-212"><a href="#cb1-212" aria-hidden="true" tabindex="-1"></a>  <span class="co">// C(t) governs the transition from a baseline spectral state to a perturbed one.</span></span>
@@ -526,11 +526,11 @@ window.Quarto = {
 <span id="cb1-328"><a href="#cb1-328" aria-hidden="true" tabindex="-1"></a>  c_c_logit ~ normal(<span class="dv">1</span>, <span class="dv">2</span>);</span>
 <span id="cb1-329"><a href="#cb1-329" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-330"><a href="#cb1-330" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for the Smoothness of the GP ---</span></span>
-<span id="cb1-331"><a href="#cb1-331" aria-hidden="true" tabindex="-1"></a>  rho_gp_logit   ~ normal(<span class="dv">0</span>, <span class="dv">1</span>); <span class="co">// Allows some wiggliness</span></span>
+<span id="cb1-331"><a href="#cb1-331" aria-hidden="true" tabindex="-1"></a>  rho_gp_logit   ~ normal(<span class="dv">0</span>, <span class="dv">1</span>); <span class="co">// Allows more wiggliness</span></span>
 <span id="cb1-332"><a href="#cb1-332" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-333"><a href="#cb1-333" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors for Non-Centered Parameters ---</span></span>
 <span id="cb1-334"><a href="#cb1-334" aria-hidden="true" tabindex="-1"></a>  <span class="co">// As part of the NCP pattern, the "raw" parameters are given standard normal</span></span>
-<span id="cb1-335"><a href="#cb1-335" aria-hidden="true" tabindex="-1"></a>  <span class="co">// priors.</span></span>
+<span id="cb1-335"><a href="#cb1-335" aria-hidden="true" tabindex="-1"></a>  <span class="co">// priors. This is the core of what makes the NCP work.</span></span>
 <span id="cb1-336"><a href="#cb1-336" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:<span class="dv">3</span>) {</span>
 <span id="cb1-337"><a href="#cb1-337" aria-hidden="true" tabindex="-1"></a>    z_gp[j] ~ std_normal();  <span class="co">// Prior for the non-centered GP.</span></span>
 <span id="cb1-338"><a href="#cb1-338" aria-hidden="true" tabindex="-1"></a>    z_sin[j] ~ std_normal(); <span class="co">// Prior for the sine coefficients.</span></span>
@@ -558,7 +558,7 @@ window.Quarto = {
 </section>
 <section id="s1.2.2-prior-sensitivity-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="s1.2.2-prior-sensitivity-analysis">S1.2.2: Prior Sensitivity Analysis</h3>
-<p>To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript’s weakly informative priors, (2) “flatter” priors with two times larger variance, and (3) “tighter”, more informative priors with half of original variance. Supplementary Figure S2 shows the posterior distribution for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between <span class="math inline">\(c\_r\)</span> and <span class="math inline">\(c\_s\)</span>) remains unchanged across all specifications, with consistent overlapping credible intervals for all model parameters demonstrating the robustness of our primary finding.</p>
+<p>To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript’s weakly informative priors, (2) “flatter” priors with two times larger variance, and (3) “tighter”, more informative priors with half of original variance. Supplementary Figure S2 shows the posterior distribution for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between <span class="math inline">\(c\_r\)</span> and <span class="math inline">\(c\_s\)</span>) remains unchanged across all specifications, with consistent overlapping credible intervals for all model parameters demonstrating the robustness of our primary finding. Moreover, the current priors ensure that model parameters are sufficiently identifiabile, whereas wider priors tend to induce multimodal posterior distributions, suggesting that the current prior choice is sufficient to ensure model convergence without biasing the parameter estimates.</p>
 <p><img src="figures/fig-prior-sensitivity.svg" class="img-fluid" style="width:100.0%"></p>
 <p><strong>Supplementary Figure S2: Prior Sensitivity Analysis.</strong> Posterior distributions and 95% credible intervals for all model parameters under three different prior specifications. The overlapping credible intervals provide compelling evidence of robustness in parameter estimation.</p>
 </section>
@@ -613,7 +613,7 @@ window.Quarto = {
 <span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co"># RRi amplitude parameters</span></span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>alpha  <span class="ot">&lt;-</span> <span class="dv">1000</span>   <span class="co"># Initial baseline RRi (ms)</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>beta   <span class="ot">&lt;-</span> <span class="dv">300</span>    <span class="co"># Magnitude of the RRi drop (ms)</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>beta   <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">300</span>    <span class="co"># Magnitude of the RRi drop (ms)</span></span>
 <span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>c_r    <span class="ot">&lt;-</span> <span class="fl">0.90</span>   <span class="co"># Fractional recovery (0.9 = 90% recovery of the drop)</span></span>
 <span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Noise parameter</span></span>
@@ -628,7 +628,7 @@ window.Quarto = {
 <span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine the components to create the true mean RRi trajectory</span></span>
 <span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co"># The logic follows the manuscript's model: Baseline - Drop + Recovery</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>mean_rri <span class="ot">&lt;-</span> alpha <span class="sc">-</span> (beta <span class="sc">*</span> perturbation) <span class="sc">+</span> (c_r <span class="sc">*</span> beta <span class="sc">*</span> recovery)</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>mean_rri <span class="ot">&lt;-</span> alpha <span class="sc">+</span> (beta <span class="sc">*</span> perturbation) <span class="sc">-</span> (c_r <span class="sc">*</span> beta <span class="sc">*</span> recovery)</span>
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co"># Add Gaussian noise to create the final observed signal</span></span>
 <span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>) <span class="co"># for reproducibility</span></span>
@@ -900,26 +900,26 @@ window.Quarto = {
 </section>
 <section id="s3.2-mcmc-diagnostic-statistics" class="level2">
 <h2 class="anchored" data-anchor-id="s3.2-mcmc-diagnostic-statistics">S3.2: MCMC Diagnostic Statistics</h2>
-<p>All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S1 provides the R-hat, effective sample size (ESS), Monte Carlo Standard Error (MCSE) and Pareto K values for all key parameters, confirming the reliability of the posterior estimates.</p>
+<p>All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S1 provides the R-hat, effective sample size (ESS) and Monte Carlo Standard Error (MCSE) values for all key parameters, confirming the reliability of the posterior estimates.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="hrqnqqkfxj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#hrqnqqkfxj table {
+<div id="cbyctuowon" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#cbyctuowon table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#hrqnqqkfxj thead, #hrqnqqkfxj tbody, #hrqnqqkfxj tfoot, #hrqnqqkfxj tr, #hrqnqqkfxj td, #hrqnqqkfxj th {
+#cbyctuowon thead, #cbyctuowon tbody, #cbyctuowon tfoot, #cbyctuowon tr, #cbyctuowon td, #cbyctuowon th {
   border-style: none;
 }
 
-#hrqnqqkfxj p {
+#cbyctuowon p {
   margin: 0;
   padding: 0;
 }
 
-#hrqnqqkfxj .gt_table {
+#cbyctuowon .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -945,12 +945,12 @@ window.Quarto = {
   border-left-color: #D5D5D5;
 }
 
-#hrqnqqkfxj .gt_caption {
+#cbyctuowon .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#hrqnqqkfxj .gt_title {
+#cbyctuowon .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -962,7 +962,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#hrqnqqkfxj .gt_subtitle {
+#cbyctuowon .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -974,7 +974,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#hrqnqqkfxj .gt_heading {
+#cbyctuowon .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -986,13 +986,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#hrqnqqkfxj .gt_bottom_border {
+#cbyctuowon .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
 }
 
-#hrqnqqkfxj .gt_col_headings {
+#cbyctuowon .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1007,7 +1007,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#hrqnqqkfxj .gt_col_heading {
+#cbyctuowon .gt_col_heading {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1027,7 +1027,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#hrqnqqkfxj .gt_column_spanner_outer {
+#cbyctuowon .gt_column_spanner_outer {
   color: #FFFFFF;
   background-color: #004D80;
   font-size: 100%;
@@ -1039,15 +1039,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#hrqnqqkfxj .gt_column_spanner_outer:first-child {
+#cbyctuowon .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#hrqnqqkfxj .gt_column_spanner_outer:last-child {
+#cbyctuowon .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#hrqnqqkfxj .gt_column_spanner {
+#cbyctuowon .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D5D5D5;
@@ -1059,11 +1059,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#hrqnqqkfxj .gt_spanner_row {
+#cbyctuowon .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#hrqnqqkfxj .gt_group_heading {
+#cbyctuowon .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1089,7 +1089,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#hrqnqqkfxj .gt_empty_group_heading {
+#cbyctuowon .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1104,15 +1104,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#hrqnqqkfxj .gt_from_md > :first-child {
+#cbyctuowon .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#hrqnqqkfxj .gt_from_md > :last-child {
+#cbyctuowon .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#hrqnqqkfxj .gt_row {
+#cbyctuowon .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1131,7 +1131,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#hrqnqqkfxj .gt_stub {
+#cbyctuowon .gt_stub {
   color: #FFFFFF;
   background-color: #929292;
   font-size: 100%;
@@ -1144,7 +1144,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#hrqnqqkfxj .gt_stub_row_group {
+#cbyctuowon .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1158,15 +1158,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#hrqnqqkfxj .gt_row_group_first td {
+#cbyctuowon .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#hrqnqqkfxj .gt_row_group_first th {
+#cbyctuowon .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#hrqnqqkfxj .gt_summary_row {
+#cbyctuowon .gt_summary_row {
   color: #FFFFFF;
   background-color: #5F5F5F;
   text-transform: inherit;
@@ -1176,16 +1176,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#hrqnqqkfxj .gt_first_summary_row {
+#cbyctuowon .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D5D5D5;
 }
 
-#hrqnqqkfxj .gt_first_summary_row.thick {
+#cbyctuowon .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#hrqnqqkfxj .gt_last_summary_row {
+#cbyctuowon .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1195,7 +1195,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#hrqnqqkfxj .gt_grand_summary_row {
+#cbyctuowon .gt_grand_summary_row {
   color: #FFFFFF;
   background-color: #929292;
   text-transform: inherit;
@@ -1205,7 +1205,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#hrqnqqkfxj .gt_first_grand_summary_row {
+#cbyctuowon .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1215,7 +1215,7 @@ window.Quarto = {
   border-top-color: #D5D5D5;
 }
 
-#hrqnqqkfxj .gt_last_grand_summary_row_top {
+#cbyctuowon .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1225,11 +1225,11 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#hrqnqqkfxj .gt_striped {
+#cbyctuowon .gt_striped {
   background-color: #F4F4F4;
 }
 
-#hrqnqqkfxj .gt_table_body {
+#cbyctuowon .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D5D5D5;
@@ -1238,7 +1238,7 @@ window.Quarto = {
   border-bottom-color: #D5D5D5;
 }
 
-#hrqnqqkfxj .gt_footnotes {
+#cbyctuowon .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1252,7 +1252,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#hrqnqqkfxj .gt_footnote {
+#cbyctuowon .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1261,7 +1261,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#hrqnqqkfxj .gt_sourcenotes {
+#cbyctuowon .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1275,7 +1275,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#hrqnqqkfxj .gt_sourcenote {
+#cbyctuowon .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1283,72 +1283,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#hrqnqqkfxj .gt_left {
+#cbyctuowon .gt_left {
   text-align: left;
 }
 
-#hrqnqqkfxj .gt_center {
+#cbyctuowon .gt_center {
   text-align: center;
 }
 
-#hrqnqqkfxj .gt_right {
+#cbyctuowon .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#hrqnqqkfxj .gt_font_normal {
+#cbyctuowon .gt_font_normal {
   font-weight: normal;
 }
 
-#hrqnqqkfxj .gt_font_bold {
+#cbyctuowon .gt_font_bold {
   font-weight: bold;
 }
 
-#hrqnqqkfxj .gt_font_italic {
+#cbyctuowon .gt_font_italic {
   font-style: italic;
 }
 
-#hrqnqqkfxj .gt_super {
+#cbyctuowon .gt_super {
   font-size: 65%;
 }
 
-#hrqnqqkfxj .gt_footnote_marks {
+#cbyctuowon .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#hrqnqqkfxj .gt_asterisk {
+#cbyctuowon .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#hrqnqqkfxj .gt_indent_1 {
+#cbyctuowon .gt_indent_1 {
   text-indent: 5px;
 }
 
-#hrqnqqkfxj .gt_indent_2 {
+#cbyctuowon .gt_indent_2 {
   text-indent: 10px;
 }
 
-#hrqnqqkfxj .gt_indent_3 {
+#cbyctuowon .gt_indent_3 {
   text-indent: 15px;
 }
 
-#hrqnqqkfxj .gt_indent_4 {
+#cbyctuowon .gt_indent_4 {
   text-indent: 20px;
 }
 
-#hrqnqqkfxj .gt_indent_5 {
+#cbyctuowon .gt_indent_5 {
   text-indent: 25px;
 }
 
-#hrqnqqkfxj .katex-display {
+#cbyctuowon .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#hrqnqqkfxj div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#cbyctuowon div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1361,153 +1361,134 @@ window.Quarto = {
 <th id="Bulk-ESS" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" style="font-size: small" scope="col">Bulk ESS</th>
 <th id="Tail-ESS" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" style="font-size: small" scope="col">Tail ESS</th>
 <th id="R-hat" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" style="font-size: small" scope="col">R-hat</th>
-<th id="Pareto-K-values" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" style="font-size: small" scope="col">Pareto K values</th>
 </tr>
 </thead>
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\lambda\)</span></td>
-<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.005</td>
-<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">7091.051</td>
-<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">7872.827</td>
-<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00015</td>
-<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.104</td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.006</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">6277.993</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">9199.433</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00002</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\phi\)</span></td>
 <td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.009</td>
-<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">13317.586</td>
-<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">13440.705</td>
-<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00001</td>
-<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.088</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">13569.597</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">13949.118</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00003</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\tau\)</span></td>
 <td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
-<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">7779.119</td>
-<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">11577.549</td>
-<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00006</td>
-<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.030</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">8034.809</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">11487.239</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00001</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\delta\)</span></td>
 <td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.001</td>
-<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">7668.121</td>
-<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">10730.402</td>
-<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00010</td>
-<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.028</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">7807.871</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">11547.202</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">0.99999</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\alpha_r\)</span></td>
-<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.042</td>
-<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">8842.104</td>
-<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">11107.739</td>
-<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00012</td>
-<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">0.015</td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.044</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">8082.948</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">10245.126</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">0.99998</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\beta_r\)</span></td>
-<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.066</td>
-<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">6829.729</td>
-<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8916.555</td>
-<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00017</td>
-<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">0.053</td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.068</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">6382.188</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8738.194</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">0.99998</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(c_r\)</span></td>
 <td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
-<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">6935.483</td>
-<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">10900.781</td>
-<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00009</td>
-<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.030</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">7165.520</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">11546.600</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">0.99997</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\alpha_s\)</span></td>
-<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.128</td>
-<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">5633.284</td>
-<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8829.174</td>
-<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00008</td>
-<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.038</td>
+<td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.127</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">5757.476</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">7760.024</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">0.99999</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\beta_s\)</span></td>
-<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.119</td>
-<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">5797.431</td>
-<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">9043.351</td>
-<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00008</td>
-<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.062</td>
+<td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.116</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">5979.155</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">8282.690</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">0.99999</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(c_s\)</span></td>
 <td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.000</td>
-<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">18018.409</td>
-<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">15365.579</td>
-<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00002</td>
-<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.070</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">17549.233</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">14994.629</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">0.99996</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(c_c\)</span></td>
 <td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
-<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">20799.959</td>
-<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">12852.079</td>
-<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00007</td>
-<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">0.038</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">19145.961</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">13606.549</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00003</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(w\)</span></td>
 <td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.000</td>
-<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">5837.664</td>
-<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8897.332</td>
-<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00006</td>
-<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">0.117</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">5549.107</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8941.204</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00001</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{base}\)</span> [VLF]</td>
 <td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
-<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">5900.506</td>
-<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">10344.650</td>
-<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00005</td>
-<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.081</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">5444.612</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">9356.525</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00049</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{base}\)</span> [LF]</td>
 <td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.000</td>
-<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">5878.068</td>
-<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">8035.980</td>
-<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00010</td>
-<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.031</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">5760.058</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">5925.796</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00021</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{base}\)</span> [HF]</td>
 <td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.000</td>
-<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">6719.816</td>
-<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">11368.477</td>
-<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00004</td>
-<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.053</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">5753.331</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">10482.410</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00021</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{pert}\)</span> [VLF]</td>
 <td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.001</td>
-<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">9658.012</td>
-<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">13793.892</td>
-<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00001</td>
-<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.108</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">8706.796</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">13895.761</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00008</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_center" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{pert}\)</span> [LF]</td>
 <td class="gt_row gt_right" headers="MCSE Mean" style="font-size: small">0.001</td>
-<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">9806.651</td>
-<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">14000.109</td>
-<td class="gt_row gt_right" headers="R-hat" style="font-size: small">0.99999</td>
-<td class="gt_row gt_right" headers="Pareto K values" style="font-size: small">-0.087</td>
+<td class="gt_row gt_right" headers="Bulk ESS" style="font-size: small">8898.267</td>
+<td class="gt_row gt_right" headers="Tail ESS" style="font-size: small">14267.258</td>
+<td class="gt_row gt_right" headers="R-hat" style="font-size: small">1.00003</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_center gt_striped" headers="Parameter" style="font-size: small"><span class="math inline">\(\vec{\pi}_{pert}\)</span> [HF]</td>
 <td class="gt_row gt_right gt_striped" headers="MCSE Mean" style="font-size: small">0.000</td>
-<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">11777.976</td>
-<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">9465.015</td>
-<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00014</td>
-<td class="gt_row gt_right gt_striped" headers="Pareto K values" style="font-size: small">-0.057</td>
+<td class="gt_row gt_right gt_striped" headers="Bulk ESS" style="font-size: small">10990.040</td>
+<td class="gt_row gt_right gt_striped" headers="Tail ESS" style="font-size: small">10555.344</td>
+<td class="gt_row gt_right gt_striped" headers="R-hat" style="font-size: small">1.00004</td>
 </tr>
 </tbody>
 </table>
@@ -1515,7 +1496,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p><strong>Supplementary Table S1: MCMC Diagnostic Statistics.</strong> All R-hat values are near 1.00 up to three digits, both tail and bulk ESS are greater than 5,000 and all Pareto K values are lower than 0.5, confirming the reliability of the posterior estimates.</p>
+<p><strong>Supplementary Table S1: MCMC Diagnostic Statistics.</strong> All R-hat values are near 1.00 up to three digits, both tail and bulk ESS are greater than 5,000, confirming the reliability of the posterior estimates.</p>
 </section>
 <section id="s3.3-posterior-predictive-checks-ppc" class="level2">
 <h2 class="anchored" data-anchor-id="s3.3-posterior-predictive-checks-ppc">S3.3: Posterior Predictive Checks (PPC)</h2>

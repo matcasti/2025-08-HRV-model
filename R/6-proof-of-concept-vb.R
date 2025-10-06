@@ -91,9 +91,9 @@ fig_mu <- ggplot() +
   geom_ribbon(aes(x = poc_data$time, fill = "Residual noise",
                   ymin = mu - ((1 - w_param) * sdnn),
                   ymax = mu + ((1 - w_param) * sdnn)),
-              data = pred_data, alpha = 0.5) +
+              data = mu_hat, alpha = 0.5) +
   geom_line(aes(x = poc_data$time, y = mu, col = "Estimated µ(t)"),
-            data = pred_data) +
+            data = mu_hat) +
   scale_color_manual(values = c("Observed" = "gray",
                                 "Estimated µ(t)" = "firebrick")) +
   scale_fill_manual(values = c("Residual noise" = "firebrick")) +

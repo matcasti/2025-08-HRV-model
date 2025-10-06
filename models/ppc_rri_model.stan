@@ -162,11 +162,11 @@ generated quantities {
   real phi    = exp(phi_log);
 
   real alpha_r = inv_logit(alpha_r_logit) * 2 * rr_range_hypothetical + rr_min_hypothetical;
-  real beta_r  = inv_logit(beta_r_logit) * alpha_r;
+  real beta_r  = (inv_logit(beta_r_logit) * 2 - 1) * alpha_r;
   real c_r     = inv_logit(c_r_logit) * 2;
 
   real alpha_s = inv_logit(alpha_s_logit) * rr_sd_hypothetical;
-  real beta_s  = inv_logit(beta_s_logit) * alpha_s;
+  real beta_s  = (inv_logit(beta_s_logit) * 2 - 1) * alpha_s;
   real c_s     = inv_logit(c_s_logit) * 2;
 
   real c_c = inv_logit(c_c_logit);
@@ -177,8 +177,8 @@ generated quantities {
   vector[N] D2 = logistic_curve(t, tau + delta, phi);
 
   // --- 2. Construct the baseline and SDNN trajectories ---
-  vector[N] RR_baseline = alpha_r - beta_r .* D1 + (c_r * beta_r) .* D2;
-  vector[N] SDNN_t      = alpha_s - beta_s .* D1 + (c_s * beta_s) .* D2;
+  vector[N] RR_baseline = fmax(1e-8, alpha_r + beta_r .* D1 - (c_r * beta_r) .* D2);
+  vector[N] SDNN_t      = fmax(1e-8, alpha_s + beta_s .* D1 - (c_s * beta_s) .* D2);
 
   // --- 3. Construct the master controller C(t) and spectral proportions p_t ---
   vector[N] C_t = D1 .* (1.0 - c_c .* D2);

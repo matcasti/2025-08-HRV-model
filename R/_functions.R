@@ -48,8 +48,8 @@ generate_rri_simulation <- function(N,
 
   # --- 2. Generate Time-Varying Trajectories ---
   # These define the evolution of the signal's mean, total variability, and spectral mix.
-  RR_t <- params$alpha_r - params$beta_r * D_1(t) + params$c_r * params$beta_r * D_2(t)
-  SDNN_t <- params$alpha_s - params$beta_s * D_1(t) + params$c_s * params$beta_s * D_2(t)
+  RR_t <- params$alpha_r + params$beta_r * D_1(t) - params$c_r * params$beta_r * D_2(t)
+  SDNN_t <- params$alpha_s + params$beta_s * D_1(t) - params$c_s * params$beta_s * D_2(t)
   C_t <- D_1(t) * (1 - params$c_c * D_2(t))
 
   # Time-varying band proportions p_j(t) via convex combination

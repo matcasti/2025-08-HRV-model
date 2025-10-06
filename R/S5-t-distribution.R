@@ -53,9 +53,9 @@ params <- list(
   # Double-logistic timing
   lambda = 3, phi = 2, tau = 6, delta = 3,
   # RR(t) params
-  alpha_r = 800, beta_r = 400, c_r = 1.0,
+  alpha_r = 800, beta_r = -400, c_r = 1.0,
   # SDNN(t) params
-  alpha_s = 50, beta_s = 40, c_s = 1.0,
+  alpha_s = 50, beta_s = -40, c_s = 1.0,
   # Spectral & Noise params
   c_c = 0.8, w = 0.80, # 80% structured variance
   # p(t) params

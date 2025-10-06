@@ -10,7 +10,8 @@ library(CardioCurveR)
 ## Load model
 model <- readRDS("models/model_fit_poc.RDS")
 mu_hat <- as.data.table(model, pars = c("mu"))
-var_hat <- as.data.table(model, pars = c("var_resid"))
+w_hat <- as.data.table(model, pars = c("w"))$w |> median()
+sdnn_hat <- as.data.table(model, pars = c("SDNN_t"))
 
 ## Load the data
 poc_data <- CardioCurveR::import_RRi_txt(file = "data-raw/rri-jabf.txt",
@@ -21,17 +22,17 @@ poc_data <- CardioCurveR::import_RRi_txt(file = "data-raw/rri-jabf.txt",
 rm(model); gc()
 
 mu_hat[, row_id := seq_len(.N)]
-var_hat[, row_id := seq_len(.N)]
+sdnn_hat[, row_id := seq_len(.N)]
 
 mu_hat <- melt(mu_hat, id.vars = "row_id", value.name = "mu")
-var_hat <- melt(var_hat, id.vars = "row_id", value.name = "var")
+sdnn_hat <- melt(sdnn_hat, id.vars = "row_id", value.name = "var")
 
 mu_hat[, variable := gsub("mu\\[|\\]", "", variable) |> as.numeric()]
-var_hat[, variable := gsub("var_resid\\[|\\]", "", variable) |> as.numeric()]
+sdnn_hat[, variable := gsub("SDNN_t\\[|\\]", "", variable) |> as.numeric()]
 
-ppcheck <- mu_hat[var_hat, on = c("row_id", "variable")]
+ppcheck <- mu_hat[sdnn_hat, on = c("row_id", "variable")]
 
-ppcheck[, RRi := rnorm(1, mu, sqrt(var)), by = list(row_id, variable)]
+ppcheck[, RRi := rnorm(1, mu, sqrt((var^2) * (1 - w_hat))), by = list(row_id, variable)]
 
 ppcheck[, time := poc_data$time[variable]]
 
@@ -39,7 +40,7 @@ ids <- sample.int(5000, 100)
 
 fig <- ggplot() +
   geom_line(aes(time, RRi, group = row_id, col = "Predicted"), ppcheck[row_id %in% ids], alpha = 0.1) +
-  geom_line(aes(time, RRi, col = "Observed"), poc_data) +
+  geom_line(aes(time, RRi, col = "Observed"), poc_data, alpha = 0.8) +
   scale_color_manual(values = c("Predicted" = "dodgerblue", "Observed" = "gray20")) +
   labs(x = "Time (minutes)", y = "ms", color = "Line") +
   theme_classic(base_size = 12) +
