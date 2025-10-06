@@ -333,7 +333,7 @@ The final oscillator coefficients are then constructed as $u_{j,k}^{(\sin)} = z_
 
 #### Deterministic Amplitude Inversion
 
-The final step is to ensure that the synthesized structured signal, $X(t_i) = A(t_i) \sum_{j=1}^J p_j(t_i) S_j(t_i)$, has a variance equal to the target structured variance, $\sigma^2_{\text{struct}}(t_i)$, at every time point. A key feature of this model is that it does not assume the sinusoids form an orthogonal basis over the discrete, finite time domain. Instead, it computes the exact sample variance for each synthesized oscillator, $\mathrm{Var}[S_j(t_i)]$, given the current values of its coefficients.
+The final step is to ensure that the synthesized structured signal, $X(t_i) = A(t_i) \sum_{j=1}^J p_j(t_i) S_j(t_i)$, has a variance equal to the target structured variance, $\sigma^2_{\text{struct}}(t_i)$, at every time point. A key feature of this model is that it does not assume the sinusoids form an orthogonal basis over the discrete, finite time domain. Instead, it computes the exact sample variance for each synthesized oscillator, $\mathrm{Var}[S_j(t_i)]$, given the current values of its coefficients. This exact calculation is critical to prevent the misestimation of spectral power that arises from the non-orthogonality of sinusoidal basis functions over finite, discretely-sampled time intervals.
 
 Let $\mathbf{\Sigma}_S$ be the diagonal $3 \times 3$ matrix whose entries are these computed variances, $\mathbf{\Sigma}_S[j, j] = \mathrm{Var}[S_j(t_i)]$. Assuming independence between the bands, the variance of the weighted sum is given by the quadratic form in @eq-weighted-sum.
 
