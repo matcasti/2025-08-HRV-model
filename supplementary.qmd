@@ -766,11 +766,15 @@ This section provides a complete set of diagnostic checks for the HMC analysis o
 
 ## S3.1: Posterior Distributions
 
-Supplementary Figure S6 shows the traceplots for all key parameters from the empirical model fit.
+Supplementary Figure S6 shows the traceplots for all key parameters from the empirical model fit, and Figure S7 shows the posterior distribution of model parameters.
 
 ![](figures/fig-poc-traceplot.svg){width=100%}
 
 **Supplementary Figure S6: Full Traceplots for Empirical Analysis.** MCMC traceplots for four chains, showing stationary, well-mixed chains.
+
+![](figures/fig-poc-posterior.svg){width=100%}
+
+**Figure S7. Posterior distribution of phenomenological recovery parameters from the empirical analysis.** The posterior distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance. 
 
 ## S3.2: MCMC Diagnostic Statistics
 
@@ -784,12 +788,12 @@ readRDS(file = "tables/tbl-S1.RDS")
 
 ## S3.3: Posterior Predictive Checks (PPC)
 
-To assess the model's descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S7 overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S8 shows that the distributions of key summary statistics (mean and SD) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
+To assess the model's descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S8 overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S9 shows that the distributions of key summary statistics (mean and SD) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
 
 ![](figures/fig-poc-ppcheck.svg){width=100%}
 
-**Supplementary Figure S7: Graphical Posterior Predictive Check.** The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.
+**Supplementary Figure S8: Graphical Posterior Predictive Check.** The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.
 
 ![](figures/fig-poc-stat-computed.svg){width=100%}
 
-**Supplementary Figure S8: Distributional Posterior Predictive Checks.** The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.
+**Supplementary Figure S9: Distributional Posterior Predictive Checks.** The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.
