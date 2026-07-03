@@ -1,56 +1,54 @@
 ---
-title: "A Unified Probabilistic Framework for Non-Stationary Heart Rate Variability Analysis"
-date-modified: today
+title: ""
 bibliography: "bibliography.bib"
+csl: style.csl
 execute: 
   echo: false
   message: false
   warning: false
   error: false
-author: 
-  - name: "Matías Castillo-Aguilar"
-    email: matias.castillo@umag.cl
-    orcid: 0000-0001-7291-247X
-  - name: "Cristian Núñez-Espinosa"
-    email: cristian.nunez@umag.cl
-    orcid: 0000-0002-9896-7062
 format: 
-  html: 
-    fig-format: svg
-    title-block-banner: true
-    title-block-style: manuscript
-    toc: true
-    toc-location: right
-    toc-depth: 2
-    comments: 
-      hypothesis: 
-        theme: clean
-  docx: default
-other-links: 
-  - text: "Supplementary Material"
-    href: "supplementary.html"
-    icon: folder
-fig-width: 8
-fig-height: 6
+  docx: 
+    reference-doc: ref.docx
 editor_options: 
   chunk_output_type: console
 ---
+
+**Title**: BAND: A Unified Probabilistic Framework for Non-Stationary Heart Rate Variability Analysis.
+
+**Authors**: Matías Castillo-Aguilar^1,2^, David Medina-Ortiz^3,4^, Marcelo A. Navarrete^1,2^, Cristian Núñez-Espinosa^1,2^\*.
+
+::: {custom-style="Afiliation"}
+^1^ Centro Asistencial Docente y de Investigación (CADI-UMAG), Punta Arenas, Chile.
+
+^2^ Escuela de Medicina, Universidad de Magallanes (UMAG), Punta Arenas, Chile.
+
+^3^ Departamento de Ingeniería en Computación, Universidad de Magallanes, Punta Arenas, Chile. 
+
+^4^ Centre for Biotechnology and Bioengineering, CeBiB, Universidad de Chile, Santiago, Chile.
+:::
+
+### \*Correspondence {.unnumbered}
+
+Cristian Núñez-Espinosa, Escuela de Medicina, Universidad de Magallanes, Punta Arenas, Chile. Centro Asistencial de Docencia e Investigación CADI-UMAG, Chile. e-mail: [cristian.nunez\@umag.cl](mailto:cristian.nunez@umag.cl). Address: Avenida Bulnes 01855, Box 113-D. Phone: +56 61 2201411.
+
+{{< pagebreak >}}
 
 **Abstract**
 
 Heart rate variability (HRV) forms the basis of non-invasive autonomic nervous system assessment. However, its analysis is constrained by the non-stationary nature of physiological signals. Standard analytical methods, which assume stationarity within fixed time windows, fail to capture dynamical effects of interest, such as the response to a physiological stressor. This limitation obstructs the development of mechanistic hypotheses about autonomic control. Here, we address this challenge by introducing a unified probabilistic framework for non-stationary HRV analysis. We propose a hypothesis-driven, generative model that transforms the physiological response into a continuous-time stochastic process controlled by a double-logistic function. This approach deconstructs the R-R interval (RRi) series into a set of interpretable parameters representing the latency, rate, and magnitude of distinct response and recovery phases. Through simulation, we establish the model's ability to achieve high-fidelity parameter recovery and show its descriptive superiority over conventional fixed-time window methods. We then apply the framework to an empirical exercise-recovery recording, generating a precise, falsifiable hypothesis of "dissonant autonomic recovery", where mean heart rate and its variability exhibit distinct recovery timescales. The Biphasic Autonomic Non-stationary Decomposition (BAND) framework provides a formal methodology for translating RRi time series into quantitative, testable estimates of their generative processes.
 
+{{< pagebreak >}}
+
 # Introduction
 
-The central goal in contemporary biomedical science is to mechanistically link the dynamics of physiological systems to human health and disease. A primary obstacle to this goal is the inferential gap between what can be measured with high-temporal resolution via wearable sensors and the unobservable neurobiological processes that generate these measurements [@huber2025brain]. This *inverse problem* is particularly evident in the study of the autonomic nervous system (ANS), where heart rate variability (HRV) has become the dominant non-invasive marker [@shaffer2017overview; @castillo2023cardiac; @castillo2023validity]. The R-R interval (RRi) time-series is an invaluable signal, yet it poses a critical analytical challenge, as it reflects the integrated and dynamic interplay of multiple regulatory systems [@arakaki2023connection]. Addressing this challenge requires formal methodologies capable of deconstructing the composite signal into quantitative, interpretable, and testable estimates of its underlying generative processes. The urgency of this task is highlighted by the central role of autonomic dysregulation in conditions ranging from cardiovascular diseases [@orini2023long; @serhiyenko2024post] to anxiety and post-traumatic stress [@schneider2020autonomic; @cheng2022heart; @tomasi2024heart], where precise characterization of system dynamics is essential for diagnosis and treatment.
+A major goal of contemporary biomedical science is to mechanistically connect the dynamic behavior of physiological systems to outcomes in human health and disease. The primary obstacle to this goal is the inferential gap between what can be measured with high-temporal resolution via wearable sensors and the underlying neurobiological processes that generate these measurements [@huber2025brain]. This *inverse problem* is particularly evident in the study of the autonomic nervous system (ANS), where heart rate variability (HRV) has become the dominant non-invasive marker [@shaffer2017overview; @castillo2023cardiac; @castillo2023validity]. The R-R interval (RRi) time-series is a highly informative signal, yet it presents a substantial analytical challenge, as it reflects the integrated and dynamic interplay of multiple regulatory systems [@arakaki2023connection]. Addressing this challenge requires formal methodologies capable of deconstructing the composite signal into quantitative, interpretable, and testable estimates of its underlying generative processes. The urgency of this task is highlighted by the central role of autonomic dysregulation in conditions ranging from cardiovascular diseases [@orini2023long; @serhiyenko2024post] to anxiety and post-traumatic stress [@schneider2020autonomic; @cheng2022heart; @tomasi2024heart], where precise characterization of system dynamics is essential for diagnosis and treatment.
 
 The analytical tools most widely employed in this field remain poorly suited to the task, as the prevailing paradigm relies on calculating summary statistics within fixed temporal windows, thereby imposing a static and linear worldview on a system that is inherently dynamic and non-linear. These methods assume stationarity, an assumption routinely disrupted during physiological transitions of scientific or clinical interest [@shaffer2020critical; @kim2021ultra]. As a result, they can produce misleading or uninterpretable outcomes. For example, by averaging across stress recovery, such methods conflate the initial sympathetic surge with the subsequent parasympathetic rebound, yielding a single opaque number that obscures the system's adaptive capacity [@shaffer2020critical; @kim2021ultra]. In this way, the unavoidable distortion of RRi signals under non-stationary conditions may mask critical differences between a resilient individual, characterized by rapid recovery, and a vulnerable one, marked by dampened recovery, thereby concealing an essential biomarker of pathology [@lu2023uncertainties]. As a result, the "discretize-and-summarize" approach discards the temporal structure of the data and precludes direct estimation of core mechanistic properties such as response latencies, rates of change, and adaptive magnitudes, which represent the essential features that define the physiological process [@tiwari2021analysis].
 
 More sophisticated approaches have been proposed, but they too often fail to resolve the core inferential challenge, presenting instead a false dichotomy between phenomenological description and non-interpretable abstraction. On one hand, time–frequency decompositions such as the wavelet transform provide detailed visualizations of spectral dynamics, making them valuable for exploratory analysis [@german2014wavelet]. Yet they remain fundamentally descriptive, unable to instantiate a generative model of the underlying biology. These methods can demonstrate that a change has occurred, yet they are unable to provide a parameterized and testable explanation of the underlying nature of that change [@guo2022review]. On the other hand, modeling traditions like state-space models (SSMs) offer mathematical sophistication for tracking and forecasting system evolution [@martin2018improving; @rosas2024bayesian]. While powerful, these models frequently sacrifice physiological fidelity for mathematical convenience, as their latent states are often defined by statistical rather than biological properties [@rosas2024bayesian; @liu2024efficient]. Even in tailored applications, SSMs excel at tracking continuous variation but are not explicitly structured to parameterize the discrete phases of physiological events, such as onset rate, recovery latency, or adaptive magnitude in response to stress [@rosas2024bayesian; @liu2024efficient]. The field thus remains methodologically constrained, caught between descriptive tools that cannot test mechanisms and abstract models whose parameters do not map onto physiological hypotheses.
 
-Bridging this gap requires a conceptual shift from model-agnostic data description to the construction of hypothesis-driven frameworks grounded in generative modeling. Instead of simply characterizing what the data looks like, the focus should be on constructing explicit, testable, and quantitative models of the biological processes that generate the data. Here, we introduce and validate the Biphasic Autonomic Non-stationary Decomposition (BAND) framework, which reframes physiological analysis as a form of formal hypothesis testing. We hypothesize that autonomic responses to acute perturbations constitute structured, dynamic processes that can be effectively modeled as continuous-time stochastic dynamics. Specifically, we employ a double-logistic function as a parsimonious hypothesis for biphasic dynamics, capturing the characteristic onset and recovery phases [@castillo2025enhancing]. This representation translates raw signals into a small set of interpretable mechanistic parameters, including the latency, rate, and magnitude of each phase, thereby providing direct insight into autonomic reactivity and resilience.
-
-We implement this framework as a generative model within a Bayesian paradigm. This enables robust parameter estimation with full uncertainty quantification, hierarchical modeling of individual and group-level effects, and formal model comparison. Concretely, our model decomposes RRi dynamics into a time-varying mean, variance, and oscillatory component, all governed by a double-logistic latent trajectory. Through simulations, we demonstrate its capacity to recover ground-truth parameters, establishing core validity. We contend that this approach provides the necessary quantitative indices for developing and testing mechanistic physiological hypotheses, thereby representing a critical step toward translating complex time series into falsifiable biological knowledge.
+Bridging this gap requires a conceptual shift from model-agnostic data description to the construction of hypothesis-driven frameworks grounded in generative modeling. Instead of simply characterizing what the data looks like, the focus should be on constructing explicit, testable, and quantitative models of the biological processes that generate the data. Here, we introduce and validate the Biphasic Autonomic Non-stationary Decomposition (BAND) framework, which reframes physiological analysis as a form of formal hypothesis testing. We hypothesize that autonomic responses to acute perturbations constitute structured, dynamic processes that can be effectively modeled as continuous-time stochastic process. Specifically, we employ a double-logistic function as a parsimonious hypothesis for biphasic dynamics, capturing the characteristic onset and recovery phases [@castillo2025enhancing]. This representation translates raw signals into a small set of interpretable mechanistic parameters, including the latency, rate, and magnitude of each phase, thereby providing direct insight into autonomic reactivity and resilience.
 
 ```{r}
 #| include: false
@@ -60,13 +58,13 @@ library(gt)
 
 # Results
 
+We propose a framework based on a generative Bayesian model that yields robust parameter estimates with full uncertainty quantification, supports hierarchical inference across individuals and groups, and enables formal model comparison. The model decomposes the RRi series into a time-varying mean, total variance, and a dynamically shifting oscillatory component controlled by a double-logistic latent dynamic. This formulation provides a more accurate and physiologically interpretable representation of autonomic dynamics than conventional fixed-window methods, offering quantitative indices of reactivity and recovery and a principled means to translate complex time series into mechanistic, falsifiable knowledge.
+
 After its construction, we test the BAND model's internal consistency by assessing its ability to recover its own parameters from simulated data. We then benchmark its descriptive fidelity against conventional methods to quantify its effectiveness in characterizing dynamic signals. Finally, we use the framework to generate a structured, phenomenological description of an empirical exercise-response signal, illustrating its potential for developing precise and data-driven hypotheses. 
 
 The core components of the model, related the underlying data generation process being modeled, are illustrated in Figure 1.
 
-::: {.content-visible when-format="html"}
-![](figures/main-fig/main-fig.svg){width=100%}
-:::
+![](figures/main-fig/main-fig.jpg){width=100%}
 
 **Figure 1. Core inferential procedure being captured by the model**. The data generation process being modeled is a transient stressor or perturbation from a baseline to a recovered state (1). This stimulus is being applied while the R-R intervals (RRi) is being recorded simultaneously (2). Then, the Biphasic Autonomic Non-stationary Decomposition (BAND) model takes the RRi data and decompose the data generation process as a linear combination of time and frequency components that build the underlying observed RRi signal as a dynamical and continuous process (3).
 
@@ -74,36 +72,21 @@ The core components of the model, related the underlying data generation process
 
 To establish the model's internal consistency and the identifiability of its parameters, we first assessed its ability to perform inference on synthetic data generated from its own structure. This *in silico* procedure serves as a necessary check of the model's self-consistency and the estimation algorithm's ability to navigate the complex posterior geometry. To test the model's performance, three distinct scenarios were designed: (A) a canonical response with complete recovery; (B) an incomplete recovery with persistence in both time and frequency domains; and (C) a high-noise condition with a low structured variance fraction ($w$ = 0.6). The ground-truth dynamics are illustrated in Figure 2, with corresponding generative parameter values listed in Table 1. This procedure tests for inferential integrity under the assumption that the model is correctly specified; it does not test for robustness to model misspecification, a challenge inherent to all empirical data.
 
-::: {.content-visible when-format="html"}
-![](figures/fig-generated-data.svg){width=100%}
-:::
+![](figures/fig-generated-data.jpeg)
 
 **Figure 2. Ground-truth dynamics of three synthetic scenarios.** The scenarios were designed to test model performance under diverse conditions: (A) a classic sympatho-vagal response, (B) an incomplete recovery with persistence in both time and frequency domains, and (C) a high-noise condition with dissonant (complete time-domain, incomplete spectral) recovery. Panels show the generated RRi data with the true mean signal, the underlying time-domain trajectories for baseline RRi and total SDNN, and the time-varying spectral proportions.
 
-::: {.content-visible when-format="html"}
-```{r}
-readRDS(file = "tables/tbl-1.RDS")
-```
-:::
-
+![](tables/tbl-1.pdf){width=100%}
 **Table 1. Ground-truth parameter values for simulation scenarios.** Ground-truth parameter values used in the generation of three simulation scenarios. The scenarios correspond to (A) a classic sympatho-vagal response, (B) an incomplete recovery with time-domain and spectral persistence, and (C) an incomplete spectral but complete time-domain recovery with high noise.
 
 When fit to this synthetic data, the model demonstrated a high-fidelity reconstruction of the generative process across all three scenarios. Figure 3 presents a visual summary of these results, plotting the model's posterior estimates against the known ground-truth trajectories. The posterior means for the baseline RRi, total SDNN, and the time-varying spectral proportions closely track the true underlying dynamics. The 95% credible intervals, which represent the range of plausible parameter values given the data, consistently envelop the ground-truth trajectories.
 
-::: {.content-visible when-format="html"}
-![](figures/fig-model-method.svg){width=100%}
-:::
-
+![](figures/fig-model-method.jpeg){width=100%}
 **Figure 3. High-fidelity reconstruction of synthetic data by the generative model.** The model's posterior mean estimates (solid lines) and 95% credible intervals (shaded ribbons) are overlaid on the known ground-truth dynamics (dashed lines) for all three scenarios (A, B, C). The model accurately recovers the continuous trajectories for baseline RRi, total SDNN, and spectral proportions across all conditions.
 
 Beyond recovering the continuous dynamic trajectories, the model also recovered the discrete parameters that govern the shape and timing of these dynamics. Table 2 presents the posterior summaries for these key parameters, comparing the posterior median and 95% credible intervals against their true values. For all parameters across all scenarios, the 95% credible intervals successfully contained the ground-truth values. Successfully recovering all parameters confirms that they are practically identifiable from this type of data, at least when the data-generating process aligns with the model's structural assumptions.
 
-::: {.content-visible when-format="html"}
-```{r}
-#| column: screen-inset-left
-readRDS(file = "tables/tbl-2.RDS")
-```
-:::
+![](tables/tbl-2.pdf){width=100%}
 
 **Table 2. Posterior recovery of ground-truth parameters.** This table compares the known ground-truth parameter values to the model's posterior estimates (median and 95% credible interval). The model successfully recovers all parameters, with the true values consistently falling within the credible intervals.
 
@@ -113,21 +96,12 @@ Having established the model's internal consistency, we next benchmarked its des
 
 The results of this comparative analysis highlights the descriptive distortions that are inherent to any method that relies on assumptions of local stationarity when applied to a continuously varying, non-stationary signal. Figure 4 illustrates the outputs from the windowed methods. Visually, these methods produced a delayed and morphologically blunted approximation of the underlying dynamics. The sharp, non-linear transitions that characterize the onset and recovery phases of the signal are smeared and flattened by the averaging process inherent in the windowed calculation. Consequently, the windowed approach failed to accurately capture both the shape and the precise timing of the recovery process. Instead of reflecting the smooth, logistic curve defined by the ground-truth process, the windowed analysis superimposed the square-wave artifacts of its own computational structure onto the data, a clear instance of the analytical method distorting the phenomenon it is intended to measure. As expected
 
-::: {.content-visible when-format="html"}
-![](figures/fig-windowed-method.svg){width=100%}
-:::
-
+![](figures/fig-windowed-method.jpeg){width=100%}
 **Figure 4. Distorted reconstruction of synthetic data by conventional windowed Methods.** The estimates from a 60-second sliding window (for RRi and SDNN) and an STFT (for spectral proportions) are shown as solid lines overlaid on the ground-truth dynamics (dashed lines). The methods introduce significant lag, blunting, and temporal smearing, failing to capture the true non-linear dynamics.
 
 A formal quantitative analysis confirms the descriptive efficiency and accuracy of the generative approach for signals of this particular nature. Table 3 provides a summary of key performance metrics. Across all scenarios and all signal components, the generative model consistently provided a more accurate and parsimonious description of the data. It achieved substantially lower error (RMSE and Bias) and captured a significantly higher proportion of the signal's variance, with $R^2$ values typically exceeding 0.90. It is important to interpret this result with caution. The model's performance is, in one sense, expected, as the synthetic data were generated from its own structure. However, it illustrates a core theoretical argument of this work: for signals that are plausibly characterized by smooth, continuous transitions between distinct physiological states, a model whose parametric form explicitly encodes this structure will naturally provide a more efficient, less distorted, and more interpretable quantitative summary than a non-parametric, windowed approach that was designed for stationary or quasi-stationary signals.
 
-::: {.content-visible when-format="html"}
-```{r}
-#| column: screen-inset-left
-readRDS(file = "tables/tbl-3.RDS")
-```
-:::
-
+![](tables/tbl-3.pdf){width=100%}
 **Table 3. Quantitative Performance Metrics for the Generative Model versus Windowed Methods.** This table presents the root mean squared error (RMSE) and mean absolute error (MAE) as measures of the average magnitude of the estimation error; Bias (mean error) identify any systematic tendency for over- or underestimation; and the coefficient of determination ($R^2$) to assess the proportion of variance in the true signal captured by the estimate.
 
 Further model diagnostics testing the model's overall stability and reliability on synthetic data for *in silico* validation can be found in the supplementary material. Prior predictive checks are shown in Figure S1, prior sensitivity analysis in Figure S2, full posterior distributions in Figure S3, and model fit to asymmetric recovery data from a different data generation process in Figure S4. Additionally, non-Gaussian distributions are presented in Figure S5.
@@ -138,9 +112,7 @@ To illustrate the framework's intended application in a real-world context, we a
 
 Upon fitting the model to the empirical data, it yields a phenomenological decomposition of the entire exercise-recovery response, as depicted in Figure 5. The framework parses the signal into its constituent components, describing the physiological process as a rapid initial tachycardia (a decrease in the baseline RRi component, panel A and B in Figure 5) and a concurrent suppression of total heart rate variability (a decrease in the SDNN component, panel C in Figure 5). This initial response is followed by a slower, more gradual recovery phase after the cessation of the exercise stimulus. From a spectral perspective, the model attributes the signature of this response to a near-complete withdrawal of power in the high-frequency (HF) band, and a corresponding surge in the proportion of very-low-frequency (VLF) power (panel D in Figure 5). The model captures these dynamics as continuous, smooth trajectories, providing an integrated narrative of the entire physiological event.
 
-::: {.content-visible when-format="html"}
-![](figures/main-fig/empirical-fig.svg){width=100%}
-:::
+![](figures/main-fig/empirical-fig.jpg){width=100%}
 
 **Figure 5. Phenomenological decomposition of an empirical exercise-recovery response.** The figure illustrates the reconstructed RRi signal (red line in panel A) overlaid on top of the observed RRi signal (gray). In the bottom panel, the Biphasic Autonomic Non-stationary Decomposition (BAND) model components appear. First, the time-domain components: the baseline RRi trend ($\mathrm{RR_{base}}$, blue line, panel B) and the total instantaneous variability ($\mathrm{SDNN}$, orange, panel C). Additionally, the inferred dynamics of the spectral proportions is also present, describing the evolution of frequency band relative participation across the transient stimulus (panel D). The shaded regions represent the 95% highest density intervals.
 
@@ -172,9 +144,7 @@ Nowhere is this interpretive caution more warranted than with the structured var
 
 ## Limitations
 
-The model's credibility depends on acknowledging its limitations, which are both foundational and practical.
-
-The model's architecture is built upon a series of rigid assumptions. The choice of a symmetric double-logistic function is a matter of mathematical convenience [@castillo2025enhancing], not a physiological imperative; asymmetric biological recovery processes are common and would be poorly approximated by this functional form. Moreover, the model is a specialist instrument designed for a single, isolated perturbation-recovery event [@castillo2025enhancing]. This makes it highly effective for analyzing clean, stimulus-response experimental paradigms but makes it unsuited for the exploratory analysis of complex, naturalistic data containing multiple, overlapping events of unknown form [@voss2009methods; @kim2021ultra]. It is a tool for confirmatory, not exploratory science.
+The model's architecture is built upon a series of rigid assumptions. The choice of a symmetric double-logistic function is primarily mathematical [@castillo2025enhancing], not a physiological imperative. Many biological recovery processes exhibiting asymmetry, hysteresis, or multi-timescale recovery would be poorly approximated by this functional form. Moreover, the model is a specialist instrument designed for a single, isolated perturbation-recovery event [@castillo2025enhancing]. This makes it highly effective for analyzing clean, stimulus-response experimental paradigms but makes it unsuited for the exploratory analysis of complex, naturalistic data containing multiple, overlapping events of unknown form [@voss2009methods; @kim2021ultra]. It is a tool for confirmatory, not exploratory science.
 
 Furthermore, we acknowledge that the empirical validation of this framework is presently confined to a single-subject case study. This was a deliberate choice reflecting the manuscript's primary aim: to introduce and validate a new methodological framework, not to make a generalizable empirical claim. The N-of-1 analysis serves as a proof-of-concept, demonstrating the model's ability to perform a deep phenotyping of an individual's response and, most importantly, to generate precise, falsifiable hypotheses. We contend that establishing this hypothesis-generating capacity is a necessary prerequisite to the much larger, and computationally demanding, task of applying the model hierarchically to a full cohort. This foundational work is offered to empower the broader research community to test these newly generated hypotheses on larger, more diverse datasets.
 

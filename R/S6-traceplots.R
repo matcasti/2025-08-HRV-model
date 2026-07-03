@@ -38,7 +38,7 @@ fig <- ggplot(posterior_long, aes(y = value, x = row)) +
   theme_classic(base_size = 12) +
   theme(strip.background = element_blank())
 
-ggsave(filename = "figures/fig-poc-traceplot.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-poc-traceplot.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-poc-traceplot.pdf", fig,
        device = "pdf", width = 9, height = 9)

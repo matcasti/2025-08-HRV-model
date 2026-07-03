@@ -183,7 +183,7 @@ fig_mu <- ggplot() +
 
 fig <- cowplot::plot_grid(fig_obs, fig_mu, align = "hv")
 
-ggsave(filename = "figures/fig-asymetric.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-asymetric.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-asymetric.pdf", fig,
        device = "pdf", width = 9, height = 9)

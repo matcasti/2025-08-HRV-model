@@ -46,8 +46,8 @@ fig <- ggplot() +
   theme_classic(base_size = 12) +
   theme(legend.position = "top")
 
-ggsave(filename = "figures/fig-poc-ppcheck.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-poc-ppcheck.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-poc-ppcheck.pdf", fig,
        device = "pdf", width = 9, height = 9)
 
@@ -69,7 +69,7 @@ fig <- ggplot() +
   theme_classic(base_size = 12) +
   theme(legend.position = "top")
 
-ggsave(filename = "figures/fig-poc-stat-computed.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-poc-stat-computed.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-poc-stat-computed.pdf", fig,
        device = "pdf", width = 9, height = 9)

@@ -222,7 +222,7 @@ fig_bottom <- cowplot::plot_grid(fig_rrbase, fig_sdnn, fig_pj,
 fig <- cowplot::plot_grid(fig_rri, fig_bottom, nrow = 2, rel_heights = c(0.5, 0.5),
                           labels = c("(A)",""))
 
-ggsave(filename = "figures/fig-ppcheck.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-ppcheck.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-ppcheck.pdf", fig,
        device = "pdf", width = 9, height = 9)

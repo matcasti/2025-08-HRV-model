@@ -246,8 +246,8 @@ fig_low <- ggplot(sim_long, aes(x = value, fill = variable)) +
 fig <- cowplot::plot_grid(fig_up, fig_low, align = "hv", nrow = 2,
                           rel_heights = c(0.1,0.15), axis = "l")
 
-ggsave(filename = "figures/fig-student-t.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-student-t.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-student-t.pdf", fig,
        device = "pdf", width = 9, height = 9)
 

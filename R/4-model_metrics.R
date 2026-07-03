@@ -309,8 +309,8 @@ fig <- ggpubr::ggarrange(plotlist = plots,
                          widths = c(2,2,3.3),
                          labels = c("(A)", "(B)", "(C)"))
 
-ggsave(filename = "figures/fig-model-method.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-model-method.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-model-method.pdf", fig,
        device = "pdf", width = 9, height = 9)
 

@@ -118,8 +118,8 @@ fig <- ggplot(pd_long, aes(value, prior, fill = prior)) +
                                           linewidth = 1/3),
         strip.background = element_blank())
 
-ggsave(filename = "figures/fig-prior-sensitivity.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-prior-sensitivity.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-prior-sensitivity.pdf", fig,
        device = "pdf", width = 9, height = 9)
 

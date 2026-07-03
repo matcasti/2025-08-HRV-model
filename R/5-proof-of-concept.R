@@ -27,13 +27,13 @@ points(poc_data, pch = 16, cex = 0.5)
 # Model fitting process ---------------------------------------------------
 # -------------------------------------------------------------------------
 
+N_sin <- 50
+
 if (!file.exists("models/model_fit_poc.RDS")) {
 
   # Prepare data ------------------------------------------------------------
 
   prior_params <- with(poc_data, estimate_RRi_curve(time, RRi))$parameters |> abs()
-
-  N_sin <- 50
   stan_data <- list(
     N = length(poc_data$time),
     t = poc_data$time,
@@ -271,7 +271,7 @@ fig <- melt.data.table(posterior, id.vars = c("chain", "row_id", "row")) |>
         strip.background = element_blank(),
         panel.spacing.x = unit(5, "mm"))
 
-ggsave(filename = "figures/fig-poc-posterior.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-poc-posterior.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-poc-posterior.pdf", fig,
        device = "pdf", width = 9, height = 9)

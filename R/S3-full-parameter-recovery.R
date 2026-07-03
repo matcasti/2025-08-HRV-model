@@ -56,7 +56,7 @@ for(i in 1:3) {
 fig <- cowplot::plot_grid(plotlist = figures, align = "hv", ncol = 3,
                    labels = c("(A)","(B)","(C)"))
 
-ggsave(filename = "figures/fig-full-recovery.svg", fig,
-       device = "svg", width = 9, height = 9)
+ggsave(filename = "figures/fig-full-recovery.jpeg", fig,
+       device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-full-recovery.pdf", fig,
        device = "pdf", width = 9, height = 9)

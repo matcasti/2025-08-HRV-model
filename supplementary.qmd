@@ -1,40 +1,37 @@
 ---
-title: "A Unified Probabilistic Framework for Non-Stationary Heart Rate Variability Analysis"
-subtitle: "Supplementary Material"
-date-modified: today
+title: ""
 bibliography: "bibliography.bib"
+csl: style.csl
 execute: 
   echo: false
   message: false
   warning: false
   error: false
-author: 
-  - name: "Matías Castillo-Aguilar"
-    email: matias.castillo@umag.cl
-    orcid: 0000-0001-7291-247X
-  - name: "Cristian Núñez-Espinosa"
-    email: cristian.nunez@umag.cl
-    orcid: 0000-0002-9896-7062
 format: 
-  html: 
-    fig-format: svg
-    title-block-banner: true
-    title-block-style: manuscript
-    toc: true
-    toc-location: right
-    toc-depth: 2
-    comments: 
-      hypothesis: 
-        theme: clean
-other-links: 
-  - text: "Stan Model"
-    href: "models/rri_model.stan"
-    icon: file-code
-fig-width: 8
-fig-height: 6
+  docx: 
+    reference-doc: ref.docx
 editor_options: 
   chunk_output_type: console
 ---
+
+**Title**: BAND: A Unified Probabilistic Framework for Non-Stationary Heart Rate Variability Analysis.
+
+**Authors**: Matías Castillo-Aguilar^1,2^, David Medina-Ortiz^3,4^, Marcelo A. Navarrete^1,2^, Cristian Núñez-Espinosa^1,2^\*.
+
+::: {custom-style="Afiliation"}
+^1^ Centro Asistencial Docente y de Investigación (CADI-UMAG), Punta Arenas, Chile.
+
+^2^ Escuela de Medicina, Universidad de Magallanes (UMAG), Punta Arenas, Chile.
+
+^3^ Departamento de Ingeniería en Computación, Universidad de Magallanes, Punta Arenas, Chile. 
+^4^ Centre for Biotechnology and Bioengineering, CeBiB, Universidad de Chile, Santiago, Chile.
+:::
+
+### \*Correspondence {.unnumbered}
+
+Cristian Núñez-Espinosa, Escuela de Medicina, Universidad de Magallanes, Punta Arenas, Chile. Centro Asistencial de Docencia e Investigación CADI-UMAG, Chile. e-mail: [cristian.nunez\@umag.cl](mailto:cristian.nunez@umag.cl). Address: Avenida Bulnes 01855, Box 113-D. Phone: +56 61 2201411.
+
+{{< pagebreak >}}
 
 This document provides supplementary information, extended analyses, and technical details to support the findings presented in the main manuscript. The goal of this supplement is to ensure full methodological transparency, computational reproducibility, and to provide a comprehensive validation of the proposed model.
 
@@ -406,7 +403,7 @@ model {
 
 To ensure our chosen priors were reasonable and did not unduly influence the posterior, we conducted prior predictive checks. We generated 20,000 datasets directly from the prior distributions (i.e., without conditioning on the data). Supplementary Figure S1 shows that the chosen priors generate a wide range of physiologically plausible (and implausible) response curves, confirming that the model is flexible and that the subsequent posterior is primarily driven by the data, not the priors.
 
-![](figures/fig-ppcheck.svg){width=100%}
+![](figures/fig-ppcheck.jpeg){width=100%}
 
 **Supplementary Figure S1: Prior Predictive Checks.** (A) Simulated RRi signal incorporating deterministic and stochastic components (blue). (B-C) Time-domain reconstruction from prior distributions. (D) Spectral components separated by frequency band. Each line represents the median and the shaded areas represent the 95% highest density interval from 20,000 dataset generated from the prior distribution. The wide distribution of curves demonstrates that the priors are not restrictive.
 
@@ -414,7 +411,7 @@ To ensure our chosen priors were reasonable and did not unduly influence the pos
 
 To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript's weakly informative priors, (2) "flatter" priors with two times larger variance, and (3) "tighter", more informative priors with half of original variance. Supplementary Figure S2 shows the posterior distribution for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between $c\_r$ and $c\_s$) remains unchanged across all specifications, with consistent overlapping credible intervals for all model parameters demonstrating the robustness of our primary finding. Moreover, the current priors ensure that model parameters are sufficiently identifiabile, whereas wider priors tend to induce multimodal posterior distributions, suggesting that the current prior choice is sufficient to ensure model convergence without biasing the parameter estimates.
 
-![](figures/fig-prior-sensitivity.svg){width=100%}
+![](figures/fig-prior-sensitivity.jpeg){width=100%}
 
 **Supplementary Figure S2: Prior Sensitivity Analysis.** Posterior distributions and 95% credible intervals for all model parameters under three different prior specifications. The overlapping credible intervals provide compelling evidence of robustness in parameter estimation.
 
@@ -430,7 +427,7 @@ This section provides a complete report of the simulation studies, including ful
 
 Supplementary Figure S3 displays the complete posterior distributions for all generative parameters from the three simulation scenarios described in the main text, plotted against their known ground-truth values (red vertical lines). The posteriors are well-centered on the true values, and the true values are consistently contained within the 95% credible intervals, demonstrating parameter recovery.
 
-![](figures/fig-full-recovery.svg){width=100%}
+![](figures/fig-full-recovery.jpeg){width=100%}
 
 **Supplementary Figure S3: Full Posterior Recovery of Ground-Truth Parameters.** Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Vertical black lines indicate the true parameter values used to generate each simulated scenario.
 
@@ -440,7 +437,7 @@ Supplementary Figure S3 displays the complete posterior distributions for all ge
 
 We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. Supplementary Figure S4 shows the model's attempt to fit this signal. Contrary to first expected, the model captures the general trend and its functional form fully captures the sharp "knee" and long tail of the exponential decay, managing to adapt to this type of model misspecification during the recovery phase, even in the face of a different data generating processes. This provides additional evidence of the current model architecture's flexibility.
 
-![](figures/fig-asymetric.svg){width=100%}
+![](figures/fig-asymetric.jpeg){width=100%}
 
 **Supplementary Figure S4: Model Fit to Asymmetric Recovery Data.** The left panel shows the true underlying heart trajectory (blue line). Right panel shows the model's posterior trajectory (red line) and 95% highest density interval (shaded area in red) is overlaid on synthetic data with an exponential recovery with gaussian noise (grey line). 
 
@@ -510,7 +507,7 @@ sim_data <- data.frame(
 
 We generated synthetic data using a Student's-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S5 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction ($w$) is biased upwards to compensate the wider tails of the distribution. However, despite sampling from a non-gaussian distribution, the model is able to recover all the other parameters within credible intervals, providing evidence of the robustness of the model to distribution misspecification. Additionally, even though the difference form a $w = 0.80$ and $w = 0.82-0.83$ is statistically significant credible-interval-wise, it could be deemed neglible from a practical stand point.
 
-![](figures/fig-student-t.svg){width=100%}
+![](figures/fig-student-t.jpeg){width=100%}
 
 **Supplementary Figure S5: Impact of Non-Gaussian Noise.** In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student's-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student's-t noise with 3 degrees of freedom. The ground truth parameters are well recovered except for structured variance fraction $w$.
 
@@ -768,11 +765,11 @@ This section provides a complete set of diagnostic checks for the HMC analysis o
 
 Supplementary Figure S6 shows the traceplots for all key parameters from the empirical model fit, and Figure S7 shows the posterior distribution of model parameters.
 
-![](figures/fig-poc-traceplot.svg){width=100%}
+![](figures/fig-poc-traceplot.jpeg){width=100%}
 
 **Supplementary Figure S6: Full Traceplots for Empirical Analysis.** MCMC traceplots for four chains, showing stationary, well-mixed chains.
 
-![](figures/fig-poc-posterior.svg){width=100%}
+![](figures/fig-poc-posterior.jpeg){width=100%}
 
 **Figure S7. Posterior distribution of phenomenological recovery parameters from the empirical analysis.** The posterior distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance. 
 
@@ -780,9 +777,6 @@ Supplementary Figure S6 shows the traceplots for all key parameters from the emp
 
 All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S1 provides the R-hat, effective sample size (ESS) and Monte Carlo Standard Error (MCSE) values for all key parameters, confirming the reliability of the posterior estimates.
 
-```{r}
-readRDS(file = "tables/tbl-S1.RDS")
-```
 
 **Supplementary Table S1: MCMC Diagnostic Statistics.** All R-hat values are near 1.00 up to three digits, both tail and bulk ESS are greater than 5,000, confirming the reliability of the posterior estimates.
 
@@ -790,10 +784,10 @@ readRDS(file = "tables/tbl-S1.RDS")
 
 To assess the model's descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S8 overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S9 shows that the distributions of key summary statistics (mean and SD) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
 
-![](figures/fig-poc-ppcheck.svg){width=100%}
+![](figures/fig-poc-ppcheck.jpeg){width=100%}
 
 **Supplementary Figure S8: Graphical Posterior Predictive Check.** The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.
 
-![](figures/fig-poc-stat-computed.svg){width=100%}
+![](figures/fig-poc-stat-computed.jpeg){width=100%}
 
 **Supplementary Figure S9: Distributional Posterior Predictive Checks.** The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.
