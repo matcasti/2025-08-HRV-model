@@ -9,22 +9,25 @@ execute:
   error: false
 format: 
   docx: 
-    reference-doc: ref.docx
+    reference-doc: ref_sup.docx
 editor_options: 
   chunk_output_type: console
 ---
 
 **Title**: BAND: A Unified Probabilistic Framework for Non-Stationary Heart Rate Variability Analysis.
 
-**Authors**: Matías Castillo-Aguilar^1,2^, David Medina-Ortiz^3,4^, Marcelo A. Navarrete^1,2^, Cristian Núñez-Espinosa^1,2^\*.
+**Authors**: Matías Castillo-Aguilar^1,2^, David Medina-Ortiz^3,4^, Ruby Méndez Muñoz^1,2^, Diego Mabe-Castro^1,2^, Noah Beelders^5^, Atenea Uribe-Ojeda^1,2^, Marcelo A. Navarrete^1,2^ and Cristian Núñez-Espinosa^1,2^\*.
 
 ::: {custom-style="Afiliation"}
-^1^ Centro Asistencial Docente y de Investigación (CADI-UMAG), Punta Arenas, Chile.
+^1^	Centro Asistencial Docente y de Investigación (CADI-UMAG), Punta Arenas, Chile.
 
-^2^ Escuela de Medicina, Universidad de Magallanes (UMAG), Punta Arenas, Chile.
+^2^	Escuela de Medicina, Universidad de Magallanes (UMAG), Punta Arenas, Chile.
 
-^3^ Departamento de Ingeniería en Computación, Universidad de Magallanes, Punta Arenas, Chile. 
-^4^ Centre for Biotechnology and Bioengineering, CeBiB, Universidad de Chile, Santiago, Chile.
+^3^	Departamento de Ingeniería en Computación, Universidad de Magallanes, Punta Arenas, Chile. 
+
+^4^	Centre for Biotechnology and Bioengineering, CeBiB, Universidad de Chile, Santiago, Chile.
+
+^5^	Department of Mathematics, University of Munich, Theresienstraße 39, 80333 Munich, Germany.
 :::
 
 ### \*Correspondence {.unnumbered}
