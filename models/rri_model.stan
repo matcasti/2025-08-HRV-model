@@ -73,11 +73,30 @@ transformed data {
   // time points and all basis frequencies. This is a major performance optimization.
   array[3] matrix[N, N_sin] sin_mat;
   array[3] matrix[N, N_sin] cos_mat;
+
+  // Precomputed reciprocal of N, used to center each basis column (subtract
+  // its mean) below.
+  real inv_N = 1.0 / N;
+
   for (j in 1:3) {
     // Convert time from minutes to seconds for frequency calculation (Hz).
     matrix[N, N_sin] T_mat = (t * 60) * freqs[j]';
-    sin_mat[j] = sin(2 * pi() * T_mat);
-    cos_mat[j] = cos(2 * pi() * T_mat);
+    matrix[N, N_sin] sin_raw = sin(2 * pi() * T_mat);
+    matrix[N, N_sin] cos_raw = cos(2 * pi() * T_mat);
+
+    // Center each basis column (sinusoid) BEFORE forming the Gram matrices
+    // below. This guarantees (a) the synthesized oscillator signal
+    // S_j(t) = sin_mat*u_sin + cos_mat*u_cos is automatically mean-zero for
+    // ANY coefficients, and (b) the Gram matrices are computed from the
+    // exact same centered basis that generates the signal, so the variance
+    // computed from them (Sigma_S, below) is actually exact. Previously the
+    // basis was centered only after the fact (see Section 5), so Sigma_S
+    // described the variance of the UNCENTERED signal while S_t_matrix held
+    // the centered one -- a mismatch.
+    row_vector[N_sin] sin_col_means = (rep_row_vector(1.0, N) * sin_raw) * inv_N;
+    row_vector[N_sin] cos_col_means = (rep_row_vector(1.0, N) * cos_raw) * inv_N;
+    sin_mat[j] = sin_raw - rep_matrix(sin_col_means, N);
+    cos_mat[j] = cos_raw - rep_matrix(cos_col_means, N);
   }
 
   // --- Precompute log-frequencies ---
@@ -205,6 +224,10 @@ transformed parameters {
 
   // --- 2. Construct the baseline and SDNN trajectories ---
   // These define the time-varying mean and total standard deviation of the RR signal.
+  // Note: `SDNN_t` here corresponds to sigma_total(t_i) in the main manuscript; we
+  // keep the `SDNN_t` identifier in code for brevity, but the manuscript text uses
+  // sigma_total(t_i) to make clear it is a latent, instantaneous scale parameter
+  // rather than a conventional windowed SDNN sample statistic.
   vector[N] RR_baseline = fmax(1e-8, alpha_r + beta_r .* D1 - (c_r * beta_r) .* D2);
   vector[N] SDNN_t      = fmax(1e-8, alpha_s + beta_s .* D1 - (c_s * beta_s) .* D2);
 
@@ -257,16 +280,20 @@ transformed parameters {
     u_cos[j] = z_cos[j] .* full_scale;
   }
 
-  // --- 5. Synthesize the raw oscillator signals and mean-center them ---
+  // --- 5. Synthesize the (already mean-centered) oscillator signals ---
+  // Because sin_mat/cos_mat are themselves mean-centered (see transformed
+  // data), the resulting S_j is exactly mean-centered by construction; the
+  // subtraction below is a negligible residual-mean safety check.
   matrix[N, 3] S_t_matrix;
   for (j in 1:3) {
     vector[N] S_j = sin_mat[j] * u_sin[j] + cos_mat[j] * u_cos[j];
-    // Mean-center to ensure the oscillators represent pure variability, not a baseline shift.
     S_t_matrix[:, j] = S_j - mean(S_j);
   }
 
   // --- 6. Calculate the exact variance of each oscillator using Gram matrices ---
   // This quadratic form calculates Var(S_j) = u' * G * u efficiently and exactly.
+  // Sigma_S is treated as diagonal (independence between bands); see Supplementary
+  // Section S1.4 for an empirical quantification of this approximation.
   matrix[3, 3] Sigma_S = rep_matrix(0.0, 3, 3);
   for (j in 1:3) {
     real vj = dot_product(u_sin[j], G_sin[j] * u_sin[j])
@@ -348,4 +375,27 @@ model {
   // to find parameter values that make the observed data most plausible under a
   // Normal distribution with a time-varying mean and variance.
   RR ~ normal(mu, sqrt(var_resid));
+}
+
+// =====================================================================
+// Generated Quantities Block
+// =====================================================================
+// This block computes derived quantities from the posterior draws that are not
+// needed for sampling itself, but are useful for reporting and downstream
+// comparison against external methods (e.g., STFT- or CWT-based power estimates).
+generated quantities {
+  // p_t (defined in transformed parameters) are mixture/amplitude weights on the
+  // oscillators S_j(t_i), not power or variance proportions in themselves. Because
+  // Sigma_S[j,j] need not be identical across bands, the actual fractional
+  // contribution of band j to the structured variance at each time point, q_j(t_i),
+  // is this derived quantity rather than p_t itself; q is the quantity that is
+  // properly comparable to STFT- or CWT-derived relative power.
+  matrix[N, 3] q_t;
+  {
+    vector[3] Sigma_S_diag = diagonal(Sigma_S);
+    for (i in 1:N) {
+      row_vector[3] num = square(p_t[i, :]) .* Sigma_S_diag';
+      q_t[i, :] = num / sum(num);
+    }
+  }
 }

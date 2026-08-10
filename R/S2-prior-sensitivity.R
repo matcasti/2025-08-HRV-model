@@ -45,7 +45,7 @@ stan_data <- list(
 )
 
 ## Precompile the model
-model <- stan_model(file = "models/prior_custom_rri_model.stan.stan")
+model <- stan_model(file = "models/prior_custom_rri_model.stan")
 
 ## Specify the width of the priors
 prior_mult <- c(narrow = 1/2, normal = 1, wide = 2)
@@ -63,7 +63,8 @@ for (i in 1:3) {
       "lambda","phi","tau","delta",
       "alpha_r","beta_r","c_r",
       "alpha_s","beta_s","c_s",
-      "c_c", "w", "pi_base", "pi_pert"
+      "c_c", "w", "pi_base", "pi_pert",
+      "rho_gp", "z_gp", "z_sin", "z_cos"
     ),
     data = stan_data,
     iter = 10000, warmup = 5000,
@@ -76,6 +77,9 @@ for (i in 1:3) {
   rm(model_fit, prior_name); closeAllConnections(); gc()
 }
 
+pars <- c("lambda", "phi", "tau", "delta", "alpha_r", "beta_r", "c_r",
+          "alpha_s", "beta_s", "c_s", "c_c", "w", "pi_base", "pi_pert")
+
 ## Load models to get estimates
 model_narrow <- readRDS(file = "models/model_fit_prior_narrow.RDS")
 model_normal <- readRDS(file = "models/model_fit_prior_normal.RDS")
@@ -84,12 +88,10 @@ model_wide <- readRDS(file = "models/model_fit_prior_wide.RDS")
 # -------------------------------------------------------------------------
 
 posteriors <- list(
-  narrow = extract(model_narrow) |> as.data.table(),
-  normal = extract(model_normal) |> as.data.table(),
-  wide = extract(model_wide) |> as.data.table()
+  narrow = extract(model_narrow, pars = pars) |> as.data.table(),
+  normal = extract(model_normal, pars = pars) |> as.data.table(),
+  wide = extract(model_wide, pars = pars) |> as.data.table()
 ) |> rbindlist(idcol = "prior")
-
-posteriors[, lp__ := NULL]
 
 pd_long <- melt.data.table(
   data = posteriors,
@@ -123,3 +125,57 @@ ggsave(filename = "figures/fig-prior-sensitivity.jpeg", fig,
 ggsave(filename = "figures/fig-prior-sensitivity.pdf", fig,
        device = "pdf", width = 9, height = 9)
 
+
+# -------------------------------------------------------------------------
+
+vs_narrow <- pd_long[, j = {
+  diff <- value[prior == "Default"] - value[prior == "Narrow"]
+  ci_num <- tidybayes::hdci(diff)
+  estimate <- median(diff)
+  scale <- sd(diff)
+
+  list(Estimate = round(estimate, 2),
+       `Lower bound` = round(ci_num[1], 2),
+       `Upper bound` = round(ci_num[2], 2),
+       pd = fifelse(estimate >= 0,
+                                   mean(diff >= 0)*100,
+                                   mean(diff <= 0)*100) |>
+         round(2),
+       ps = fifelse(estimate >= 0,
+                                     mean(diff >= 0.1*scale)*100,
+                                     mean(diff <= -0.1*scale)*100) |>
+         round(2))
+}, keyby = list(Parameter = variable)]
+
+vs_wide <- pd_long[, j = {
+  diff <- value[prior == "Default"] - value[prior == "Wide"]
+  ci_num <- tidybayes::hdci(diff)
+  estimate <- median(diff)
+  scale <- sd(diff)
+
+  list(Estimate = round(estimate, 2),
+       `Lower bound` = round(ci_num[1], 2),
+       `Upper bound` = round(ci_num[2], 2),
+       pd = fifelse(estimate >= 0,
+                    mean(diff >= 0)*100,
+                    mean(diff <= 0)*100) |>
+         round(2),
+       ps = fifelse(estimate >= 0,
+                    mean(diff >= 0.1*scale)*100,
+                    mean(diff <= -0.1*scale)*100) |>
+         round(2))
+}, keyby = list(Parameter = variable)]
+
+levels(vs_wide$Parameter) <-
+  levels(vs_narrow$Parameter) <-
+  c("$\\lambda$", "$\\phi$", "$\\tau$", "$\\delta$", "$\\alpha_r$",
+  "$\\beta_r$", "$c_r$", "$\\alpha_s$", "$\\beta_s$", "$c_s$",
+  "$c_c$", "$w$",
+  "$\\vec{\\pi}_{base}$ [VLF]", "$\\vec{\\pi}_{base}$ [LF]", "$\\vec{\\pi}_{base}$ [HF]",
+  "$\\vec{\\pi}_{pert}$ [VLF]", "$\\vec{\\pi}_{pert}$ [LF]", "$\\vec{\\pi}_{pert}$ [HF]")
+
+knitr::kable(vs_narrow, escape = FALSE, align = "l") |>
+  saveRDS(file = "tables/tbl-S1-narrow.RDS")
+
+knitr::kable(vs_wide, escape = FALSE, align = "l") |>
+  saveRDS(file = "tables/tbl-S1-wide.RDS")

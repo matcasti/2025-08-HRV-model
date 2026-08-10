@@ -179,8 +179,8 @@ ppc_pj_estimate <- ppc_pj[j = generate_rri_simulation(
 
   list(
     p_vlf_mu = p_vlf_mu, p_vlf_low = p_vlf_hdi[1,1], p_vlf_high = p_vlf_hdi[1,2],
-    p_lf_mu = p_vlf_mu, p_lf_low = p_lf_hdi[1,1], p_lf_high = p_lf_hdi[1,2],
-    p_hf_mu = p_vlf_mu, p_hf_low = p_hf_hdi[1,1], p_hf_high = p_hf_hdi[1,2]
+    p_lf_mu = p_lf_mu, p_lf_low = p_lf_hdi[1,1], p_lf_high = p_lf_hdi[1,2],
+    p_hf_mu = p_hf_mu, p_hf_low = p_hf_hdi[1,1], p_hf_high = p_hf_hdi[1,2]
   )
 },
 keyby = list(t)]
@@ -209,7 +209,7 @@ fig_pj <- ggplot(ppc_pj_estimate) +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(expand = c(0,0), n.breaks = 5, limits = 0:1) +
   labs(subtitle = "Prior spectral signature",
-       x = "Time (minutes)", y = "Proportion of Power",
+       x = "Time (minutes)", y = "Mixture Weight",
        color = "Color", fill = "Color") +
   theme_classic(base_size = 12) +
   theme(legend.position = "bottom",

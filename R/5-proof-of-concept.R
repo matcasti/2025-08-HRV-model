@@ -101,12 +101,12 @@ spectral_data <- posterior[j = generate_rri_simulation(N = length(poc_data$time)
     rho_gp = c(1,1,1) * 0.5)
   )$data, keyby = row_id
   ][j = list(
-      p_vlf_mu = median(p_vlf),
-      p_vlf_hdi = diff(x = ggdist::hdci(p_vlf)[1,]),
-      p_lf_mu = median(p_lf),
-      p_lf_hdi = diff(x = ggdist::hdci(p_lf)[1,]),
-      p_hf_mu = median(p_hf),
-      p_hf_hdi = diff(x = ggdist::hdci(p_hf)[1,])
+      q_vlf_mu = median(q_vlf),
+      q_vlf_hdi = diff(x = ggdist::hdci(q_vlf)[1,]),
+      q_lf_mu = median(q_lf),
+      q_lf_hdi = diff(x = ggdist::hdci(q_lf)[1,]),
+      q_hf_mu = median(q_hf),
+      q_hf_hdi = diff(x = ggdist::hdci(q_hf)[1,])
     ),
     keyby = list(t)]
 
@@ -213,8 +213,8 @@ fig_sdnn <- ggplot() +
 predicted_spectral <- melt(
   data = spectral_data,
   id.vars = "t",
-  measure.vars = list(mu = c("p_vlf_mu", "p_lf_mu", "p_hf_mu"),
-                      hdi = c("p_vlf_hdi", "p_lf_hdi", "p_hf_hdi"))
+  measure.vars = list(mu = c("q_vlf_mu", "q_lf_mu", "q_hf_mu"),
+                      hdi = c("q_vlf_hdi", "q_lf_hdi", "q_hf_hdi"))
 )
 predicted_spectral[, variable := factor(variable,
                                         levels = 1:3,

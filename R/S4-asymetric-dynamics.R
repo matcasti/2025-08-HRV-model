@@ -153,6 +153,12 @@ mu_hat[, draw := gsub("V", "", draw) |> as.numeric()]
 
 mu_hat <- mu_hat[, list(mu = median(value), hdi = diff(ggdist::hdi(value)[1,])), keyby = time]
 
+mu_hat$observed <- sim_data$observed_rri
+
+mu_hat[, residual := mu - observed] # <= Residuals
+
+mu_hat[, shapiro.test(residual)]
+
 # Generate plot -----------------------------------------------------------
 
 fig_obs <- ggplot(sim_data, aes(time, true_mean_rri)) +
@@ -187,3 +193,7 @@ ggsave(filename = "figures/fig-asymetric.jpeg", fig,
        device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-asymetric.pdf", fig,
        device = "pdf", width = 9, height = 9)
+
+
+# -------------------------------------------------------------------------
+

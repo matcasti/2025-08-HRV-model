@@ -80,12 +80,16 @@ for (i in 1:3) {
   metrics[[i]]$estimates <- full_comparison_data <- sim_data[aligned_results, on = "t"]
 
   # Calculate metrics
+  # NOTE: STFT/windowed periodogram methods estimate power proportions, so
+  # they must be validated against q_j(t) (the implied variance/power
+  # share), NOT p_j(t) (which are mixture/amplitude weights and are not
+  # the same quantity as a periodogram-based power proportion).
   metrics[[i]]$statistics <- list(
     rr_metrics = calculate_metrics(full_comparison_data$RR_baseline, full_comparison_data$RR_windowed_interp),
     sdnn_metrics = calculate_metrics(full_comparison_data$SDNN_t, full_comparison_data$SDNN_windowed_interp),
-    vlf_metrics = calculate_metrics(full_comparison_data$p_vlf, full_comparison_data$p_vlf_stft_interp),
-    lf_metrics = calculate_metrics(full_comparison_data$p_lf, full_comparison_data$p_lf_stft_interp),
-    hf_metrics = calculate_metrics(full_comparison_data$p_hf, full_comparison_data$p_hf_stft_interp)
+    vlf_metrics = calculate_metrics(full_comparison_data$q_vlf, full_comparison_data$p_vlf_stft_interp),
+    lf_metrics = calculate_metrics(full_comparison_data$q_lf, full_comparison_data$p_lf_stft_interp),
+    hf_metrics = calculate_metrics(full_comparison_data$q_hf, full_comparison_data$p_hf_stft_interp)
   )
 
   # --- D. Visualize Comparison ---
@@ -117,17 +121,19 @@ for (i in 1:3) {
     theme_classic(base_size = 12)
 
   # Plot 3: Spectral Proportion Reconstruction
+  # Ground truth here is q_j(t) (implied power share), the correct target
+  # for a power-proportion estimator like STFT -- see note above.
   p_spectral <-
-    full_comparison_data[, list(t, p_vlf, p_lf, p_hf,
+    full_comparison_data[, list(t, q_vlf, q_lf, q_hf,
                                 p_vlf_stft_interp, p_lf_stft_interp,
                                 p_hf_stft_interp)] |>
     melt(id.vars = "t") |>
     (\(x){
       x[, Line := fifelse(grepl("interp", variable), "Windowed estimate", "Ground truth")]
       x[, Band := fcase(
-        grepl("^p_vlf", variable), "VLF",
-        grepl("^p_lf", variable), "LF",
-        grepl("^p_hf", variable), "HF"
+        grepl("^q_vlf|^p_vlf", variable), "VLF",
+        grepl("^q_lf|^p_lf", variable), "LF",
+        grepl("^q_hf|^p_hf", variable), "HF"
       )][]
     })() |>
     ggplot(aes(x = t, y = value, linetype = Line, color = Band)) +

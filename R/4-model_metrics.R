@@ -38,7 +38,7 @@ for (i in 1:3) {
 
   tables[[i]] <- tbl[
     i = !Parameter %like% "_log|_logit|_gp|_out",
-    list(Parameter = if(i == 1) Parameter else NULL,
+    list(Parameter = Parameter,
          Truth = NA,
          Estimate = round(Median, 2),
          `95% HDI` = paste0("[", round(CI_low, 2), ", ", round(CI_high, 2), "]"))
@@ -52,27 +52,20 @@ for (i in 1:3) {
     format(digits = 2, nsmall = 2, scientific = FALSE)
 }
 
-tbl_model <- do.call(cbind, tables)
-tbl_model$Parameter <- c("$\\lambda$", "$\\phi$", "$\\tau$", "$\\delta$", "$\\alpha_r$", "$\\beta_r$", "$c_r$",
-                         "$\\alpha_s$", "$\\beta_s$", "$c_s$", "$c_c$", "$w$",
-                         "$\\vec{\\pi}_{base}$ [VLF]", "$\\vec{\\pi}_{base}$ [LF]", "$\\vec{\\pi}_{base}$ [HF]",
-                         "$\\vec{\\pi}_{pert}$ [VLF]", "$\\vec{\\pi}_{pert}$ [LF]", "$\\vec{\\pi}_{pert}$ [HF]")
+tbl_model <- lapply(tables, function(x) {
+  x$Parameter <- c("$\\lambda$", "$\\phi$", "$\\tau$", "$\\delta$", "$\\alpha_r$",
+                   "$\\beta_r$", "$c_r$", "$\\alpha_s$", "$\\beta_s$", "$c_s$",
+                   "$c_c$", "$w$",
+                   "$\\vec{\\pi}_{base}$ [VLF]", "$\\vec{\\pi}_{base}$ [LF]", "$\\vec{\\pi}_{base}$ [HF]",
+                   "$\\vec{\\pi}_{pert}$ [VLF]", "$\\vec{\\pi}_{pert}$ [LF]", "$\\vec{\\pi}_{pert}$ [HF]")
+  knitr::kable(x)
+})
 
-old_names <- names(tbl_model)
-names(tbl_model) <- make.unique(old_names)
 
-gt(tbl_model) |>
-  tab_spanner(label = md("**Scenario A**"), columns = 2:4) |>
-  tab_spanner(label = md("**Scenario B**"), columns = 5:7) |>
-  tab_spanner(label = md("**Scenario C**"), columns = 8:10) |>
-  fmt_markdown(columns = "Parameter") |>
-  cols_label(.list = `names<-`(as.list(old_names), names(tbl_model))) |>
-  opt_stylize(style = 5) |>
-  tab_style(style = cell_text(size = "small"),
-            locations = list(cells_body(),
-                             cells_column_labels(),
-                             cells_column_spanners())) |>
-  saveRDS(file = "tables/tbl-2.RDS")
+
+saveRDS(tbl_model[[1]], file = "tables/tbl-2a.RDS")
+saveRDS(tbl_model[[2]], file = "tables/tbl-2b.RDS")
+saveRDS(tbl_model[[3]], file = "tables/tbl-2c.RDS")
 
 # -------------------------------------------------------------------------
 # Extract model posterior distribution ------------------------------------
@@ -109,9 +102,13 @@ if(!file.exists("data/error_statistics.RDS")) {
     ][j = list(
       rr_metrics = calculate_metrics(sim_data[[i]]$data$RR_baseline, RR_baseline) |> as.list(),
       sdnn_metrics = calculate_metrics(sim_data[[i]]$data$SDNN_t, SDNN_t) |> as.list(),
-      vlf_metrics = calculate_metrics(sim_data[[i]]$data$p_vlf, p_vlf) |> as.list(),
-      lf_metrics = calculate_metrics(sim_data[[i]]$data$p_lf, p_lf) |> as.list(),
-      hf_metrics = calculate_metrics(sim_data[[i]]$data$p_hf, p_hf) |> as.list()
+      # q_j(t), not p_j(t): this table benchmarks the model against the
+      # windowed/STFT methods in 2-classic_metrics.R, which estimate power
+      # proportions. Using p_j(t) here would compare two different
+      # quantities under the same "VLF/LF/HF" row.
+      vlf_metrics = calculate_metrics(sim_data[[i]]$data$q_vlf, q_vlf) |> as.list(),
+      lf_metrics = calculate_metrics(sim_data[[i]]$data$q_lf, q_lf) |> as.list(),
+      hf_metrics = calculate_metrics(sim_data[[i]]$data$q_hf, q_hf) |> as.list()
     ) |> rbindlist(idcol = "Domain"), keyby = row_id
     ][j = {
       hdi <- ggdist::hdci(Value) |> round(digits = 2) |> format(nsmall = 2, digits = 2)
@@ -144,7 +141,7 @@ tbl_metrics <- tbl_metrics |>
 
 tbl_metrics[, Domain := factor(Domain,
                      levels = c("rr_metrics", "sdnn_metrics", "hf_metrics", "lf_metrics", "vlf_metrics"),
-                     labels = c("$\\mathrm{RR}(t_i)$", "$\\mathrm{SDNN}(t_i)$", "$\\mathrm{HF}(t_i)$", "$\\mathrm{LF}(t_i)$", "$\\mathrm{VLF}(t_i)$"))]
+                     labels = c("$\\mathrm{RR}(t_i)$", "$\\sigma_{total}(t_i)$", "$\\mathrm{HF}(t_i)$", "$\\mathrm{LF}(t_i)$", "$\\mathrm{VLF}(t_i)$"))]
 
 tbl_metrics <- tbl_metrics[, .SD, keyby = Domain]
 
@@ -296,7 +293,7 @@ for (i in 1:3) {
     scale_x_continuous(expand = c(0,0)) +
     scale_y_continuous(n.breaks = 5, limits = c(0,1)) +
     labs(subtitle = ifelse(i == 1, "Spectral signature", ""),
-         x = "Time (minutes)", y = "Proportion of Power",
+         x = "Time (minutes)", y = "Mixture Weight",
          color = "Color", linetype = "Line", fill = "Color") +
     theme_classic(base_size = 12)
 

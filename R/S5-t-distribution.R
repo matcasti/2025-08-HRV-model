@@ -124,7 +124,7 @@ p3 <- melt(sim_data$data,
   scale_fill_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
                     aesthetics = c("fill", "color")) +
   labs(subtitle = "Spectral signatures",
-       x = "Time (minutes)", y = "Proportion of Power", fill = "Band", color = "Band") +
+       x = "Time (minutes)", y = "Mixture Weight", fill = "Band", color = "Band") +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(expand = c(0,0)) +
   theme_classic(base_size = 12) +
@@ -193,6 +193,17 @@ mu_hat[, time := gsub("mu.V", "", time) |> as.numeric()]
 mu_hat[, draw := gsub("V", "", draw) |> as.numeric()]
 
 mu_hat <- mu_hat[, list(mu = median(value), hdi = diff(ggdist::hdi(value)[1,])), keyby = time]
+
+mu_hat$observed <- sim_data$data$RR
+
+mu_hat[, plot(observed ~ time, type = "l", col = "darkblue")]
+mu_hat[, lines(mu ~ time, type = "l", col = "lightblue")]
+
+mu_hat[, residual := mu - observed]
+
+mu_hat[, acf(residual)]
+mu_hat[, Box.test(residual, lag = 10, type = "Ljung-Box")]
+mu_hat[, shapiro.test(residual)]
 
 # Generate plot -----------------------------------------------------------
 

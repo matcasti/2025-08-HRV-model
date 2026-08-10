@@ -134,18 +134,10 @@ params_table$Parameter <- c("$\\lambda$", "$\\phi$", "$\\tau$", "$\\delta$",
 data.table::setcolorder(params_table,
                         c("Parameter", "Interpretation", paste("Scenario", LETTERS[1:3])))
 
-gt(params_table) |>
-  fmt_markdown(columns = "Parameter") |>
-  opt_stylize(style = 5) |>
-  tab_style(style = cell_text(size = "small"),
-            locations = list(cells_body(),
-                             cells_column_labels(),
-                             cells_column_spanners())) |>
+knitr::kable(params_table) |>
   saveRDS(file = "tables/tbl-1.RDS")
 
 # -------------------------------------------------------------------------
-
-
 
 simulated_data <- vector("list", length = 3)
 
@@ -212,7 +204,7 @@ for(i in 1:3) {
     scale_fill_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
                       aesthetics = c("fill", "color")) +
     labs(subtitle = ifelse(i==1,"Spectral signatures",""),
-         x = "Time (minutes)", y = "Proportion of Power", fill = "Band", color = "Band") +
+         x = "Time (minutes)", y = "Mixture Weight", fill = "Band", color = "Band") +
     scale_x_continuous(expand = c(0,0)) +
     scale_y_continuous(expand = c(0,0)) +
     theme_classic(base_size = 12) +

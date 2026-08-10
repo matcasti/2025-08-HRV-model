@@ -122,11 +122,30 @@ transformed data {
   // time points and all basis frequencies. This is a major performance optimization.
   array[3] matrix[N, N_sin] sin_mat;
   array[3] matrix[N, N_sin] cos_mat;
+
+  // Precomputed reciprocal of N, used to center each basis column (subtract
+  // its mean) below.
+  real inv_N = 1.0 / N;
+
   for (j in 1:3) {
     // Convert time from minutes to seconds for frequency calculation (Hz).
     matrix[N, N_sin] T_mat = (t * 60) * freqs[j]';
-    sin_mat[j] = sin(2 * pi() * T_mat);
-    cos_mat[j] = cos(2 * pi() * T_mat);
+    matrix[N, N_sin] sin_raw = sin(2 * pi() * T_mat);
+    matrix[N, N_sin] cos_raw = cos(2 * pi() * T_mat);
+
+    // Center each basis column (sinusoid) BEFORE forming the Gram matrices
+    // below. This guarantees (a) the synthesized oscillator signal
+    // S_j(t) = sin_mat*u_sin + cos_mat*u_cos is automatically mean-zero for
+    // ANY coefficients, and (b) the Gram matrices are computed from the
+    // exact same centered basis that generates the signal, so the variance
+    // computed from them (Sigma_S, below) is actually exact. Previously the
+    // basis was centered only after the fact (see Section 5), so Sigma_S
+    // described the variance of the UNCENTERED signal while S_t_matrix held
+    // the centered one -- a mismatch.
+    row_vector[N_sin] sin_col_means = (rep_row_vector(1.0, N) * sin_raw) * inv_N;
+    row_vector[N_sin] cos_col_means = (rep_row_vector(1.0, N) * cos_raw) * inv_N;
+    sin_mat[j] = sin_raw - rep_matrix(sin_col_means, N);
+    cos_mat[j] = cos_raw - rep_matrix(cos_col_means, N);
   }
 
   // --- Precompute log-frequencies ---
@@ -254,6 +273,10 @@ transformed parameters {
 
   // --- 2. Construct the baseline and SDNN trajectories ---
   // These define the time-varying mean and total standard deviation of the RR signal.
+  // Note: `SDNN_t` here corresponds to sigma_total(t_i) in the main manuscript; we
+  // keep the `SDNN_t` identifier in code for brevity, but the manuscript text uses
+  // sigma_total(t_i) to make clear it is a latent, instantaneous scale parameter
+  // rather than a conventional windowed SDNN sample statistic.
   vector[N] RR_baseline = fmax(1e-8, alpha_r + beta_r .* D1 - (c_r * beta_r) .* D2);
   vector[N] SDNN_t      = fmax(1e-8, alpha_s + beta_s .* D1 - (c_s * beta_s) .* D2);
 
@@ -306,16 +329,20 @@ transformed parameters {
     u_cos[j] = z_cos[j] .* full_scale;
   }
 
-  // --- 5. Synthesize the raw oscillator signals and mean-center them ---
+  // --- 5. Synthesize the (already mean-centered) oscillator signals ---
+  // Because sin_mat/cos_mat are themselves mean-centered (see transformed
+  // data), the resulting S_j is exactly mean-centered by construction; the
+  // subtraction below is a negligible residual-mean safety check.
   matrix[N, 3] S_t_matrix;
   for (j in 1:3) {
     vector[N] S_j = sin_mat[j] * u_sin[j] + cos_mat[j] * u_cos[j];
-    // Mean-center to ensure the oscillators represent pure variability, not a baseline shift.
     S_t_matrix[:, j] = S_j - mean(S_j);
   }
 
   // --- 6. Calculate the exact variance of each oscillator using Gram matrices ---
   // This quadratic form calculates Var(S_j) = u' * G * u efficiently and exactly.
+  // Sigma_S is treated as diagonal (independence between bands); see Supplementary
+  // Section S1.4 for an empirical quantification of this approximation.
   matrix[3, 3] Sigma_S = rep_matrix(0.0, 3, 3);
   for (j in 1:3) {
     real vj = dot_product(u_sin[j], G_sin[j] * u_sin[j])
@@ -398,6 +425,29 @@ model {
   // Normal distribution with a time-varying mean and variance.
   RR ~ normal(mu, sqrt(var_resid));
 }
+
+// =====================================================================
+// Generated Quantities Block
+// =====================================================================
+// This block computes derived quantities from the posterior draws that are not
+// needed for sampling itself, but are useful for reporting and downstream
+// comparison against external methods (e.g., STFT- or CWT-based power estimates).
+generated quantities {
+  // p_t (defined in transformed parameters) are mixture/amplitude weights on the
+  // oscillators S_j(t_i), not power or variance proportions in themselves. Because
+  // Sigma_S[j,j] need not be identical across bands, the actual fractional
+  // contribution of band j to the structured variance at each time point, q_j(t_i),
+  // is this derived quantity rather than p_t itself; q is the quantity that is
+  // properly comparable to STFT- or CWT-derived relative power.
+  matrix[N, 3] q_t;
+  {
+    vector[3] Sigma_S_diag = diagonal(Sigma_S);
+    for (i in 1:N) {
+      row_vector[3] num = square(p_t[i, :]) .* Sigma_S_diag';
+      q_t[i, :] = num / sum(num);
+    }
+  }
+}
 ```
 
 ## S1.2: Prior Justification and Sensitivity Analysis
@@ -412,15 +462,46 @@ To ensure our chosen priors were reasonable and did not unduly influence the pos
 
 ### S1.2.2: Prior Sensitivity Analysis
 
-To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript's weakly informative priors, (2) "flatter" priors with two times larger variance, and (3) "tighter", more informative priors with half of original variance. Supplementary Figure S2 shows the posterior distribution for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between $c\_r$ and $c\_s$) remains unchanged across all specifications, with consistent overlapping credible intervals for all model parameters demonstrating the robustness of our primary finding. Moreover, the current priors ensure that model parameters are sufficiently identifiabile, whereas wider priors tend to induce multimodal posterior distributions, suggesting that the current prior choice is sufficient to ensure model convergence without biasing the parameter estimates.
+To assess the robustness of our conclusions, we performed a sensitivity analysis by re-fitting the model on the empirical data using three different sets of priors: (1) the main manuscript's informative priors, (2) "flatter" priors with two times larger variance, and (3) "tighter", more informative priors with half of original variance. Supplementary Figure S2 shows the posterior distribution for key parameters under each condition. The central conclusion of dissonant recovery (a credible difference between $c_r$ and $c_s$) remains unchanged across all specifications, with consistent overlapping credible intervals for all model parameters supporting the robustness of our primary finding.
+
+We revise our interpretation of the remaining observation below. Under markedly wider priors, the posterior distributions for the timing and rate parameters ($\tau$, $\delta$, $\lambda$, $\phi$) become multimodal. We do not interpret this as evidence that the informative priors used in the main analysis are unbiased; rather, it indicates weak *practical* identifiability of the timing and rate parameters from a single, comparatively short recording under a vague prior, and is precisely the motivation for adopting informative, event-informed priors for this class of model (Section 4.2.1 of the main text) rather than a demonstration that our chosen priors introduce no bias of their own. To make this comparison quantitative rather than a purely visual "overlapping intervals" judgment, we additionally report, for each parameter and each pair of prior specifications: (i) the shift in posterior median expressed in units of the original prior's standard deviation, and (ii) a distributional overlap coefficient (the overlapping-area statistic between the two posterior densities). All priors, including those induced on the constrained and data-derived-scaled parameters by the transformations in Section 4.2 of the main text, are shown on their natural, interpretable scales in Supplementary Figure S2, rather than only on the unconstrained (logit/log) sampling scale. Quantitative indices of prior sensitivity analysis are shown in Table S1 comparing the model estimates on their original scale against wider (Table S1-A) and narrower priors (Table S1-B).
 
 ![](figures/fig-prior-sensitivity.jpeg){width=100%}
 
-**Supplementary Figure S2: Prior Sensitivity Analysis.** Posterior distributions and 95% credible intervals for all model parameters under three different prior specifications. The overlapping credible intervals provide compelling evidence of robustness in parameter estimation.
+**Supplementary Figure S2: Prior Sensitivity Analysis.** Posterior distributions and 95% credible intervals for all model parameters under three different prior specifications, shown on each parameter's natural, interpretable scale. The overlapping credible intervals support the robustness of the primary finding; multimodality under the widest prior specification reflects weak practical identifiability under vague priors rather than bias in the adopted (informative) priors.
+
+**Supplementary Table S1-A: Prior Sensitivity Analysis.** Posterior distributions and 95% credible intervals for all model parameters comparing the estimates of the original model with default prior widths, minus the wide prior estimates, shown on each parameter's natural, interpretable scale. The overlapping credible intervals support the robustness of the primary finding. pd: probability of direction, which reflects the probability mass above zero on the same direction of the estimate sign; ps: probability of significance, which indicates the probability mass above 0.1 standard deviations of the parameter natural scale.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+readRDS("tables/tbl-S1-wide.RDS")
+```
+
+**Supplementary Table S1-B: Prior Sensitivity Analysis.** Posterior distributions and 95% credible intervals for all model parameters comparing the estimates of the original model with default prior widths, minus the narrow prior estimates, shown on each parameter's natural, interpretable scale. The overlapping credible intervals support the robustness of the primary finding. pd: probability of direction, which reflects the probability mass above zero on the same direction of the estimate sign; ps: probability of significance, which indicates the probability mass above 0.1 standard deviations of the parameter natural scale.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+readRDS("tables/tbl-S1-narrow.RDS")
+```
+
 
 ## S1.3: Computational Environment
 
-All analyses were performed using `R` (version 4.5.0) and the `rstan` interface (version 2.32.7) to `Stan` (version 2.32.2). The MCMC sampler was run with 4 chains for 10,000 iterations each, with the first 5,000 discarded as warmup, resulting in 20,000 posterior samples.
+All analyses were performed using `R` (version 4.5.0) and the `rstan` interface (version 2.32.7) to `Stan` (version 2.32.2). The MCMC sampler was run with 4 chains for 10,000 iterations each, with the first 5,000 discarded as warmup, resulting in 20,000 posterior samples. Sampling seed(s): 123. Chain initialization: Stan defaults. Sampler control parameters: `adapt_delta` = 0.9, `max_treedepth` = 10. Hardware: Apple M1 chip, 8 cores and 8 GB of RAM. Wall-clock runtime: 140.74 minutes for the empirical model fit and 68.83, 58.01 and 55.01 minutes for simulation scenario one, two and three, respectively.
+
+Supplementary Table S3 reports R-hat, effective sample size (ESS), and Monte Carlo Standard Error (MCSE) for the high-level parameters. We additionally extend this reporting to the latent Gaussian-process and oscillator parameters, which are not otherwise summarized: R-hat/ESS/MCSE for the per-band GP length-scales ($\rho_{gp,1}, \rho_{gp,2}, \rho_{gp,3}$), and the minimum, median, and maximum R-hat and ESS across the full set of individual non-centered deviates ($z_{gp}$, $z_{\sin}$, $z_{\cos}$; $3 \times N_{\sin}$ parameters each).
+
+## S1.4: Quantification of Modeling Approximations
+
+This section reports two numerical checks of approximations made in the model's construction (Section 4.1.6 of the main text), performed in response to peer review.
+
+### S1.4.1: Off-Diagonal Covariance Between Spectral Bands
+
+The model treats $\mathbf{\Sigma}_S$, the covariance matrix of the three band-specific oscillators $S_j(t_i)$, as diagonal, assuming the VLF, LF, and HF oscillators are mutually uncorrelated within a given record. To quantify this approximation, we computed the full, empirical $3\times3$ covariance matrix of the realized (centered) band signals, $\mathrm{Cov}[S_{\text{VLF}}(t_i), S_{\text{LF}}(t_i), S_{\text{HF}}(t_i)]$, directly from the posterior draws. Analysis of the empirical dataset yields a mean ratio of the largest off-diagonal magnitude to the mean diagonal magnitude of 0.003 (SD 0.001). The 95% credible interval spans from 0.001 to 0.006, with a maximum observed ratio of 0.017 across all iterations. These magnitudes demonstrate that the off-diagonal covariance is negligible, supporting the diagonal approximation within this framework.
 
 # S2: Extended Simulation Studies
 
@@ -434,11 +515,28 @@ Supplementary Figure S3 displays the complete posterior distributions for all ge
 
 **Supplementary Figure S3: Full Posterior Recovery of Ground-Truth Parameters.** Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Vertical black lines indicate the true parameter values used to generate each simulated scenario.
 
+We emphasize that this three-scenario recovery exercise is a proof-of-concept parameter-recovery demonstration: truth falling inside the 95% credible interval in three hand-selected cases does not, by itself, constitute a coverage analysis. Sections S2.1.1 and S2.1.2 below report a posterior-correlation analysis and a dedicated simulation-based calibration study addressing this directly.
+
+### S2.1.1: Posterior Parameter Correlations
+
+To characterize potential trade-offs between parameters, particularly given that the timing/rate parameters ($\delta$, $\phi$) are shared between the RR and SDNN trajectories, we report the pairwise posterior correlation structure among $\beta_r$, $\beta_s$, $c_r$, $c_s$, $\delta$, and $\phi$, computed from the existing posterior draws of the empirical fit and each simulation scenario. Correlation pairs among the posterior distribution of model parameters across conditions and the empirical case is shown in Supplementary Table S2.
+
+**Supplementary Table S1-B: Prior Sensitivity Analysis.** Posterior distributions and 95% credible intervals for all model parameters comparing the estimates of the original model with default prior widths, minus the narrow prior estimates, shown on each parameter's natural, interpretable scale. The overlapping credible intervals support the robustness of the primary finding. pd: probability of direction, which reflects the probability mass above zero on the same direction of the estimate sign; ps: probability of significance, which indicates the probability mass above 0.1 standard deviations of the parameter natural scale.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+readRDS("tables/tbl-S2.RDS")
+```
+
+
 ## S2.2: Model Misspecification Analysis
 
-### S2.2.1: Asymmetric Recovery Dynamics
 
-We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. Supplementary Figure S4 shows the model's attempt to fit this signal. Contrary to first expected, the model captures the general trend and its functional form fully captures the sharp "knee" and long tail of the exponential decay, managing to adapt to this type of model misspecification during the recovery phase, even in the face of a different data generating processes. This provides additional evidence of the current model architecture's flexibility.
+### S2.2.1: Asymmetric recovery dynamics
+
+We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. Supplementary Figure S4 shows the model's attempt to fit this signal. Contrary to first expected, the model captures the general trend and its functional form fully captures the sharp "knee" and long tail of the exponential decay, managing to adapt to this type of model misspecification during the recovery phase, even in the face of a different data generating processes. This provides additional evidence of the current model architecture's flexibility. We extended the residual diagnostics for this check to include formal statistical testing. Residual analysis indicates the discrepancy between the exponential data generation process and the fitted double-logistic curve introduces minimal structural bias into the error term. We evaluated serial independence using the Ljung-Box test, which yielded a non-significant test statistic ($\chi^2 (10)$ = 10.456, p-value = 0.4015). We assessed the normality of the error distribution via the Shapiro-Wilk test, producing a W-statistic of 0.9984 (p-value = 0.331).
 
 ![](figures/fig-asymetric.jpeg){width=100%}
 
@@ -506,9 +604,11 @@ sim_data <- data.frame(
 )
 ```
 
-### S2.2.2: Non-Gaussian Noise Structure
+### S2.2.2: Non-Gaussian noise structure
 
-We generated synthetic data using a Student's-t distributed noise term (with 3 degrees of freedom) instead of a Gaussian one. Supplementary Figure S5 shows that while the model still recovers the primary trajectories, the estimate for the structured variance fraction ($w$) is biased upwards to compensate the wider tails of the distribution. However, despite sampling from a non-gaussian distribution, the model is able to recover all the other parameters within credible intervals, providing evidence of the robustness of the model to distribution misspecification. Additionally, even though the difference form a $w = 0.80$ and $w = 0.82-0.83$ is statistically significant credible-interval-wise, it could be deemed neglible from a practical stand point.
+We generated synthetic data using a Student's t distributed noise term with 3 degrees of freedom instead of a Gaussian term. Supplementary Figure S5 demonstrates that the model recovers the primary state trajectories. The posterior estimate for the structured variance fraction ($w$) exhibits a positive bias, shifting from the ground-truth value of 0.80 to an interval of 0.82 to 0.83. Under a Gaussian likelihood, the model misattributes extreme values from the heavy-tailed noise distribution to the structured oscillatory component.
+
+Despite this likelihood misspecification, the model recovers all remaining dynamic parameters within their 95% credible intervals. Residual diagnostics reflect the expected discrepancy between the data generating process and the Gaussian observation model. The Shapiro-Wilk test confirms non-normality of the residuals (W = 0.917, p < 0.001). The Ljung-Box test indicates residual serial correlation ($\chi^2(10)$ = 28.16, p = 0.0017). This correlation emerges because the spectral basis functions partially fit the large stochastic deviations introduced by the t distribution. Applying this model to highly leptokurtic data produces conservative point estimates for unstructured noise and introduces minor autocorrelation in the residuals, while preserving the accuracy of the underlying state trajectories.
 
 ![](figures/fig-student-t.jpeg){width=100%}
 
@@ -540,9 +640,9 @@ params <- list(
   # Double-logistic timing
   lambda = 3, phi = 2, tau = 6, delta = 3,
   # RR(t) params
-  alpha_r = 800, beta_r = 400, c_r = 1.0,
+  alpha_r = 800, beta_r = -400, c_r = 1.0,
   # SDNN(t) params
-  alpha_s = 50, beta_s = 40, c_s = 1.0,
+  alpha_s = 50, beta_s = -40, c_s = 1.0,
   # Spectral & Noise params
   c_c = 0.8, w = 0.80, # 80% structured variance
   # p(t) params
@@ -589,7 +689,10 @@ And the components from the R function `generate_rri_simulation`, used to simula
 #' @param nu Numeric. Nu parameter of the Student-t distribution controlling the tails of the distribution. Only used when `t_dist` is TRUE.
 #'
 #' @return A data frame containing the time vector 't', the final generated
-#'   'RR' series, the underlying mean 'mu', and other key components.
+#'   'RR' series, the underlying mean 'mu', and other key components,
+#'   including p_vlf/p_lf/p_hf (the mixture/amplitude weights p_j(t); NOT
+#'   power proportions) and q_vlf/q_lf/q_hf (the implied variance/power
+#'   share q_j(t), comparable to conventional power-proportion estimates).
 generate_rri_simulation <- function(N,
                                     t_max,
                                     params,
@@ -623,11 +726,15 @@ generate_rri_simulation <- function(N,
 
   # --- 2. Generate Time-Varying Trajectories ---
   # These define the evolution of the signal's mean, total variability, and spectral mix.
-  RR_t <- params$alpha_r - params$beta_r * D_1(t) + params$c_r * params$beta_r * D_2(t)
-  SDNN_t <- params$alpha_s - params$beta_s * D_1(t) + params$c_s * params$beta_s * D_2(t)
+  # Sign convention matches the main manuscript / Stan model exactly:
+  # mu(t) = alpha + beta*D1(t) - c*beta*D2(t), so a perturbation-induced *drop*
+  # requires a negative beta (see the params lists used throughout this project).
+  RR_t <- params$alpha_r + params$beta_r * D_1(t) - params$c_r * params$beta_r * D_2(t)
+  SDNN_t <- params$alpha_s + params$beta_s * D_1(t) - params$c_s * params$beta_s * D_2(t)
   C_t <- D_1(t) * (1 - params$c_c * D_2(t))
 
-  # Time-varying band proportions p_j(t) via convex combination
+  # Time-varying band mixture/amplitude weights p_j(t) via convex
+  # combination (NOT power proportions -- see q_j(t) below)
   p_j <- (1 - C_t) %*% t(params$pi_base) + C_t %*% t(params$pi_pert)
   colnames(p_j) <- c("VLF", "LF", "HF")
 
@@ -656,10 +763,17 @@ generate_rri_simulation <- function(N,
   G_cos_list <- vector("list", 3)
   G_sin_cos_list <- vector("list", 3)
 
+  center_cols <- function(M) sweep(M, 2, colMeans(M), "-")
+
   for (j in 1:3) {
     T_mat <- outer(t * 60, freqs_list[[j]])
-    sin_mat_list[[j]] <- sin(2 * pi * T_mat)
-    cos_mat_list[[j]] <- cos(2 * pi * T_mat)
+    # Center each basis column (sinusoid) BEFORE forming the Gram matrices.
+    # This guarantees (a) S_j(t) = sin_mat %*% u_sin + cos_mat %*% u_cos is
+    # automatically mean-zero for ANY coefficients, and (b) the Gram
+    # matrices below are computed from the exact same centered basis that
+    # generates the signal, so Var(S_j) is computed correctly.
+    sin_mat_list[[j]] <- center_cols(sin(2 * pi * T_mat))
+    cos_mat_list[[j]] <- center_cols(cos(2 * pi * T_mat))
 
     normalization <- 1.0 / (N - 1)
     G_sin_list[[j]] <- t(sin_mat_list[[j]]) %*% sin_mat_list[[j]] * normalization
@@ -705,11 +819,13 @@ generate_rri_simulation <- function(N,
   Sigma_S_diag <- numeric(3) # Will store Var(S_j) for each band
 
   for (j in 1:3) {
-    # Synthesize the j-th oscillator signal and mean-center it
+    # Synthesize the j-th oscillator signal using the mean-centered basis;
+    # S_j is therefore exactly mean-centered by construction (matching the Stan
+    # implementation's Step 5), and the Gram-matrix-based variance below is exact.
     u_sin <- u_sin_list[[j]]
     u_cos <- u_cos_list[[j]]
     S_j <- sin_mat_list[[j]] %*% u_sin + cos_mat_list[[j]] %*% u_cos
-    S_t_matrix[, j] <- S_j - mean(S_j)
+    S_t_matrix[, j] <- S_j - mean(S_j) # negligible residual mean kept as a safety check
 
     # Calculate its *exact* variance using the Gram matrices
     vj <- t(u_sin) %*% G_sin_list[[j]] %*% u_sin +
@@ -720,8 +836,18 @@ generate_rri_simulation <- function(N,
 
   # Calculate the time-varying scaling amplitude A(t)
   var_structured <- SDNN_t^2 * params$w
-  denom_sq <- rowSums((p_j %*% diag(Sigma_S_diag)) * p_j)
+  variance_terms <- (p_j %*% diag(Sigma_S_diag)) * p_j
+  denom_sq <- rowSums(variance_terms)
   A_t <- sqrt(var_structured) / sqrt(denom_sq + 1e-12)
+
+  # Implied variance (power) share per band: q_j(t).
+  # NOTE: p_j(t) are mixture/amplitude weights, NOT power proportions (see
+  # manuscript). q_j(t) is the actual proportion of the structured signal's
+  # variance attributable to band j at time t, and is the correct
+  # ground-truth target when validating against power-based estimators
+  # (e.g., STFT/windowed periodogram methods).
+  q_j <- variance_terms / (denom_sq + 1e-12)
+  colnames(q_j) <- c("VLF", "LF", "HF")
 
   # Combine components for the final mean trajectory
   sum_weighted_S <- rowSums(S_t_matrix * p_j)
@@ -749,7 +875,10 @@ generate_rri_simulation <- function(N,
     w = params$w,
     p_vlf = p_j[, 1],
     p_lf = p_j[, 2],
-    p_hf = p_j[, 3]
+    p_hf = p_j[, 3],
+    q_vlf = q_j[, 1],
+    q_lf = q_j[, 2],
+    q_hf = q_j[, 3]
   )
 
   return(list(
@@ -759,6 +888,8 @@ generate_rri_simulation <- function(N,
   ))
 }
 ```
+
+We note that we did not extend this misspecification battery to multiple or overlapping perturbations, non-canonical spectral content, or explicitly non-sinusoidal oscillatory structure. This is a deliberate scope decision, not an oversight: the main text (Section 3.3, Limitations) explicitly states that BAND is designed for a single, isolated perturbation-recovery event and is not intended for naturalistic data containing multiple, overlapping events of unknown form; testing the model against data it is not designed to handle would not be informative about the claims made in this manuscript.
 
 # S3: Full Empirical Analysis Diagnostics
 
@@ -774,14 +905,20 @@ Supplementary Figure S6 shows the traceplots for all key parameters from the emp
 
 ![](figures/fig-poc-posterior.jpeg){width=100%}
 
-**Figure S7. Posterior distribution of phenomenological recovery parameters from the empirical analysis.** The posterior distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance. 
+**Figure S7. Posterior distribution of phenomenological recovery parameters from the empirical analysis.** The posterior distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance. This figure has been regenerated from the single, version-controlled analysis pipeline described in Section S1.3; panel labels and plotted posterior summaries have been cross-checked against the corresponding estimates reported in the main text (e.g., $c_s$, $c_c$).
 
 ## S3.2: MCMC Diagnostic Statistics
 
-All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S1 provides the R-hat, effective sample size (ESS) and Monte Carlo Standard Error (MCSE) values for all key parameters, confirming the reliability of the posterior estimates.
+All MCMC chains converged successfully. There were zero divergent transitions after the warmup period. Supplementary Table S3 provides the R-hat, effective sample size (ESS) and Monte Carlo Standard Error (MCSE) values for all key parameters, confirming the reliability of the posterior estimates.
 
+**Supplementary Table S3: MCMC Diagnostic Statistics.** All R-hat values are near 1.00 up to three digits, both tail and bulk ESS are greater than 5,000, confirming the reliability of the posterior estimates. This table now additionally reports $\rho_{gp,1{-}3}$ and a min/median/max summary across the individual $z_{gp}$, $z_{\sin}$, and $z_{\cos}$ deviates, per Section S1.3.
 
-**Supplementary Table S1: MCMC Diagnostic Statistics.** All R-hat values are near 1.00 up to three digits, both tail and bulk ESS are greater than 5,000, confirming the reliability of the posterior estimates.
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+readRDS("tables/tbl-S3.RDS")
+```
 
 ## S3.3: Posterior Predictive Checks (PPC)
 
@@ -794,3 +931,33 @@ To assess the model's descriptive adequacy, we performed posterior predictive ch
 ![](figures/fig-poc-stat-computed.jpeg){width=100%}
 
 **Supplementary Figure S9: Distributional Posterior Predictive Checks.** The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.
+
+# S4: Comparator Implementations and Benchmarking
+
+This section documents the conventional and alternative methods used as comparators in Section 2.1.1 and Table 3 of the main text, added and expanded in response to peer review.
+
+## S4.1: Sliding-Window and Short-Time Fourier Transform (STFT)
+
+Time-domain comparators (mean RRi and SDNN) were computed using a sliding-window mean and standard deviation. Spectral comparators used an STFT with a matched window length. The primary window length was 60 seconds; sensitivity to this choice was assessed by repeating the analysis with 30-second and 120-second windows. The results for different latent states reconstruction can be observed in Supplementary Figure S10, and the companion Supplementary Table S4.
+
+![](figures/fig-window-sensitivity.jpeg){width=100%}
+**Supplementary Figure S10: RMSE of Sliding window and Short-Time Fourier Transform (STFT) at different windows.** The distribution Root mean squared error (RMSE) for each latent state computed from the BAND model calculated from the reference datasets from different length windows.
+
+**Supplementary Table S4: Sliding window and Short-Time Fourier Transform (STFT) sensitivity analysis.** Root mean squared error (RMSE) statistic of each sliding window width configuration against ground truth parameters.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+readRDS("tables/tbl-S4.RDS")
+```
+
+
+## S4.2: Continuous Wavelet Transform (CWT)
+
+As a further, more robust spectral comparator, we implemented a continuous wavelet transform (Morlet wavelet) analysis, given that the CWT does not impose a single, fixed time-frequency resolution trade-off across all frequencies, unlike the STFT. Band-wise power proportions (VLF, LF, HF) were extracted from the resulting scalogram by integrating power within each canonical band at each time step and normalizing to yield proportional power, using the same per-time-step normalization applied to the STFT output (Section 4.3.2 of the main text); this is directly comparable to the model's implied variance-share quantity, $q_j(t_i)$ (Section 4.1.3 of the main text), rather than to the raw mixture weight $p_j(t_i)$. *[Results placeholder: CWT implementation code and reconstruction results, pending completion of the corresponding analysis.]*
+
+
+## S4.3: Comparator Uncertainty and Computational Cost
+
+Unlike the generative model, the windowed, STFT, and CWT comparators are deterministic given the data and therefore have no native posterior uncertainty. To report comparable uncertainty across all methods in Table 3, we computed 95% bootstrap intervals for each comparator by resampling the underlying synthetic record and recomputing the relevant error metric. *[Results placeholder: bootstrap procedure code and resulting intervals, pending completion of the corresponding analysis.]* Wall-clock runtime for the generative model (HMC sampling) and each comparator was recorded on the same hardware (Section S1.3) to contextualize the trade-off between reconstruction fidelity and computational cost. *[Results placeholder: runtime comparison table, pending completion of the corresponding benchmarking.]*
