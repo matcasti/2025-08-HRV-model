@@ -57,12 +57,6 @@ for (i in 1:3) {
     hf_metrics = block_bootstrap_metrics(full_comparison_data$q_hf, full_comparison_data$p_hf_cwt_interp, n_boot = N_BOOT, seed = BOOT_SEED)
   )
 
-  # --- Visualize: spectral proportion reconstruction only (RR/SDNN are not
-  # re-estimated by CWT; those comparisons are already covered by the STFT
-  # comparator in Figure 4 / fig-windowed-method) ---
-  legend <- FALSE
-  if (i == 3) legend <- NA
-
   p_spectral <-
     full_comparison_data[, list(t, q_vlf, q_lf, q_hf,
                                 p_vlf_cwt_interp, p_lf_cwt_interp,
@@ -78,14 +72,13 @@ for (i in 1:3) {
     })() |>
     ggplot(aes(x = t, y = value, linetype = Line, color = Band)) +
     facet_grid(rows = vars(Band)) +
-    geom_line(show.legend = legend) +
+    geom_line() +
     scale_color_manual(values = c("HF" = "#0D1164", "LF" = "#640D5F", "VLF" = "#EA2264"),
                        aesthetics = c("color", "fill")) +
     scale_linetype_manual(values = c(6,1)) +
     scale_x_continuous(expand = c(0,0)) +
     scale_y_continuous(limits = 0:1, n.breaks = 5) +
-    labs(subtitle = ifelse(i == 1, "Spectral signature (CWT)", ""),
-         x = "Time (minutes)", y = "Proportion of Power", color = "Color", linetype = "Line") +
+    labs(x = "Time (minutes)", y = "Proportion of Power", color = "Color", linetype = "Line") +
     theme_classic(base_size = 12)
 
   plots[[i]] <- p_spectral
@@ -106,10 +99,13 @@ saveRDS(error_cwt_ci, file = "data/error_stats_cwt_ci.RDS")
 
 fig <- ggpubr::ggarrange(plotlist = plots,
                          ncol = 3,
+                         label.x = -0.02,
+                         font.label = list(size = 10),
+                         common.legend = TRUE,
                          align = "hv",
                          labels = c("(A)", "(B)", "(C)"))
 
 ggsave(filename = "figures/fig-cwt-method.jpeg", fig,
-       device = "jpeg", width = 9, height = 4.5, dpi = 500)
+       device = "jpeg", width = 10, height = 6, dpi = 500)
 ggsave(filename = "figures/fig-cwt-method.pdf", fig,
-       device = "pdf", width = 9, height = 4.5)
+       device = "pdf", width = 10, height = 6)

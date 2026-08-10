@@ -96,7 +96,7 @@ Comment 2: The abstract, Results, Discussion, and Conclusions must not describe 
 
 Comment 3: The manuscript reports c_s = 0.97 [0.91, 1.00]. Supplementary Figure S7 appears instead to place c_s near 1.05... The complete analysis output must be audited.
 
-- [ ] Response: We audited the entire empirical analysis and re-ran it through a single, version-controlled pipeline to eliminate manual transcription errors. We corrected Figure S7's axis/panel labels and cross-checked them against the numeric values in the text.
+- [x] Response: We audited the entire empirical analysis and re-ran it through a single, version-controlled pipeline to eliminate manual transcription errors. We corrected Figure S7's axis/panel labels and cross-checked them against the numeric values in the text.
 
 ------------------------------------------------------------------------
 

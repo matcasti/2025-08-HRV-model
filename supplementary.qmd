@@ -456,7 +456,7 @@ generated quantities {
 
 To ensure our chosen priors were reasonable and did not unduly influence the posterior, we conducted prior predictive checks. We generated 20,000 datasets directly from the prior distributions (i.e., without conditioning on the data). Supplementary Figure S1 shows that the chosen priors generate a wide range of physiologically plausible (and implausible) response curves, confirming that the model is flexible and that the subsequent posterior is primarily driven by the data, not the priors.
 
-![](figures/fig-ppcheck.jpeg){width=100%}
+![](figures/fig-ppcheck.pdf){width=100%}
 
 **Supplementary Figure S1: Prior Predictive Checks.** (A) Simulated RRi signal incorporating deterministic and stochastic components (blue). (B-C) Time-domain reconstruction from prior distributions. (D) Spectral components separated by frequency band. Each line represents the median and the shaded areas represent the 95% highest density interval from 20,000 dataset generated from the prior distribution. The wide distribution of curves demonstrates that the priors are not restrictive.
 
@@ -466,7 +466,7 @@ To assess the robustness of our conclusions, we performed a sensitivity analysis
 
 We revise our interpretation of the remaining observation below. Under markedly wider priors, the posterior distributions for the timing and rate parameters ($\tau$, $\delta$, $\lambda$, $\phi$) become multimodal. We do not interpret this as evidence that the informative priors used in the main analysis are unbiased; rather, it indicates weak *practical* identifiability of the timing and rate parameters from a single, comparatively short recording under a vague prior, and is precisely the motivation for adopting informative, event-informed priors for this class of model (Section 4.2.1 of the main text) rather than a demonstration that our chosen priors introduce no bias of their own. To make this comparison quantitative rather than a purely visual "overlapping intervals" judgment, we additionally report, for each parameter and each pair of prior specifications: (i) the shift in posterior median expressed in units of the original prior's standard deviation, and (ii) a distributional overlap coefficient (the overlapping-area statistic between the two posterior densities). All priors, including those induced on the constrained and data-derived-scaled parameters by the transformations in Section 4.2 of the main text, are shown on their natural, interpretable scales in Supplementary Figure S2, rather than only on the unconstrained (logit/log) sampling scale. Quantitative indices of prior sensitivity analysis are shown in Table S1 comparing the model estimates on their original scale against wider (Table S1-A) and narrower priors (Table S1-B).
 
-![](figures/fig-prior-sensitivity.jpeg){width=100%}
+![](figures/fig-prior-sensitivity.pdf){width=100%}
 
 **Supplementary Figure S2: Prior Sensitivity Analysis.** Posterior distributions and 95% credible intervals for all model parameters under three different prior specifications, shown on each parameter's natural, interpretable scale. The overlapping credible intervals support the robustness of the primary finding; multimodality under the widest prior specification reflects weak practical identifiability under vague priors rather than bias in the adopted (informative) priors.
 
@@ -511,7 +511,7 @@ This section provides a complete report of the simulation studies, including ful
 
 Supplementary Figure S3 displays the complete posterior distributions for all generative parameters from the three simulation scenarios described in the main text, plotted against their known ground-truth values (red vertical lines). The posteriors are well-centered on the true values, and the true values are consistently contained within the 95% credible intervals, demonstrating parameter recovery.
 
-![](figures/fig-full-recovery.jpeg){width=100%}
+![](figures/fig-full-recovery.pdf){width=100%}
 
 **Supplementary Figure S3: Full Posterior Recovery of Ground-Truth Parameters.** Posterior density plots for all model parameters across the three simulation scenarios (A, B, C). Vertical black lines indicate the true parameter values used to generate each simulated scenario.
 
@@ -521,7 +521,7 @@ We emphasize that this three-scenario recovery exercise is a proof-of-concept pa
 
 To characterize potential trade-offs between parameters, particularly given that the timing/rate parameters ($\delta$, $\phi$) are shared between the RR and SDNN trajectories, we report the pairwise posterior correlation structure among $\beta_r$, $\beta_s$, $c_r$, $c_s$, $\delta$, and $\phi$, computed from the existing posterior draws of the empirical fit and each simulation scenario. Correlation pairs among the posterior distribution of model parameters across conditions and the empirical case is shown in Supplementary Table S2.
 
-**Supplementary Table S1-B: Prior Sensitivity Analysis.** Posterior distributions and 95% credible intervals for all model parameters comparing the estimates of the original model with default prior widths, minus the narrow prior estimates, shown on each parameter's natural, interpretable scale. The overlapping credible intervals support the robustness of the primary finding. pd: probability of direction, which reflects the probability mass above zero on the same direction of the estimate sign; ps: probability of significance, which indicates the probability mass above 0.1 standard deviations of the parameter natural scale.
+**Supplementary Table S2: Posterior Parameter Correlations.** Gaussian rank correlations between model parameters within conditions: empirical case and three simulated scenarios. Data is displayed as correlation estimate and 95% confidence interval.
 
 ```{r}
 #| echo: false
@@ -530,7 +530,6 @@ To characterize potential trade-offs between parameters, particularly given that
 readRDS("tables/tbl-S2.RDS")
 ```
 
-
 ## S2.2: Model Misspecification Analysis
 
 
@@ -538,7 +537,7 @@ readRDS("tables/tbl-S2.RDS")
 
 We generated a synthetic dataset where the recovery phase followed an exponential decay (a highly asymmetric form) rather than a logistic curve. Supplementary Figure S4 shows the model's attempt to fit this signal. Contrary to first expected, the model captures the general trend and its functional form fully captures the sharp "knee" and long tail of the exponential decay, managing to adapt to this type of model misspecification during the recovery phase, even in the face of a different data generating processes. This provides additional evidence of the current model architecture's flexibility. We extended the residual diagnostics for this check to include formal statistical testing. Residual analysis indicates the discrepancy between the exponential data generation process and the fitted double-logistic curve introduces minimal structural bias into the error term. We evaluated serial independence using the Ljung-Box test, which yielded a non-significant test statistic ($\chi^2 (10)$ = 10.456, p-value = 0.4015). We assessed the normality of the error distribution via the Shapiro-Wilk test, producing a W-statistic of 0.9984 (p-value = 0.331).
 
-![](figures/fig-asymetric.jpeg){width=100%}
+![](figures/fig-asymetric.pdf){width=100%}
 
 **Supplementary Figure S4: Model Fit to Asymmetric Recovery Data.** The left panel shows the true underlying heart trajectory (blue line). Right panel shows the model's posterior trajectory (red line) and 95% highest density interval (shaded area in red) is overlaid on synthetic data with an exponential recovery with gaussian noise (grey line). 
 
@@ -610,7 +609,7 @@ We generated synthetic data using a Student's t distributed noise term with 3 de
 
 Despite this likelihood misspecification, the model recovers all remaining dynamic parameters within their 95% credible intervals. Residual diagnostics reflect the expected discrepancy between the data generating process and the Gaussian observation model. The Shapiro-Wilk test confirms non-normality of the residuals (W = 0.917, p < 0.001). The Ljung-Box test indicates residual serial correlation ($\chi^2(10)$ = 28.16, p = 0.0017). This correlation emerges because the spectral basis functions partially fit the large stochastic deviations introduced by the t distribution. Applying this model to highly leptokurtic data produces conservative point estimates for unstructured noise and introduces minor autocorrelation in the residuals, while preserving the accuracy of the underlying state trajectories.
 
-![](figures/fig-student-t.jpeg){width=100%}
+![](figures/fig-student-t.pdf){width=100%}
 
 **Supplementary Figure S5: Impact of Non-Gaussian Noise.** In the upper panel, the estimated signal recovered from posterior predictions (in red) overlaid the generated synthetic signal from a heavy-tailed Student's-t noise (in grey). Lower panel shows the posterior distribution for all model parameters when the model is fit to data with heavy-tailed Student's-t noise with 3 degrees of freedom. The ground truth parameters are well recovered except for structured variance fraction $w$.
 
@@ -899,11 +898,11 @@ This section provides a complete set of diagnostic checks for the HMC analysis o
 
 Supplementary Figure S6 shows the traceplots for all key parameters from the empirical model fit, and Figure S7 shows the posterior distribution of model parameters.
 
-![](figures/fig-poc-traceplot.jpeg){width=100%}
+![](figures/fig-poc-traceplot.pdf){width=100%}
 
 **Supplementary Figure S6: Full Traceplots for Empirical Analysis.** MCMC traceplots for four chains, showing stationary, well-mixed chains.
 
-![](figures/fig-poc-posterior.jpeg){width=100%}
+![](figures/fig-poc-posterior.pdf){width=100%}
 
 **Figure S7. Posterior distribution of phenomenological recovery parameters from the empirical analysis.** The posterior distribution for the recovered coefficients of transient changes in mean RRi, total SDNN, and spectral balance. This figure has been regenerated from the single, version-controlled analysis pipeline described in Section S1.3; panel labels and plotted posterior summaries have been cross-checked against the corresponding estimates reported in the main text (e.g., $c_s$, $c_c$).
 
@@ -924,11 +923,11 @@ readRDS("tables/tbl-S3.RDS")
 
 To assess the model's descriptive adequacy, we performed posterior predictive checks. Supplementary Figure S8 overlays the empirical RRi time series with 100 time series simulated from the fitted model's posterior predictive distribution. The simulated data closely resembles the observed data in its overall structure and variance. Furthermore, Supplementary Figure S9 shows that the distributions of key summary statistics (mean and SD) from the simulated data are well-centered on the values from the observed data, indicating an adequate model fit.
 
-![](figures/fig-poc-ppcheck.jpeg){width=100%}
+![](figures/fig-poc-ppcheck.pdf){width=100%}
 
 **Supplementary Figure S8: Graphical Posterior Predictive Check.** The observed RRi data (dark line) is shown with 100 replicated datasets (faint blue lines) generated from the fitted model.
 
-![](figures/fig-poc-stat-computed.jpeg){width=100%}
+![](figures/fig-poc-stat-computed.pdf){width=100%}
 
 **Supplementary Figure S9: Distributional Posterior Predictive Checks.** The distribution for two summary statistics calculated from the replicated datasets. The vertical and horizontal white line shows the value of the statistic from the actual observed data, meanwhile the 2-dimensional filled density highlight the distribution of summary statistics from the predicted RRi signal.
 
@@ -940,7 +939,8 @@ This section documents the conventional and alternative methods used as comparat
 
 Time-domain comparators (mean RRi and SDNN) were computed using a sliding-window mean and standard deviation. Spectral comparators used an STFT with a matched window length. The primary window length was 60 seconds; sensitivity to this choice was assessed by repeating the analysis with 30-second and 120-second windows. The results for different latent states reconstruction can be observed in Supplementary Figure S10, and the companion Supplementary Table S4.
 
-![](figures/fig-window-sensitivity.jpeg){width=100%}
+![](figures/fig-window-sensitivity.pdf){width=100%}
+
 **Supplementary Figure S10: RMSE of Sliding window and Short-Time Fourier Transform (STFT) at different windows.** The distribution Root mean squared error (RMSE) for each latent state computed from the BAND model calculated from the reference datasets from different length windows.
 
 **Supplementary Table S4: Sliding window and Short-Time Fourier Transform (STFT) sensitivity analysis.** Root mean squared error (RMSE) statistic of each sliding window width configuration against ground truth parameters.
@@ -955,9 +955,8 @@ readRDS("tables/tbl-S4.RDS")
 
 ## S4.2: Continuous Wavelet Transform (CWT)
 
-As a further, more robust spectral comparator, we implemented a continuous wavelet transform (Morlet wavelet) analysis, given that the CWT does not impose a single, fixed time-frequency resolution trade-off across all frequencies, unlike the STFT. Band-wise power proportions (VLF, LF, HF) were extracted from the resulting scalogram by integrating power within each canonical band at each time step and normalizing to yield proportional power, using the same per-time-step normalization applied to the STFT output (Section 4.3.2 of the main text); this is directly comparable to the model's implied variance-share quantity, $q_j(t_i)$ (Section 4.1.3 of the main text), rather than to the raw mixture weight $p_j(t_i)$. *[Results placeholder: CWT implementation code and reconstruction results, pending completion of the corresponding analysis.]*
+As a further, more robust spectral comparator, we implemented a continuous wavelet transform (Morlet wavelet) analysis, given that the CWT does not impose a single, fixed time-frequency resolution trade-off across all frequencies, unlike the STFT. Band-wise power proportions (VLF, LF, HF) were extracted from the resulting scalogram by integrating power within each canonical band at each time step and normalizing to yield proportional power, using the same per-time-step normalization applied to the STFT output (Section 4.3.2 of the main text); this is directly comparable to the model's implied variance-share quantity, $q_j(t_i)$ (Section 4.1.3 of the main text), rather than to the raw mixture weight $p_j(t_i)$. The CWT method comparison against the ground truth can be observed in Supplementary Figure S11.
 
+![](figures/fig-cwt-method.pdf){width=100%}
 
-## S4.3: Comparator Uncertainty and Computational Cost
-
-Unlike the generative model, the windowed, STFT, and CWT comparators are deterministic given the data and therefore have no native posterior uncertainty. To report comparable uncertainty across all methods in Table 3, we computed 95% bootstrap intervals for each comparator by resampling the underlying synthetic record and recomputing the relevant error metric. *[Results placeholder: bootstrap procedure code and resulting intervals, pending completion of the corresponding analysis.]* Wall-clock runtime for the generative model (HMC sampling) and each comparator was recorded on the same hardware (Section S1.3) to contextualize the trade-off between reconstruction fidelity and computational cost. *[Results placeholder: runtime comparison table, pending completion of the corresponding benchmarking.]*
+**Supplementary Figure S11: Temporal reconstruction of spectral trajectories from Continuous Wavelet Transform (CWT).** Band-wise power proportions (VLF, LF, HF) were extracted from the resulting scalogram by integrating power within each canonical band at each time step and normalizing to yield proportional power.

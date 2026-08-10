@@ -86,6 +86,13 @@ posterior <- extract(model_fit, pars = c(
 
 posterior[, row_id := seq_len(length.out = .N)]
 
+
+# -------------------------------------------------------------------------
+
+posterior
+
+# -------------------------------------------------------------------------
+
 ## Posterior predictive checks with 1000 random draws
 spectral_data <- posterior[j = generate_rri_simulation(N = length(poc_data$time),
   t_max = max(poc_data$time),

@@ -1,4 +1,3 @@
-
 # -------------------------------------------------------------------------
 # Prepare workspace -------------------------------------------------------
 # -------------------------------------------------------------------------
@@ -50,22 +49,19 @@ for (i in 1:3) {
                                              "pi_pert1","pi_pert2","pi_pert3")] |>
     round(digits = 2) |>
     format(digits = 2, nsmall = 2, scientific = FALSE)
+
+  tables[[i]]$Parameter <- c("$\\lambda$", "$\\phi$", "$\\tau$", "$\\delta$", "$\\alpha_r$", "$\\beta_r$", "$c_r$",
+                             "$\\alpha_s$", "$\\beta_s$", "$c_s$", "$c_c$", "$w$",
+                             "$\\vec{\\pi}_{base}$ [VLF]", "$\\vec{\\pi}_{base}$ [LF]", "$\\vec{\\pi}_{base}$ [HF]",
+                             "$\\vec{\\pi}_{pert}$ [VLF]", "$\\vec{\\pi}_{pert}$ [LF]", "$\\vec{\\pi}_{pert}$ [HF]")
+
+  data.table::setcolorder(tables[[i]], c("Parameter", "Truth", "Estimate", "95% HDI"))
+
+  scenario_letter <- LETTERS[i]
+
+  knitr::kable(tables[[i]], align = "l") |>
+    saveRDS(file = paste0("tables/tbl-2", scenario_letter, ".RDS"))
 }
-
-tbl_model <- lapply(tables, function(x) {
-  x$Parameter <- c("$\\lambda$", "$\\phi$", "$\\tau$", "$\\delta$", "$\\alpha_r$",
-                   "$\\beta_r$", "$c_r$", "$\\alpha_s$", "$\\beta_s$", "$c_s$",
-                   "$c_c$", "$w$",
-                   "$\\vec{\\pi}_{base}$ [VLF]", "$\\vec{\\pi}_{base}$ [LF]", "$\\vec{\\pi}_{base}$ [HF]",
-                   "$\\vec{\\pi}_{pert}$ [VLF]", "$\\vec{\\pi}_{pert}$ [LF]", "$\\vec{\\pi}_{pert}$ [HF]")
-  knitr::kable(x)
-})
-
-
-
-saveRDS(tbl_model[[1]], file = "tables/tbl-2a.RDS")
-saveRDS(tbl_model[[2]], file = "tables/tbl-2b.RDS")
-saveRDS(tbl_model[[3]], file = "tables/tbl-2c.RDS")
 
 # -------------------------------------------------------------------------
 # Extract model posterior distribution ------------------------------------
@@ -123,15 +119,35 @@ if(!file.exists("data/error_statistics.RDS")) {
   error_statistics <- readRDS(file = "data/error_statistics.RDS")
 }
 
-error_classic <- readRDS("data/error_stats_classic.RDS")[, Estimate := round(Estimate, 2)][]
+error_classic <- readRDS("data/error_stats_classic_ci.RDS")
+setnames(error_classic, old = "Value", new = "Estimate")
+error_classic[, `:=`(
+  Estimate = round(Estimate, 2) |> format(nsmall = 2, digits = 2),
+  CI_low = round(CI_low, 2) |> format(nsmall = 2, digits = 2),
+  CI_high = round(CI_high, 2) |> format(nsmall = 2, digits = 2)
+)]
+
+error_cwt <- readRDS("data/error_stats_cwt_ci.RDS")
+setnames(error_cwt, old = "Value", new = "Estimate")
+error_cwt[, `:=`(
+  Estimate = round(Estimate, 2) |> format(nsmall = 2, digits = 2),
+  CI_low = round(CI_low, 2) |> format(nsmall = 2, digits = 2),
+  CI_high = round(CI_high, 2) |> format(nsmall = 2, digits = 2)
+)]
 
 error_statistics <- rbindlist(error_statistics, idcol = "Scenario")
 
 tbl_metrics <- list(Model = error_statistics,
-     Classic = error_classic) |>
+                    Classic = error_classic,
+                    CWT = error_cwt) |>
   rbindlist(idcol = "Method", fill = TRUE)
 
 tbl_metrics[, Estimate := fifelse(is.na(CI_low), Estimate, paste0(Estimate, " [", CI_low, ", ", CI_high, "]"))]
+
+# Explicit factor level order so dcast's resulting column order is
+# deterministic (Classic, then CWT, then Model), rather than relying on
+# alphabetical sorting of the raw "Method" strings.
+tbl_metrics[, Method := factor(Method, levels = c("Classic", "CWT", "Model"))]
 
 tbl_metrics <- tbl_metrics |>
   dcast.data.table(
@@ -139,36 +155,25 @@ tbl_metrics <- tbl_metrics |>
     value.var = "Estimate", fill = NA
   )
 
+# CWT has no RR/SDNN reconstruction (it only estimates spectral proportions),
+# so those rows are legitimately blank under the CWT columns; render as an
+# em-dash rather than a bare NA.
+cwt_cols <- grep("^CWT_", names(tbl_metrics), value = TRUE)
+tbl_metrics[, (cwt_cols) := lapply(.SD, function(x) fifelse(is.na(x), "\u2014", x)), .SDcols = cwt_cols]
+
 tbl_metrics[, Domain := factor(Domain,
-                     levels = c("rr_metrics", "sdnn_metrics", "hf_metrics", "lf_metrics", "vlf_metrics"),
-                     labels = c("$\\mathrm{RR}(t_i)$", "$\\sigma_{total}(t_i)$", "$\\mathrm{HF}(t_i)$", "$\\mathrm{LF}(t_i)$", "$\\mathrm{VLF}(t_i)$"))]
+                               levels = c("rr_metrics", "sdnn_metrics", "hf_metrics", "lf_metrics", "vlf_metrics"),
+                               labels = c("$\\mathrm{RR}(t_i)$", "$\\sigma_{total}(t_i)$", "$\\mathrm{HF}(t_i)$", "$\\mathrm{LF}(t_i)$", "$\\mathrm{VLF}(t_i)$"))]
 
 tbl_metrics <- tbl_metrics[, .SD, keyby = Domain]
 
-gt(tbl_metrics[][, Domain := as.character(Domain)][],
-   groupname_col = "Domain",
-   row_group_as_column = T,
-   auto_align = FALSE,
-   process_md = TRUE) |>
-  fmt_markdown() |>
-  cols_label(
-    Metric = md("**Metric**"),
-    Classic_1 = md("**(A)**"),
-    Classic_2 = md("**(B)**"),
-    Classic_3 = md("**(C)**"),
-    Model_1 = md("**(A)**"),
-    Model_2 = md("**(B)**"),
-    Model_3 = md("**(C)**")
-  ) |>
-  gt::tab_spanner(label = md("**Windowed Methods**"), columns = 3:5) |>
-  gt::tab_spanner(label = md("**Generative Model**"), columns = 6:8) |>
-  opt_stylize(style = 5) |>
-  tab_style(style = cell_text(size = "small"),
-            locations = list(cells_body(),
-                             cells_column_labels(),
-                             cells_column_spanners())) |>
-  tab_style(style = cell_text(weight = "bold"), locations = cells_body(columns = 2)) |>
-  saveRDS(file = "tables/tbl-3.RDS")
+names(tbl_metrics) <- c("Domain", "Metric", "SW (A)", "SW (B)", "SW (C)",
+                        "CWT (A)", "CWT (B)", "CWT (C)", "Model (A)", "Model (B)", "Model (C)")
+
+knitr::kable(tbl_metrics[, c(1,2,3:8)], align = "l") |>
+  saveRDS(file = "tables/tbl-3A.RDS")
+knitr::kable(tbl_metrics[, c(1,2,9:11)], align = "l") |>
+  saveRDS(file = "tables/tbl-3B.RDS")
 
 # -------------------------------------------------------------------------
 # Compute predicted RRi curve ---------------------------------------------
@@ -310,4 +315,3 @@ ggsave(filename = "figures/fig-model-method.jpeg", fig,
        device = "jpeg", width = 9, height = 9, dpi = 500)
 ggsave(filename = "figures/fig-model-method.pdf", fig,
        device = "pdf", width = 9, height = 9)
-

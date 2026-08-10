@@ -11,15 +11,13 @@
 #   1. Source the data generator script to create a synthetic dataset for a
 #      chosen scenario.
 #   2. Perform a sliding-window analysis to estimate time-domain metrics
-#      (mean RR and SDNN).
-#   3. Perform a Short-Time Fourier Transform (STFT) analysis to estimate
-#      spectral power proportions (VLF, LF, HF).
-#   4. Align the stepwise, windowed results with the continuous ground-truth
-#      trajectories via interpolation.
-#   5. Calculate performance metrics (RMSE and R-squared) to quantify the
-#      accuracy of the conventional methods.
-#   6. Generate plots to visually compare the reconstructions from the
-#      windowed methods against the ground truth.
+#      (mean RR and SDNN) and an STFT analysis for spectral power proportions
+#      (VLF, LF, HF), via the shared run_classic_comparison() helper.
+#   3. Compute 95% block-bootstrap confidence intervals for each metric, so
+#      that the windowed/STFT comparators carry uncertainty comparable to the
+#      generative model's posterior credible intervals in Table 3.
+#   4. Generate plots comparing the reconstructions from the windowed methods
+#      against the ground truth.
 #
 # Author: Matías Castillo-Aguilar
 # ---
@@ -38,9 +36,11 @@ metrics <- vector("list", 3)
 plots <- vector("list", 3)
 
 # Define parameters for the conventional analysis
-WINDOW_SECONDS <- 60 # 2-minute window is common
+WINDOW_SECONDS <- 60 # primary comparator window (see S10 for a 30/120s sensitivity check)
 OVERLAP_PERC <- 0.99  # 99% overlap for smoother estimates
 SAMPLING_RATE_HZ <- 2
+N_BOOT <- 2000
+BOOT_SEED <- 2025
 
 for (i in 1:3) {
 
@@ -48,48 +48,24 @@ for (i in 1:3) {
   sim_data <- simulated_data[[i]]$data
 
   # --- B. Run Conventional Analyses ---
-
-  # Time-domain analysis
-  time_domain_results <- perform_sliding_window_analysis(
-    data = sim_data,
-    window_sec = WINDOW_SECONDS,
+  comparison <- run_classic_comparison(
+    sim_data_i = sim_data,
+    window_seconds = WINDOW_SECONDS,
     overlap_perc = OVERLAP_PERC,
-    sampling_rate = SAMPLING_RATE_HZ
+    sampling_rate_hz = SAMPLING_RATE_HZ
   )
 
-  # Spectral analysis
-  spectral_results <- get_moving_hrv_proportions(
-    rr_ms = sim_data$RR,
-    rr_times_s = sim_data$t * 60,
-    window_size_s = WINDOW_SECONDS,
-    step_size_s = 1
-  )
+  full_comparison_data <- comparison$estimates
+  metrics[[i]]$estimates <- full_comparison_data
+  metrics[[i]]$statistics <- comparison$statistics
 
-  # Interpolate the sparse windowed results to the original high-resolution time vector
-  # This allows for a direct, point-by-point comparison with the ground truth
-  aligned_results <- data.table(
-    t = sim_data$t,
-    RR_windowed_interp = approx(time_domain_results$time, time_domain_results$RR_windowed, xout = sim_data$t, rule = 2)$y,
-    SDNN_windowed_interp = approx(time_domain_results$time, time_domain_results$SDNN_windowed, xout = sim_data$t, rule = 2)$y,
-    p_vlf_stft_interp = approx(spectral_results$time/60, spectral_results$vlf, xout = sim_data$t, rule = 2)$y,
-    p_lf_stft_interp = approx(spectral_results$time/60, spectral_results$lf, xout = sim_data$t, rule = 2)$y,
-    p_hf_stft_interp = approx(spectral_results$time/60, spectral_results$hf, xout = sim_data$t, rule = 2)$y
-  )
-
-  # Join ground truth with aligned estimates
-  metrics[[i]]$estimates <- full_comparison_data <- sim_data[aligned_results, on = "t"]
-
-  # Calculate metrics
-  # NOTE: STFT/windowed periodogram methods estimate power proportions, so
-  # they must be validated against q_j(t) (the implied variance/power
-  # share), NOT p_j(t) (which are mixture/amplitude weights and are not
-  # the same quantity as a periodogram-based power proportion).
-  metrics[[i]]$statistics <- list(
-    rr_metrics = calculate_metrics(full_comparison_data$RR_baseline, full_comparison_data$RR_windowed_interp),
-    sdnn_metrics = calculate_metrics(full_comparison_data$SDNN_t, full_comparison_data$SDNN_windowed_interp),
-    vlf_metrics = calculate_metrics(full_comparison_data$q_vlf, full_comparison_data$p_vlf_stft_interp),
-    lf_metrics = calculate_metrics(full_comparison_data$q_lf, full_comparison_data$p_lf_stft_interp),
-    hf_metrics = calculate_metrics(full_comparison_data$q_hf, full_comparison_data$p_hf_stft_interp)
+  # --- C. Block-bootstrap 95% CIs for each metric (Table 3 uncertainty) ---
+  metrics[[i]]$bootstrap <- list(
+    rr_metrics = block_bootstrap_metrics(full_comparison_data$RR_baseline, full_comparison_data$RR_windowed_interp, n_boot = N_BOOT, seed = BOOT_SEED),
+    sdnn_metrics = block_bootstrap_metrics(full_comparison_data$SDNN_t, full_comparison_data$SDNN_windowed_interp, n_boot = N_BOOT, seed = BOOT_SEED),
+    vlf_metrics = block_bootstrap_metrics(full_comparison_data$q_vlf, full_comparison_data$p_vlf_stft_interp, n_boot = N_BOOT, seed = BOOT_SEED),
+    lf_metrics = block_bootstrap_metrics(full_comparison_data$q_lf, full_comparison_data$p_lf_stft_interp, n_boot = N_BOOT, seed = BOOT_SEED),
+    hf_metrics = block_bootstrap_metrics(full_comparison_data$q_hf, full_comparison_data$p_hf_stft_interp, n_boot = N_BOOT, seed = BOOT_SEED)
   )
 
   # --- D. Visualize Comparison ---
@@ -152,13 +128,20 @@ for (i in 1:3) {
   plots[[i]] <- plot_grid(p_rr, p_sdnn, p_spectral, ncol = 1, rel_heights = c(0.6,0.6,1), align = "hv", axis = "l")
 }
 
+# Point-estimate table (unchanged structure/filename, for backward compatibility
+# with any code reading this file directly)
 error_classic <- lapply(1:3, function(i) {
   metrics[[i]]$statistics |> rbindlist(idcol = "Domain")
 }) |> rbindlist(idcol = "Scenario")
-
 names(error_classic) <- c("Scenario", "Domain", "Metric", "Estimate")
-
 saveRDS(error_classic, file = "data/error_stats_classic.RDS")
+
+# Point estimate + 95% block-bootstrap CI table (used by 4-model_metrics.R to
+# assemble Table 3 with uncertainty comparable across all comparator methods)
+error_classic_ci <- lapply(1:3, function(i) {
+  metrics[[i]]$bootstrap |> rbindlist(idcol = "Domain")
+}) |> rbindlist(idcol = "Scenario")
+saveRDS(error_classic_ci, file = "data/error_stats_classic_ci.RDS")
 
 fig <- ggpubr::ggarrange(plotlist = plots,
                          ncol = 3,
