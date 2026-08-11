@@ -55,15 +55,40 @@ transformed data {
   // --- Precompute sine and cosine basis function templates ---
   array[3] matrix[N, N_sin] sin_mat;
   array[3] matrix[N, N_sin] cos_mat;
+
+  // Precomputed reciprocal of N, used to center each basis column (subtract
+  // its mean) below.
+  real inv_N = 1.0 / N;
+
   for (j in 1:3) {
     matrix[N, N_sin] T_mat = (t * 60) * freqs[j]';
-    sin_mat[j] = sin(2 * pi() * T_mat);
-    cos_mat[j] = cos(2 * pi() * T_mat);
+    matrix[N, N_sin] sin_raw = sin(2 * pi() * T_mat);
+    matrix[N, N_sin] cos_raw = cos(2 * pi() * T_mat);
+
+    // Center each basis column (sinusoid) BEFORE forming the Gram matrices
+    // below -- see rri_model.stan for the full rationale. Previously the
+    // Gram matrices here were built from the uncentered basis while
+    // S_t_matrix was mean-centered afterward, a mismatch.
+    row_vector[N_sin] sin_col_means = (rep_row_vector(1.0, N) * sin_raw) * inv_N;
+    row_vector[N_sin] cos_col_means = (rep_row_vector(1.0, N) * cos_raw) * inv_N;
+    sin_mat[j] = sin_raw - rep_matrix(sin_col_means, N);
+    cos_mat[j] = cos_raw - rep_matrix(cos_col_means, N);
   }
 
   // --- Precompute log-frequencies ---
+  // Matches rri_model.stan exactly: the GP operates on the min-max-scaled
+  // log-frequency axis (log_freqs_scaled), not the raw log-frequencies, so
+  // that rho_gp's length-scale is scale-agnostic across bands. Previously
+  // this file passed the raw (unscaled) log_freqs into gp_exp_quad_cov,
+  // which does not correspond to the same prior as the fitting model.
   array[3] vector[N_sin] log_freqs;
-  for (j in 1:3) log_freqs[j] = log(freqs[j]);
+  array[3] vector[N_sin] log_freqs_scaled;
+  array[3] real log_range;
+  for (j in 1:3) {
+    log_freqs[j] = log(freqs[j]);
+    log_range[j] = max(log_freqs[j]) - min(log_freqs[j]);
+    log_freqs_scaled[j] = (log_freqs[j] - min(log_freqs[j])) / log_range[j];
+  }
 
   // --- Precompute per-band Gram matrices ---
   array[3] matrix[N_sin, N_sin] G_sin;
@@ -95,8 +120,7 @@ parameters {
   vector[2] y_base_log;
   vector[2] y_pert_log;
   real c_c_logit;
-  array[3] real<lower=0> alpha_gp;
-  array[3] real<lower=0> rho_gp;
+  array[3] real rho_gp_logit;
   array[3] vector[N_sin] z_gp;
   array[3] vector[N_sin] z_sin;
   array[3] vector[N_sin] z_cos;
@@ -132,8 +156,7 @@ model {
   y_pert_log ~ normal([0, 0]', 2);
   c_c_logit ~ normal(1, 2);
 
-  alpha_gp ~ normal(0, 0.5) T[0, ];
-  rho_gp   ~ lognormal(0, 0.5);
+  rho_gp_logit ~ normal(0, 1);
 
   for (j in 1:3) {
     z_gp[j] ~ std_normal();
@@ -172,6 +195,11 @@ generated quantities {
   real c_c = inv_logit(c_c_logit);
   real w   = inv_logit(w_logit);
 
+  array[3] real rho_gp;
+  for (j in 1:3) {
+    rho_gp[j] = inv_logit(rho_gp_logit[j]);
+  }
+
   // --- 1. Construct the two logistic building blocks ---
   vector[N] D1 = logistic_curve(t, tau, lambda);
   vector[N] D2 = logistic_curve(t, tau + delta, phi);
@@ -192,8 +220,8 @@ generated quantities {
   array[3] vector[N_sin] log_v;
   for (j in 1:3) {
     matrix[N_sin, N_sin] K =
-      gp_exp_quad_cov(to_array_1d(log_freqs[j]), alpha_gp[j], rho_gp[j])
-      + diag_matrix(rep_vector(1e-8 * square(alpha_gp[j]) + 1e-12, N_sin));
+      gp_exp_quad_cov(to_array_1d(log_freqs_scaled[j]), 1, rho_gp[j])
+      + diag_matrix(rep_vector(1e-8, N_sin));
     matrix[N_sin, N_sin] L = cholesky_decompose(K);
     log_v[j] = L * z_gp[j];
     vector[N_sin] a_k = exp(log_v[j]);
@@ -216,7 +244,7 @@ generated quantities {
   for (j in 1:3) {
     real vj = dot_product(u_sin[j], G_sin[j] * u_sin[j])
               + dot_product(u_cos[j], G_cos[j] * u_cos[j])
-              + 2 * dot_product(u_sin[j], G_sin_cos[j] * u_sin[j]);
+              + 2 * dot_product(u_sin[j], G_sin_cos[j] * u_cos[j]);
     Sigma_S[j, j] = vj;
   }
 
